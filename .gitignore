@@ -1,0 +1,19 @@
+# For React Frontend
+node_modules/
+build/
+public/
+package-lock.json
+yarn.lock
+.DS_Store
+.env
+
+
+# For ASP.NET Core Backend
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.sln.docstates
+*.suo
+appsettings.Development.json
