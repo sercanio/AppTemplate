@@ -4,3 +4,6 @@
 [submodule "modules/cms"]
 	path = modules/cms
 	url = https://github.com/sercanio/Myrtus.Clarity.Module.CMS.git
+[submodule "WebUI"]
+	path = WebUI
+	url = https://github.com/sercanio/Myrtus.Clarity.WebUI.git

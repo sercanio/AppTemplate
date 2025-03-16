@@ -1,0 +1,37 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center gap-3" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            @User.Identity?.Name
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item d-flex gap-3" asp-area="identity" asp-page="/account/manage/index">
+                    <i class="bi bi-person-circle"></i> 
+                    <span>Profile</span>
+                </a>
+            </li>
+            @await Html.PartialAsync("_ThemeTogglePartial")
+            <li>
+                <form class="form-inline" asp-area="identity" asp-page="/account/logout"
+                      asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="dropdown-item text-danger d-flex gap-3">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+}
+else
+{
+    <li class="nav-item">
+        <a class="nav-link" asp-area="identity" asp-page="/account/login">Login</a>
+    </li>
+    @await Html.PartialAsync("_ThemeTogglePartial")
+}

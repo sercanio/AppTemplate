@@ -1,0 +1,22 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+<li class="nav-item">
+    <button type="button" id="themeToggle" class="dropdown-item">
+        <span class="theme-icon-light gap-3">
+            <i class="bi bi-sun-fill"></i>
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <span>Light</span>
+            }
+        </span>
+        <span class="theme-icon-dark gap-3">
+            <i class="bi bi-moon-fill"></i>
+            @if (SignInManager.IsSignedIn(User))
+            {
+                <span>Dark</span>
+            }
+        </span>
+    </button>
+</li>
+
