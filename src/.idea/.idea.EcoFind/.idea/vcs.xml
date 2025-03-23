@@ -3,7 +3,9 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../WebUI" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../core" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../EcoFind/WebUI" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../EcoFind/core" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../EcoFind/modules/cms" vcs="Git" />
   </component>
 </project>

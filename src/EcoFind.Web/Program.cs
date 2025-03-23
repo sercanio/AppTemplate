@@ -13,6 +13,9 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
 using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.Infrastructure.SignalR.Hubs;
+using Myrtus.Clarity.Core.Application.Abstractions.Module;
+using System.Reflection;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -23,7 +26,7 @@ var builder = WebApplication.CreateBuilder(args);
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 // Configure Identity and roles.
-builder.Services.AddDefaultIdentity<IdentityUser>(options => 
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -110,11 +113,9 @@ builder.Services.AddRateLimiter(options =>
 if (builder.Environment.IsDevelopment())
 {
     // In development, use relaxed settings.
-    // Use SameSite = Lax for antiforgery cookies to avoid HTTPS issues over HTTP.
     builder.Services.ConfigureApplicationCookie(options =>
     {
         options.Cookie.Name = "EcoFindAuthCookie";
-        // You can set this to Lax so it works over HTTP.
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Events.OnRedirectToLogin = context =>
@@ -168,7 +169,7 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddAntiforgery(options =>
     {
         options.Cookie.Name = "EcoFind.AntiForgery";
-        options.Cookie.SameSite = SameSiteMode.Lax; // Use Lax for development over HTTP.
+        options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.HeaderName = "X-XSRF-TOKEN";
     });
@@ -178,7 +179,7 @@ if (builder.Environment.IsDevelopment())
     {
         throw new ArgumentNullException();
     }
-    
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("CorsPolicy", policy =>
@@ -260,7 +261,7 @@ else
     {
         throw new ArgumentNullException();
     }
-    
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("CorsPolicy", policy =>
@@ -279,6 +280,65 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+//
+// --- Begin Dynamic Module Loading Integration ---
+//
+
+// Determine the modules folder path. Adjust the relative path as needed.
+var modulesPath = builder.Environment.IsDevelopment()
+    ? Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", "modules"))
+    : Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "modules"));
+
+var moduleInstances = new List<IClarityModule>();
+
+if (Directory.Exists(modulesPath))
+{
+    // Look for DLLs (excluding obj and ref folders)
+    var moduleFiles = Directory.GetFiles(modulesPath, "*.dll", SearchOption.AllDirectories)
+        .Where(file => !file.Contains("\\obj\\") && !file.Contains("\\ref\\"));
+
+    foreach (var moduleFile in moduleFiles)
+    {
+        Console.WriteLine($"Loading module: {moduleFile}");
+        try
+        {
+            var assembly = Assembly.LoadFrom(moduleFile);
+
+            // Add controllers from the module into the MVC pipeline.
+            builder.Services.AddControllers().AddApplicationPart(assembly).AddControllersAsServices();
+
+            // Find all types that implement IClarityModule (and are concrete classes).
+            var moduleTypes = assembly.GetTypes()
+                .Where(t => typeof(IClarityModule).IsAssignableFrom(t)
+                            && !t.IsInterface && !t.IsAbstract);
+
+            // Instantiate each module and allow it to register its own services.
+            foreach (var type in moduleTypes)
+            {
+                var moduleInstance = (IClarityModule)Activator.CreateInstance(type)!;
+                moduleInstance.ConfigureServices(builder.Services, builder.Configuration);
+                moduleInstances.Add(moduleInstance);
+            }
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            Console.WriteLine($"Error loading module {moduleFile}: {ex.LoaderExceptions.FirstOrDefault()?.Message}");
+            foreach (var loaderException in ex.LoaderExceptions)
+            {
+                Console.WriteLine($"Loader Exception: {loaderException.Message}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading module {moduleFile}: {ex.Message}");
+        }
+    }
+}
+
+//
+// --- End Dynamic Module Loading Integration ---
+//
 
 var app = builder.Build();
 
@@ -316,5 +376,13 @@ app.MapRazorPages()
 
 app.MapHub<AuditLogHub>("/auditLogHub");
 app.MapHub<NotificationHub>("/notificationHub");
+
+//
+// --- Invoke Module Configuration ---
+// After building the app, allow each loaded module to configure middleware and endpoints.
+foreach (var moduleInstance in moduleInstances)
+{
+    moduleInstance.Configure(app);
+}
 
 app.Run();
