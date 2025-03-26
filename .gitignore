@@ -17,3 +17,4 @@ obj/
 *.sln.docstates
 *.suo
 appsettings.Development.json
+/containers
