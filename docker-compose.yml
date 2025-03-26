@@ -50,3 +50,7 @@ services:
       - "5000:5000"
     volumes:
       - ./usersecrets:/app/.microsoft/usersecrets:ro
+
+volumes: 
+  AppTemplate-db-data:
+  AppTemplate-mongodb-data:
