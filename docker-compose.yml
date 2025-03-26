@@ -1,0 +1,52 @@
+services:
+  AppTemplate-db:
+    image: postgres:latest
+    container_name: AppTemplate.Db
+    environment:
+      POSTGRES_DB: MyrtusDB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./containers/database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  AppTemplate-mongodb:
+    image: mongo:latest
+    container_name: AppTemplate.MongoDb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+    volumes:
+      - ./containers/mongodb:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "-u", "mongo", "-p", "mongo", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  AppTemplate-web:
+    image: ${DOCKER_REGISTRY-}apptemplateweb
+    container_name: AppTemplate.Web
+    build:
+      context: .
+      dockerfile: src/AppTemplate.Web/Dockerfile
+    depends_on:
+      AppTemplate-db:
+        condition: service_healthy
+      AppTemplate-mongodb:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: "http://+:5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./usersecrets:/app/.microsoft/usersecrets:ro
