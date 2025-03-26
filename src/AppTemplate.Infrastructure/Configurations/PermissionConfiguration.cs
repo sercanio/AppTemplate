@@ -8,17 +8,13 @@ internal sealed class PermissionConfiguration : IEntityTypeConfiguration<Permiss
 {
     public void Configure(EntityTypeBuilder<Permission> builder)
     {
-        // Table Name
-        builder.ToTable("permissions");
+        builder.ToTable("Permissions");
 
-        // Primary Key
         builder.HasKey(p => p.Id);
 
-        // Column Mappings
         builder.Property(p => p.Feature).HasColumnName("feature").IsRequired();
         builder.Property(p => p.Name).HasColumnName("name").IsRequired();
 
-        // Data Seeds
         builder.HasData(
             Permission.UsersRead,
             Permission.UsersCreate,

@@ -10,10 +10,9 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
 {
     public void Configure(EntityTypeBuilder<Role> builder)
     {
-        builder.ToTable("roles");
+        builder.ToTable("Roles");
         builder.HasKey(r => r.Id);
 
-        // Use a value converter for RoleName
         builder.Property(r => r.Name)
             .HasConversion(
                 roleName => roleName.Value,
@@ -21,7 +20,6 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
             .HasColumnName("name")
             .IsRequired();
 
-        // Use a value converter for RoleDefaultFlag
         builder.Property(r => r.IsDefault)
             .HasConversion(
                 flag => flag.Value,
@@ -29,7 +27,6 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
             .HasColumnName("is_default")
             .IsRequired();
 
-        // Data seeding for roles (example)
         builder.HasData(
             new
             {
@@ -49,28 +46,26 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
             }
         );
 
-        // Configure Many-to-Many Relationship with Permissions
         builder
             .HasMany(r => r.Permissions)
             .WithMany(p => p.Roles)
             .UsingEntity<Dictionary<string, object>>(
-                "role_permission",
-                rp => rp
-                    .HasOne<Permission>()
-                    .WithMany()
-                    .HasForeignKey("PermissionId")
-                    .HasConstraintName("FK_role_permission_permissions_PermissionId"),
-                rp => rp
-                    .HasOne<Role>()
-                    .WithMany()
-                    .HasForeignKey("RoleId")
-                    .HasConstraintName("FK_role_permission_roles_RoleId"),
-                rp =>
-                {
-                    rp.HasKey("RoleId", "PermissionId");
+                "RolePermission",
+                    rp => rp
+                        .HasOne<Permission>()
+                        .WithMany()
+                        .HasForeignKey("PermissionId")
+                        .HasConstraintName("FK_RolePermission_Permissions_PermissionId"),
+                    rp => rp
+                        .HasOne<Role>()
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .HasConstraintName("FK_RolePermission_Roles_RoleId"),
+                    rp =>
+                    {
+                        rp.HasKey("RoleId", "PermissionId");
 
-                    // Add AdminRole <-> All Permissions
-                    rp.HasData(
+                        rp.HasData(
                         new { RoleId = Role.Admin.Id, PermissionId = Permission.UsersRead.Id },
                         new { RoleId = Role.Admin.Id, PermissionId = Permission.UsersCreate.Id },
                         new { RoleId = Role.Admin.Id, PermissionId = Permission.UsersUpdate.Id },
@@ -87,29 +82,28 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
                         new { RoleId = Role.DefaultRole.Id, PermissionId = Permission.NotificationsUpdate.Id },
                         new { RoleId = Role.DefaultRole.Id, PermissionId = Permission.UsersRead.Id }
                     );
-                }
+                    }
             );
 
         builder
             .HasMany(r => r.Users)
             .WithMany(u => u.Roles)
             .UsingEntity<Dictionary<string, object>>(
-                "role_user",
+                "RoleUser",
                 ru => ru
                     .HasOne<AppUser>()
                     .WithMany()
                     .HasForeignKey("UserId")
-                    .HasConstraintName("FK_role_user_users_UserId"),
+                    .HasConstraintName("FK_RoleUser_AppUsers_UserId"),
                 ru => ru
                     .HasOne<Role>()
                     .WithMany()
                     .HasForeignKey("RoleId")
-                    .HasConstraintName("FK_role_user_roles_RoleId"),
+                    .HasConstraintName("FK_RoleUser_Roles_RoleId"),
                 ru =>
                 {
                     ru.HasKey("RoleId", "UserId");
 
-                    // Seed Admin User <-> Admin Role
                     ru.HasData(
                         new
                         {

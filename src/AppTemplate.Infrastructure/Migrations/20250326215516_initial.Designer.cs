@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AppTemplate.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250324191357_initial")]
+    [Migration("20250326215516_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -57,14 +57,14 @@ namespace AppTemplate.Infrastructure.Migrations
                     b.HasIndex("IdentityId")
                         .IsUnique();
 
-                    b.ToTable("users", (string)null);
+                    b.ToTable("AppUsers", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("55c7f429-0916-4d84-8b76-d45185d89aa7"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 53, DateTimeKind.Utc).AddTicks(577),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 423, DateTimeKind.Utc).AddTicks(3910),
                             IdentityId = "b3398ff2-1b43-4af7-812d-eb4347eecbb8"
                         });
                 });
@@ -103,14 +103,14 @@ namespace AppTemplate.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("permissions", (string)null);
+                    b.ToTable("Permissions", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("33261a4a-c423-4876-8f15-e40068aea5ca"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(468),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(7605),
                             Feature = "users",
                             Name = "users:read"
                         },
@@ -118,7 +118,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("9f79a54c-0b54-4de5-94b9-8582a5f32e78"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2090),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9069),
                             Feature = "users",
                             Name = "users:create"
                         },
@@ -126,7 +126,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("25bb194c-ea15-4339-9f45-5a895c51b626"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2096),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9074),
                             Feature = "users",
                             Name = "users:update"
                         },
@@ -134,7 +134,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("559dd4ec-4d2e-479d-a0a9-5229ecc04fb4"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2099),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9075),
                             Feature = "users",
                             Name = "users:delete"
                         },
@@ -142,7 +142,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("d066e4ee-6af2-4857-bd40-b9b058fa2201"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2103),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9077),
                             Feature = "roles",
                             Name = "roles:read"
                         },
@@ -150,7 +150,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("940c88ad-24fe-4d86-a982-fa5ea224edba"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2105),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9078),
                             Feature = "roles",
                             Name = "roles:create"
                         },
@@ -158,7 +158,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("346d3cc6-ac81-42b1-8539-cd53f42b6566"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2107),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9080),
                             Feature = "roles",
                             Name = "roles:update"
                         },
@@ -166,7 +166,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("386e40e9-da38-4d2f-8d02-ac4cbaddf760"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2109),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9081),
                             Feature = "roles",
                             Name = "roles:delete"
                         },
@@ -174,7 +174,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("0eeb5f27-10fd-430a-9257-a8457107141a"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2111),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9083),
                             Feature = "permissions",
                             Name = "permissions:read"
                         },
@@ -182,7 +182,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("3050d953-5dcf-4eb0-a18d-a3ce62a0dd3c"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2211),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9084),
                             Feature = "auditlogs",
                             Name = "auditlogs:read"
                         },
@@ -190,7 +190,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("a03a127b-9a03-46a0-b709-b6919f2598be"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2214),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9086),
                             Feature = "notifications",
                             Name = "notifications:read"
                         },
@@ -198,7 +198,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 57, DateTimeKind.Utc).AddTicks(2216),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9087),
                             Feature = "notifications",
                             Name = "notifications:update"
                         });
@@ -237,14 +237,14 @@ namespace AppTemplate.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("roles", (string)null);
+                    b.ToTable("Roles", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = new Guid("4b606d86-3537-475a-aa20-26aadd8f5cfd"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 63, DateTimeKind.Utc).AddTicks(3999),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 432, DateTimeKind.Utc).AddTicks(2657),
                             IsDefault = false,
                             Name = "Admin"
                         },
@@ -252,7 +252,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("5dc6ec47-5b7c-4c2b-86cd-3a671834e56e"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 24, 19, 13, 56, 63, DateTimeKind.Utc).AddTicks(4654),
+                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 432, DateTimeKind.Utc).AddTicks(3113),
                             IsDefault = true,
                             Name = "Registered"
                         });
@@ -377,15 +377,15 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = "b3398ff2-1b43-4af7-812d-eb4347eecbb8",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "6267cae9-20fe-48dd-982f-1a757f8d0252",
+                            ConcurrencyStamp = "b6b1015e-397e-4251-8559-aef7fc8a6a58",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEMByb9Ia6Gx9Y6uJE6NaFKWolte0JiZ3ScPUme1bkTY94cEd7407w0QiM16vTcfoNg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHIU5u89fB0DtgDjmowFzlj1AyWVMP1Q6bz+zueZKex/vzQIIRFTQzSOsLy2veEhjA==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "7847bacf-e833-42ac-98e2-10a82044a338",
+                            SecurityStamp = "5e24ddd3-fd6e-4cee-831d-82573724aa1f",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -504,7 +504,7 @@ namespace AppTemplate.Infrastructure.Migrations
                     b.ToTable("outbox_messages", (string)null);
                 });
 
-            modelBuilder.Entity("role_permission", b =>
+            modelBuilder.Entity("RolePermission", b =>
                 {
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid");
@@ -516,7 +516,7 @@ namespace AppTemplate.Infrastructure.Migrations
 
                     b.HasIndex("PermissionId");
 
-                    b.ToTable("role_permission");
+                    b.ToTable("RolePermission");
 
                     b.HasData(
                         new
@@ -596,7 +596,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("role_user", b =>
+            modelBuilder.Entity("RoleUser", b =>
                 {
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uuid");
@@ -608,7 +608,7 @@ namespace AppTemplate.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("role_user");
+                    b.ToTable("RoleUser");
 
                     b.HasData(
                         new
@@ -650,7 +650,7 @@ namespace AppTemplate.Infrastructure.Migrations
 
                             b1.HasKey("AppUserId");
 
-                            b1.ToTable("users");
+                            b1.ToTable("AppUsers");
 
                             b1.WithOwner()
                                 .HasForeignKey("AppUserId");
@@ -722,38 +722,38 @@ namespace AppTemplate.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("role_permission", b =>
+            modelBuilder.Entity("RolePermission", b =>
                 {
                     b.HasOne("AppTemplate.Domain.Roles.Permission", null)
                         .WithMany()
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_role_permission_permissions_PermissionId");
+                        .HasConstraintName("FK_RolePermission_Permissions_PermissionId");
 
                     b.HasOne("AppTemplate.Domain.Roles.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_role_permission_roles_RoleId");
+                        .HasConstraintName("FK_RolePermission_Roles_RoleId");
                 });
 
-            modelBuilder.Entity("role_user", b =>
+            modelBuilder.Entity("RoleUser", b =>
                 {
                     b.HasOne("AppTemplate.Domain.Roles.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_role_user_roles_RoleId");
+                        .HasConstraintName("FK_RoleUser_Roles_RoleId");
 
                     b.HasOne("AppTemplate.Domain.AppUsers.AppUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_role_user_users_UserId");
+                        .HasConstraintName("FK_RoleUser_AppUsers_UserId");
                 });
 #pragma warning restore 612, 618
         }
