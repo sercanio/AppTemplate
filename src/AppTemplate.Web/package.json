@@ -5,7 +5,7 @@
   "devDependencies": {
     "purgecss": "^7.0.2"
   },
-  "name": "ecofind.web",
+  "name": "apptemplate.web",
   "version": "1.0.0",
   "description": "Frontend helpers for razor pages",
   "main": "index.js",
