@@ -8,7 +8,8 @@
 
   <ItemGroup>
 	<PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
-	<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />    <PackageReference Include="Dapper" Version="2.1.66" />
+	<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
+	<PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
@@ -16,7 +17,9 @@
     <PackageReference Include="MongoDB.Driver" Version="3.1.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	<PackageReference Include="NetTopologySuite.Core" Version="1.15.3" />
+	<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="9.0.2" />
+	<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
@@ -25,7 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Auditing\Myrtus.Clarity.Core.Infrastructure.Auditing.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authentication.Azure\Myrtus.Clarity.Core.Infrastructure.Authentication.Azure.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authorization\Myrtus.Clarity.Core.Infrastructure.Authorization.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Data.Dapper\Myrtus.Clarity.Core.Infrastructure.Data.Dapper.csproj" />

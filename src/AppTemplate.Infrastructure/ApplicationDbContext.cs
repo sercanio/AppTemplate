@@ -9,6 +9,8 @@ using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Outbox;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
+using AppTemplate.Domain.AuditLogs;
+using AppTemplate.Domain.Notifications;
 
 namespace AppTemplate.Infrastructure;
 
@@ -24,6 +26,8 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
     public DbSet<AppUser> AppUsers { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     public ApplicationDbContext(
         DbContextOptions<ApplicationDbContext> options,
@@ -44,7 +48,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
 
         var hasher = new PasswordHasher<IdentityUser>();
         var dummyUser = new IdentityUser();
-        string password = "Passw0rd!"; 
+        string password = "Passw0rd!";
         string hashedPassword = hasher.HashPassword(dummyUser, password);
 
         modelBuilder.Entity<IdentityUser>().HasData(
@@ -72,7 +76,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            // Wrap or rethrow with your own exception if desired.
             throw new Exception("Concurrency exception occurred.", ex);
         }
     }
@@ -80,7 +83,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
 
     private void AddDomainEventsAsOutboxMessages()
     {
-        // Assume your domain entities derive from a base 'Entity' with event support
         var domainEntities = ChangeTracker
             .Entries<Entity>()
             .Where(entry => entry.Entity.GetDomainEvents().Any())

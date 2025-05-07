@@ -1,9 +1,9 @@
-﻿using MediatR;
-using Myrtus.Clarity.Core.Application.Abstractions.Auditing;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using AppTemplate.Application.Repositories;
+﻿using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.AuditLogs;
 using AppTemplate.Application.Services.Roles;
+using AppTemplate.Domain.AuditLogs;
 using AppTemplate.Domain.Users.DomainEvents;
+using MediatR;
 
 namespace AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
 

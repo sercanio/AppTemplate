@@ -4,24 +4,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
-using Quartz;
-using Myrtus.Clarity.Core.Application.Abstractions.Auditing;
+using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.AuditLogs;
+using AppTemplate.Infrastructure.Autorization;
+using AppTemplate.Infrastructure.Repositories;
+using AppTemplate.Application.Services.Notifications;
 using Myrtus.Clarity.Core.Application.Abstractions.Authentication;
 using Myrtus.Clarity.Core.Application.Abstractions.Clock;
 using Myrtus.Clarity.Core.Application.Abstractions.Data.Dapper;
-using Myrtus.Clarity.Core.Application.Abstractions.Notification;
 using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.Auditing.Services;
 using Myrtus.Clarity.Core.Infrastructure.Authentication.Azure;
 using Myrtus.Clarity.Core.Infrastructure.Clock;
 using Myrtus.Clarity.Core.Infrastructure.Data.Dapper;
 using Myrtus.Clarity.Core.Infrastructure.Outbox;
-using AppTemplate.Application.Repositories;
-using AppTemplate.Application.Repositories.NoSQL;
-using AppTemplate.Infrastructure.Autorization;
-using AppTemplate.Infrastructure.Notifications.Services;
-using AppTemplate.Infrastructure.Repositories;
-using AppTemplate.Infrastructure.Repositories.NoSQL;
+using Quartz;
 
 namespace AppTemplate.Infrastructure;
 
@@ -86,7 +82,7 @@ public static class DependencyInjection
 
         // Use Npgsql (PostgresSQL provider) instead of SQLite.
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(connectionString));
+             options.UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>()
@@ -94,7 +90,8 @@ public static class DependencyInjection
             .AddScoped<IAppUsersRepository, AppUsersRepository>()
             .AddScoped<IRolesRepository, RolesRepository>()
             .AddScoped<IPermissionsRepository, PermissionsRepository>()
-            .AddScoped<IAuditLogRepository, AuditLogRepository>();
+            .AddScoped<IAuditLogsRepository, AuditLogsRepository>()
+            .AddScoped<INotificationsRepository, NotificationsRepository>();
 
         // MongoDB configuration remains the same...
         string mongoConnectionString = configuration.GetConnectionString("MongoDb")
@@ -103,11 +100,7 @@ public static class DependencyInjection
             ?? throw new ArgumentNullException(nameof(configuration));
 
         services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoConnectionString))
-                .AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName))
-                .AddScoped<INoSqlRepository<AuditLog>, NoSqlRepository<AuditLog>>(sp =>
-                    new NoSqlRepository<AuditLog>(sp.GetRequiredService<IMongoDatabase>(), "AuditLogs"))
-                .AddScoped<INoSqlRepository<Notification>, NoSqlRepository<Notification>>(sp =>
-                    new NoSqlRepository<Notification>(sp.GetRequiredService<IMongoDatabase>(), "Notifications"));
+                .AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName));
     }
 
     private static void AddAuthorization(IServiceCollection services)

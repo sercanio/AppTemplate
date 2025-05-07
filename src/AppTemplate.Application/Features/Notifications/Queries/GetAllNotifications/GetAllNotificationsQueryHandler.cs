@@ -1,14 +1,12 @@
-﻿using MediatR;
+﻿using System.Security.Claims;
 using Ardalis.Result;
-using System.Security.Claims;
+using MediatR;
 using Microsoft.AspNetCore.Http;
-using Myrtus.Clarity.Core.Application.Abstractions.Authentication;
-using Myrtus.Clarity.Core.Application.Abstractions.Notification;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using AppTemplate.Domain.AppUsers;
 using AppTemplate.Application.Services.AppUsers;
+using AppTemplate.Application.Services.Notifications;
+using AppTemplate.Domain.AppUsers;
+using AppTemplate.Domain.Notifications;
 
 namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 
@@ -37,26 +35,31 @@ public sealed class GetAllNotificationsQueryHandler : IRequestHandler<GetAllNoti
             return Result.NotFound(AppUserErrors.NotFound.Name);
         }
 
-        List<Notification> notifications = await _notificationService.GetNotificationsByUserIdAsync(user.IdentityId.ToString());
+        if (!Guid.TryParse(user.IdentityId, out Guid userId))
+        {
+            return Result.Error("Invalid user IdentityId format.");
+        }
+
+        List<Notification> notifications = await _notificationService.GetNotificationsByUserIdAsync(user.Id);
 
         int unreadCount = notifications.Count(notification => !notification.IsRead);
 
         List<GetAllNotificationsQueryResponse> paginatedNotifications = notifications
-            .OrderByDescending(notification => notification.Timestamp)
-            .Skip(request.PageIndex * request.PageSize)
-            .Take(request.PageSize)
-            .Select(notification => new GetAllNotificationsQueryResponse(
-                notification.Id,
-                notification.UserId,
-                notification.User,
-                notification.Action,
-                notification.Entity,
-                notification.EntityId,
-                notification.Timestamp,
-                notification.Details,
-                notification.IsRead
-            ))
-            .ToList();
+           .OrderByDescending(notification => notification.Timestamp)
+           .Skip(request.PageIndex * request.PageSize)
+           .Take(request.PageSize)
+           .Select(notification => new GetAllNotificationsQueryResponse(
+               notification.Id,
+               notification.UserId.ToString(),
+               notification.User,
+               notification.Action,
+               notification.Entity,
+               notification.EntityId,
+               notification.Timestamp,
+               notification.Details,
+               notification.IsRead
+           ))
+           .ToList();
 
         PaginatedList<GetAllNotificationsQueryResponse> paginatedList = new(
             paginatedNotifications,
