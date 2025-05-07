@@ -1,23 +1,26 @@
 using Ardalis.Result;
 using MediatR;
 using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using AppTemplate.Application.Repositories.NoSQL;
+using AppTemplate.Domain.AuditLogs;
+using AppTemplate.Application.Repositories;
 
 namespace AppTemplate.Application.Features.AuditLogs.Queries.GetAllAuditLogs;
 
-public sealed class GetAllAuditLogsQueryHandler(IAuditLogRepository auditLogRepository)
+public sealed class GetAllAuditLogsQueryHandler(IAuditLogsRepository auditLogRepository)
             : IRequestHandler<GetAllAuditLogsQuery, Result<IPaginatedList<GetAllAuditLogsQueryResponse>>>
 {
     public async Task<Result<IPaginatedList<GetAllAuditLogsQueryResponse>>> Handle(GetAllAuditLogsQuery request, CancellationToken cancellationToken)
     {
-        IPaginatedList<AuditLog> auditLogs = await auditLogRepository.GetAllAuditLogsAsync(
-            pageIndex: request.PageIndex,
-            pageSize: request.PageSize,
-            cancellationToken: cancellationToken);
+        var query = auditLogRepository.GetAllAsync(
+           pageIndex: request.PageIndex,
+           pageSize: request.PageSize,
+           cancellationToken: cancellationToken);
+
+        var auditLogs = await query;
 
         var paginatedAuditLogs = auditLogs.Items
+            .OrderByDescending(x => x.Timestamp)
             .Select(auditLog => new GetAllAuditLogsQueryResponse(
                 auditLog.Id,
                 auditLog.User,
@@ -26,8 +29,7 @@ public sealed class GetAllAuditLogsQueryHandler(IAuditLogRepository auditLogRepo
                 auditLog.EntityId,
                 auditLog.Timestamp,
                 auditLog.Details
-            ))
-            .ToList();
+            )).ToList();
 
         return Result.Success<IPaginatedList<GetAllAuditLogsQueryResponse>>(
             new PaginatedList<GetAllAuditLogsQueryResponse>(

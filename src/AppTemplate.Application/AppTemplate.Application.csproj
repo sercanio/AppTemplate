@@ -10,10 +10,10 @@
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Authentication\Myrtus.Clarity.Core.Application.Abstractions.Authentication.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Behaviours\Myrtus.Clarity.Core.Application.Abstractions.Behaviours.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Messaging\Myrtus.Clarity.Core.Application.Abstractions.Messaging.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Notification\Myrtus.Clarity.Core.Application.Abstractions.Notification.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Repositories\Myrtus.Clarity.Core.Application.Abstractions.Repositories.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Caching\Myrtus.Clarity.Core.Infrastructure.Caching.csproj" />
     <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj" />
+    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.SignalR\Myrtus.Clarity.Core.Infrastructure.SignalR.csproj" />
     <ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />
   </ItemGroup>
 

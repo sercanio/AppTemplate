@@ -1,11 +1,11 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Myrtus.Clarity.Core.Application.Abstractions.Auditing;
-using Myrtus.Clarity.Core.Application.Abstractions.Notification;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using AppTemplate.Application.Repositories;
+﻿using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.AuditLogs;
+using AppTemplate.Application.Services.Notifications;
+using AppTemplate.Domain.AuditLogs;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Roles.DomainEvents;
+using MediatR;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Create;
 

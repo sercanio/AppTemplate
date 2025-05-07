@@ -17,8 +17,8 @@ using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.Infrastructure.SignalR.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
-
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
@@ -29,8 +29,8 @@ builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHand
 
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
-
 //builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+
 builder.Services.AddTransient<IEmailSender, AzureEmailSender>();
 builder.Services.AddMemoryCache();
 
@@ -53,8 +53,6 @@ builder.Services.AddSwaggerGen(options =>
         Description = "API documentation for the AppTemplate application."
     });
 });
-
-var moduleInstances = builder.LoadModules();
 
 var app = builder.Build();
 
@@ -87,18 +85,15 @@ app.UseAuthorization();
 app.UseCustomForbiddenRequestHandler();
 app.UseRateLimiter();
 app.UseRateLimitExceededHandler();
+
 app.MapStaticAssets();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 app.MapRazorPages().WithStaticAssets();
+
 app.MapHub<AuditLogHub>("/auditLogHub");
 app.MapHub<NotificationHub>("/notificationHub");
-
-foreach (var module in moduleInstances)
-{
-    module.Configure(app);
-}
 
 app.Run();

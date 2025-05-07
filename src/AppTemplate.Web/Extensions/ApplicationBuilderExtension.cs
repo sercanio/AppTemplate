@@ -245,52 +245,5 @@ internal static class ApplicationBuilderExtensions
         });
         return services;
     }
-
-    // Dynamic module loader extension.
-    public static List<IClarityModule> LoadModules(this WebApplicationBuilder builder)
-    {
-        var moduleInstances = new List<IClarityModule>();
-        var modulesPath = builder.Environment.IsDevelopment()
-            ? Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", "modules"))
-            : Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "modules"));
-
-        if (Directory.Exists(modulesPath))
-        {
-            var moduleFiles = Directory.GetFiles(modulesPath, "*.dll", SearchOption.AllDirectories)
-                .Where(file => !file.Contains("\\obj\\") && !file.Contains("\\ref\\"));
-            foreach (var moduleFile in moduleFiles)
-            {
-                Console.WriteLine($"Loading module: {moduleFile}");
-                try
-                {
-                    var assembly = Assembly.LoadFrom(moduleFile);
-                    // Add controllers from the module.
-                    builder.Services.AddControllers().AddApplicationPart(assembly).AddControllersAsServices();
-                    // Find and instantiate IClarityModule implementations.
-                    var moduleTypes = assembly.GetTypes()
-                        .Where(t => typeof(IClarityModule).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-                    foreach (var type in moduleTypes)
-                    {
-                        var moduleInstance = (IClarityModule)Activator.CreateInstance(type)!;
-                        moduleInstance.ConfigureServices(builder.Services, builder.Configuration);
-                        moduleInstances.Add(moduleInstance);
-                    }
-                }
-                catch (ReflectionTypeLoadException ex)
-                {
-                    Console.WriteLine($"Error loading module {moduleFile}: {ex.LoaderExceptions.FirstOrDefault()?.Message}");
-                    foreach (var loaderException in ex.LoaderExceptions)
-                    {
-                        Console.WriteLine($"Loader Exception: {loaderException.Message}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error loading module {moduleFile}: {ex.Message}");
-                }
-            }
-        }
-        return moduleInstances;
-    }
 }
 
