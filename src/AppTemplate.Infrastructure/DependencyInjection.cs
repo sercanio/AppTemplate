@@ -1,14 +1,13 @@
+using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.AuditLogs;
+using AppTemplate.Application.Services.Notifications;
+using AppTemplate.Infrastructure.Autorization;
+using AppTemplate.Infrastructure.Repositories;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
-using AppTemplate.Application.Repositories;
-using AppTemplate.Application.Services.AuditLogs;
-using AppTemplate.Infrastructure.Autorization;
-using AppTemplate.Infrastructure.Repositories;
-using AppTemplate.Application.Services.Notifications;
 using Myrtus.Clarity.Core.Application.Abstractions.Authentication;
 using Myrtus.Clarity.Core.Application.Abstractions.Clock;
 using Myrtus.Clarity.Core.Application.Abstractions.Data.Dapper;
@@ -92,15 +91,6 @@ public static class DependencyInjection
             .AddScoped<IPermissionsRepository, PermissionsRepository>()
             .AddScoped<IAuditLogsRepository, AuditLogsRepository>()
             .AddScoped<INotificationsRepository, NotificationsRepository>();
-
-        // MongoDB configuration remains the same...
-        string mongoConnectionString = configuration.GetConnectionString("MongoDb")
-            ?? throw new ArgumentNullException(nameof(configuration));
-        string mongoDatabaseName = configuration.GetSection("MongoDb:Database").Value
-            ?? throw new ArgumentNullException(nameof(configuration));
-
-        services.AddSingleton<IMongoClient>(_ => new MongoClient(mongoConnectionString))
-                .AddSingleton(sp => sp.GetRequiredService<IMongoClient>().GetDatabase(mongoDatabaseName));
     }
 
     private static void AddAuthorization(IServiceCollection services)
