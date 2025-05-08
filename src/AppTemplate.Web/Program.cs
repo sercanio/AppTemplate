@@ -10,14 +10,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
 using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.Infrastructure.SignalR.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
-BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.SignIn.RequireConfirmedAccount = false)

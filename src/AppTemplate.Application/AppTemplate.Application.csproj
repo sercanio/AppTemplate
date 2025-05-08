@@ -6,23 +6,23 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Authentication\Myrtus.Clarity.Core.Application.Abstractions.Authentication.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Behaviours\Myrtus.Clarity.Core.Application.Abstractions.Behaviours.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Messaging\Myrtus.Clarity.Core.Application.Abstractions.Messaging.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Repositories\Myrtus.Clarity.Core.Application.Abstractions.Repositories.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Caching\Myrtus.Clarity.Core.Infrastructure.Caching.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.SignalR\Myrtus.Clarity.Core.Infrastructure.SignalR.csproj" />
-    <ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Ardalis.Result" Version="10.1.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.2" />
+		<PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.2" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Ardalis.Result" Version="10.1.0" />
-	<PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Authentication\Myrtus.Clarity.Core.Application.Abstractions.Authentication.csproj" />
+		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Behaviours\Myrtus.Clarity.Core.Application.Abstractions.Behaviours.csproj" />
+		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Messaging\Myrtus.Clarity.Core.Application.Abstractions.Messaging.csproj" />
+		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Repositories\Myrtus.Clarity.Core.Application.Abstractions.Repositories.csproj" />
+		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Caching\Myrtus.Clarity.Core.Infrastructure.Caching.csproj" />
+		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj" />
+		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.SignalR\Myrtus.Clarity.Core.Infrastructure.SignalR.csproj" />
+		<ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />
+	</ItemGroup>
 
 </Project>
