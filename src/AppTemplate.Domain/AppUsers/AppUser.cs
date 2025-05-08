@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Newtonsoft.Json;
-using AppTemplate.Domain.AppUsers.ValueObjects;
+﻿using AppTemplate.Domain.AppUsers.ValueObjects;
+using AppTemplate.Domain.AuditLogs;
+using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Users.DomainEvents;
-using AppTemplate.Domain.AuditLogs;
+using Microsoft.AspNetCore.Identity;
+using Myrtus.Clarity.Core.Domain.Abstractions;
+using Newtonsoft.Json;
 
 namespace AppTemplate.Domain.AppUsers;
 
@@ -12,14 +13,16 @@ public sealed class AppUser : Entity, IAggregateRoot
 {
     private readonly List<Role> _roles = [];
     private readonly List<AuditLog> _auditLogs = [];
+    private readonly List<Notification> _notifications = [];
 
     public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
-
     [JsonIgnore]
     public IReadOnlyCollection<AuditLog> AuditLogs => _auditLogs.AsReadOnly();
 
-    public NotificationPreference NotificationPreference { get; private set; }
+    [JsonIgnore]
+    public IReadOnlyCollection<Notification> Notifications => _notifications.AsReadOnly();
 
+    public NotificationPreference NotificationPreference { get; private set; }
     public string IdentityId { get; private set; }
     public IdentityUser IdentityUser { get; private set; }
 

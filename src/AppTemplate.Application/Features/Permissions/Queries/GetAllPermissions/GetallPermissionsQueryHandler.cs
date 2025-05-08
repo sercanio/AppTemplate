@@ -3,7 +3,6 @@ using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
 using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
 using Myrtus.Clarity.Core.Infrastructure.Pagination;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Domain.Roles;
 
 namespace AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 
@@ -16,7 +15,7 @@ public class GetallPermissionsQueryHandler(IPermissionsRepository permissionRepo
         GetAllPermissionsQuery request,
         CancellationToken cancellationToken)
     {
-        IPaginatedList<Permission> permissions = await _permissionRepository.GetAllAsync(
+        var permissions = await _permissionRepository.GetAllAsync(
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);

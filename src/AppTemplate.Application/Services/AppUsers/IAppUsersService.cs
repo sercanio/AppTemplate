@@ -1,6 +1,6 @@
-﻿using AppTemplate.Domain.AppUsers;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
+using AppTemplate.Domain.AppUsers;
 
 namespace AppTemplate.Application.Services.AppUsers;
 
@@ -16,7 +16,7 @@ public interface IAppUsersService
         Guid id,
         CancellationToken cancellationToken = default);
 
-    Task<PaginatedList<AppUser>> GetAllAsync(
+    Task<IPaginatedList<AppUser>> GetAllAsync(
         int index = 0,
         int size = 10,
         bool includeSoftDeleted = false,

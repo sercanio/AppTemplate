@@ -18,7 +18,7 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
             .IsRequired()
             .HasComment("The ID of the user who owns this notification");
 
-        builder.Property(n => n.User)
+        builder.Property(n => n.UserName)
             .IsRequired()
             .HasMaxLength(256)
             .HasComment("The username of the notification owner");
@@ -46,6 +46,12 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
         builder.Property(n => n.IsRead)
             .HasDefaultValue(false)
             .HasComment("Whether the notification has been read");
+
+        builder.HasOne(n => n.AppUser)
+                    .WithMany(u => u.Notifications)
+                    .HasForeignKey(n => n.UserId)
+                    .IsRequired()
+                    .OnDelete(DeleteBehavior.Cascade);
 
         // Define a ValueComparer for AdditionalData
         var dictionaryComparer = new ValueComparer<Dictionary<string, object>?>(
@@ -88,7 +94,6 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
             .HasFilter("\"DeletedOnUtc\" IS NULL")
             .IncludeProperties(n => new { n.UserId, n.Timestamp });
 
-        // PostgreSQL GIN index for JSONB - this is correctly using HasMethod
         builder.HasIndex(n => n.AdditionalData)
             .HasDatabaseName("IX_Notifications_AdditionalData")
             .HasMethod("gin")

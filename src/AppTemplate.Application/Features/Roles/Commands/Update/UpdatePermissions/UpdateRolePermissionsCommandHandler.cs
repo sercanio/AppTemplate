@@ -1,16 +1,15 @@
-﻿using Ardalis.Result;
+﻿using System.Data;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Ardalis.Result;
+using Myrtus.Clarity.Core.Application.Abstractions.Caching;
+using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
+using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
+using Myrtus.Clarity.Core.Domain.Abstractions;
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Domain.AppUsers;
-using Microsoft.AspNetCore.Http;
-using Myrtus.Clarity.Core.Application.Abstractions.Authentication;
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using System.Data;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 
@@ -89,7 +88,7 @@ public sealed class UpdateRolePermissionsCommandHandler(
 
         const int batchSize = 1000;
         int pageIndex = 0;
-        PaginatedList<AppUser> usersBatch;
+        IPaginatedList<AppUser> usersBatch;
 
         do
         {
