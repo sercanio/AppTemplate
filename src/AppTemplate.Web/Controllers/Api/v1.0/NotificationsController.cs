@@ -28,9 +28,14 @@ public class NotificationsController(
         CancellationToken cancellationToken = default)
     {
         GetAllNotificationsQuery query = new(pageIndex, pageSize, cancellationToken);
-        Result<GetAllNotificationsWithUnreadCountResponse> result = await _sender.Send(query, cancellationToken);
+        Result<IPaginatedList<GetAllNotificationsQueryResponse>> result = await _sender.Send(query, cancellationToken);
 
-        return !result.IsSuccess ? _errorHandlingService.HandleErrorResponse(result) : Ok(result.Value);
+        if (!result.IsSuccess)
+        {
+            return _errorHandlingService.HandleErrorResponse(result);
+        }
+
+        return Ok(result.Value);
     }
 
     [HttpPatch("read")]

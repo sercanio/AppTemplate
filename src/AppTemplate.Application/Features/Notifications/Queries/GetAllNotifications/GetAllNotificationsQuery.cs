@@ -6,5 +6,5 @@ namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotificat
 public sealed record GetAllNotificationsQuery(
     int PageIndex,
     int PageSize,
-    CancellationToken CancellationToken) : IQuery<GetAllNotificationsWithUnreadCountResponse>;
+    CancellationToken CancellationToken) : IQuery<IPaginatedList<GetAllNotificationsQueryResponse>>;
 

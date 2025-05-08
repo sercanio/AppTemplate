@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AppTemplate.Domain.AppUsers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using AppTemplate.Domain.AppUsers;
 
 namespace AppTemplate.Infrastructure.Configurations;
 
@@ -38,19 +38,19 @@ internal sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.HasData(new
         {
             adminUser.Id,
-            IdentityId = adminUser.IdentityId,
-            CreatedBy = adminUser.CreatedBy,
-            CreatedOnUtc = adminUser.CreatedOnUtc,
-            UpdatedBy = adminUser.UpdatedBy,
-            UpdatedOnUtc = adminUser.UpdatedOnUtc
+            adminUser.IdentityId,
+            adminUser.CreatedBy,
+            adminUser.CreatedOnUtc,
+            adminUser.UpdatedBy,
+            adminUser.UpdatedOnUtc
         });
 
         builder.OwnsOne(u => u.NotificationPreference).HasData(new
         {
             AppUserId = adminUser.Id,
-            IsInAppNotificationEnabled = adminUser.NotificationPreference.IsInAppNotificationEnabled,
-            IsEmailNotificationEnabled = adminUser.NotificationPreference.IsEmailNotificationEnabled,
-            IsPushNotificationEnabled = adminUser.NotificationPreference.IsPushNotificationEnabled
+            adminUser.NotificationPreference.IsInAppNotificationEnabled,
+            adminUser.NotificationPreference.IsEmailNotificationEnabled,
+            adminUser.NotificationPreference.IsPushNotificationEnabled
         });
 
     }

@@ -1,15 +1,15 @@
 ﻿using System.Collections.ObjectModel;
 using System.Data;
-using System.Linq.Expressions;
+using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
+using AppTemplate.Application.Features.Users.Queries.GetAllUsers;
+using AppTemplate.Application.Repositories;
+using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using MediatR;
 using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
 using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
-using AppTemplate.Application.Repositories;
-using AppTemplate.Domain.AppUsers;
 
-namespace AppTemplate.Application.Features.Users.Queries.GetAllUsers;
+namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsers;
 
 public sealed class GetAllUsersQueryHandler(IAppUsersRepository userRepository) : IRequestHandler<GetAllUsersQuery, Result<IPaginatedList<GetAllUsersQueryResponse>>>
 {
@@ -20,7 +20,7 @@ public sealed class GetAllUsersQueryHandler(IAppUsersRepository userRepository) 
             pageSize: request.PageSize,
             includeSoftDeleted: false,
             include: [
-                user => user.IdentityUser, 
+                user => user.IdentityUser,
                 user => user.Roles],
             cancellationToken: cancellationToken);
 

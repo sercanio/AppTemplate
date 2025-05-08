@@ -1,12 +1,12 @@
+using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
 using Myrtus.Clarity.Core.Application.Repositories;
 using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Dynamic;
 using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using System.Linq.Dynamic.Core;
-using System.Linq.Expressions;
-using System.Reflection;
 
 namespace AppTemplate.Infrastructure.Repositories;
 

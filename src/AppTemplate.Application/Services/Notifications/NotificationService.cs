@@ -1,56 +1,135 @@
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.SignalR.Hubs;
+using System.Linq.Expressions;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Roles;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
+using Myrtus.Clarity.Core.Domain.Abstractions;
+using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using Myrtus.Clarity.Core.Infrastructure.SignalR.Hubs;
+using Newtonsoft.Json;
 
 namespace AppTemplate.Application.Services.Notifications;
 
-/// <summary>
-/// Service for managing and distributing notifications to users and groups
-/// </summary>
-public class NotificationsService : INotificationService
+public sealed class NotificationsService(
+    INotificationsRepository notificationsRepository,
+    IUnitOfWork unitOfWork,
+    IAppUsersService usersService,
+    IRolesService rolesService,
+    IHubContext<NotificationHub> hubContext,
+    IMemoryCache cache,
+    ILogger<NotificationsService> logger) : INotificationService
 {
-    private readonly INotificationsRepository _notificationsRepository;
-    private readonly IHubContext<NotificationHub> _hubContext;
-    private readonly IAppUsersService _usersService;
-    private readonly IRolesService _rolesService;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IMemoryCache _cache;
-    private readonly ILogger<NotificationsService> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    private readonly INotificationsRepository _notificationsRepository = notificationsRepository;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IAppUsersService _usersService = usersService;
+    private readonly IRolesService _rolesService = rolesService;
+    private readonly IHubContext<NotificationHub> _hubContext = hubContext;
+    private readonly ILogger<NotificationsService> _logger = logger;
+    private readonly IMemoryCache _cache = cache;
 
-    public NotificationsService(
-        INotificationsRepository notificationsRepository,
-        IHubContext<NotificationHub> hubContext,
-        IAppUsersService usersService,
-        IRolesService rolesService,
-        IUnitOfWork unitOfWork,
-        IMemoryCache cache,
-        ILogger<NotificationsService> logger)
+    private readonly JsonSerializerSettings _jsonSettings = new()
     {
-        _notificationsRepository = notificationsRepository;
-        _hubContext = hubContext;
-        _usersService = usersService;
-        _rolesService = rolesService;
-        _unitOfWork = unitOfWork;
-        _cache = cache;
-        _logger = logger;
+        ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver(),
+        NullValueHandling = NullValueHandling.Ignore,
+        DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    };
 
-        // Initialize JSON serializer settings
-        _jsonSettings = new JsonSerializerSettings
-        {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-            NullValueHandling = NullValueHandling.Ignore,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc
-        };
+
+    public async Task AddAsync(Notification notification)
+    {
+        await _notificationsRepository.AddAsync(notification);
+    }
+
+    public void Delete(Notification notification)
+    {
+        _notificationsRepository.Delete(notification);
+    }
+
+    public void Update(Notification notification)
+    {
+        _notificationsRepository.Update(notification);
+    }
+
+    public async Task<IPaginatedList<Notification>> GetAllAsync(
+        int index = 0,
+        int size = 10,
+        bool includeSoftDeleted = false,
+        Expression<Func<Notification, bool>>? predicate = null,
+        CancellationToken cancellationToken = default,
+        params Expression<Func<Notification, object>>[] include)
+    {
+        var notifications = await _notificationsRepository.GetAllAsync(
+            index,
+            size,
+            includeSoftDeleted,
+            predicate,
+            cancellationToken,
+            include);
+
+        PaginatedList<Notification> paginatedList = new(
+            notifications.Items,
+            notifications.TotalCount,
+            notifications.PageIndex,
+            notifications.PageSize);
+
+        return paginatedList;
+    }
+
+    public async Task<Notification> GetAsync(
+        Expression<Func<Notification, bool>> predicate,
+        bool includeSoftDeleted = false,
+        CancellationToken cancellationToken = default,
+        params Expression<Func<Notification, object>>[] include)
+    {
+        Notification? notification = await _notificationsRepository.GetAsync(
+            predicate,
+            includeSoftDeleted,
+            cancellationToken,
+            include);
+
+        return notification!;
+    }
+
+    public async Task<IPaginatedList<Notification>> GetNotificationsByUserIdAsync(Guid userId)
+    {
+        return await _notificationsRepository.GetAllAsync(
+            predicate: notification => notification.UserId == userId,
+            includeSoftDeleted: false,
+            cancellationToken: default);
+    }
+
+    public async Task<int> GetUnreadCountAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _notificationsRepository.GetUnreadCountAsync(userId, cancellationToken);
+    }
+
+    public async Task<List<Notification>> GetUnreadNotificationsAsync(
+        Guid userId,
+        int pageIndex = 0,
+        int pageSize = 10,
+        CancellationToken cancellationToken = default)
+    {
+        return (await _notificationsRepository.GetUnreadNotificationsAsync(
+            userId,
+            pageIndex,
+            pageSize,
+            cancellationToken)).ToList();
+    }
+
+    public async Task<bool> MarkNotificationAsReadAsync(Guid notificationId, CancellationToken cancellationToken = default)
+    {
+        return await _notificationsRepository.MarkAsReadAsync(notificationId, cancellationToken);
+    }
+
+    public async Task MarkNotificationsAsReadAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        await _notificationsRepository.MarkAllAsReadAsync(userId, cancellationToken);
     }
 
     /// <summary>
@@ -62,7 +141,7 @@ public class NotificationsService : INotificationService
         {
             var notification = new Notification(
                 userId: Guid.Empty,
-                user: "System",
+                userName: "System",
                 action: "System Notification",
                 entity: "Global",
                 entityId: string.Empty,
@@ -110,7 +189,7 @@ public class NotificationsService : INotificationService
 
             var notification = new Notification(
                 userId: userId,
-                user: user.IdentityUser?.UserName ?? user.IdentityUser?.Email ?? "Unknown",
+                userName: user.IdentityUser?.UserName ?? user.IdentityUser?.Email ?? "Unknown",
                 action: "User Notification",
                 entity: "User",
                 entityId: userId.ToString(),
@@ -154,7 +233,7 @@ public class NotificationsService : INotificationService
 
             var notification = new Notification(
                 userId: userId,
-                user: user.IdentityUser?.UserName ?? user.IdentityUser?.Email ?? "Unknown",
+                userName: user.IdentityUser?.UserName ?? user.IdentityUser?.Email ?? "Unknown",
                 action: "Saved Notification",
                 entity: "User",
                 entityId: userId.ToString(),
@@ -245,7 +324,7 @@ public class NotificationsService : INotificationService
             {
                 var notification = new Notification(
                     userId: user.Id,
-                    user: user.IdentityUser?.UserName ?? user.IdentityUser?.Email ?? "Unknown",
+                    userName: user.IdentityUser?.UserName ?? user.IdentityUser?.Email ?? "Unknown",
                     action: $"{groupName} Group Notification",
                     entity: "UserGroup",
                     entityId: groupName,
@@ -302,161 +381,6 @@ public class NotificationsService : INotificationService
         }
     }
 
-    /// <summary>
-    /// Gets all notifications for a specific user
-    /// </summary>
-    public async Task<List<Notification>> GetNotificationsByUserIdAsync(Guid userId)
-    {
-        string cacheKey = GetCacheKey(CacheKeyType.AllNotifications, userId.ToString());
-
-        if (!_cache.TryGetValue(cacheKey, out List<Notification> notifications))
-        {
-            _logger.LogDebug("Cache miss for user notifications: {UserId}", userId);
-            var results = await _notificationsRepository.GetByPredicateAsync(n => n.UserId == userId);
-            notifications = results.OrderByDescending(n => n.Timestamp).ToList();
-
-            // Cache with a reasonable expiration time
-            var cacheOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(2))
-                .SetSlidingExpiration(TimeSpan.FromMinutes(1))
-                .SetPriority(CacheItemPriority.Normal);
-
-            _cache.Set(cacheKey, notifications, cacheOptions);
-        }
-
-        return notifications;
-    }
-
-    /// <summary>
-    /// Gets unread notifications for a specific user with pagination
-    /// </summary>
-    public async Task<List<Notification>> GetUnreadNotificationsAsync(
-        Guid userId,
-        int pageIndex = 0,
-        int pageSize = 10,
-        CancellationToken cancellationToken = default)
-    {
-        string cacheKey = GetCacheKey(CacheKeyType.UnreadNotifications, userId.ToString(), pageIndex, pageSize);
-
-        if (!_cache.TryGetValue(cacheKey, out List<Notification> notifications))
-        {
-            _logger.LogDebug("Cache miss for unread notifications: {UserId}, Page: {Page}", userId, pageIndex);
-            var results = await _notificationsRepository.GetUnreadNotificationsAsync(
-                userId,
-                pageIndex,
-                pageSize,
-                cancellationToken);
-
-            notifications = results.ToList();
-
-            // Cache with a shorter expiration for unread items (they change more often)
-            var cacheOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
-                .SetPriority(CacheItemPriority.High);
-
-            _cache.Set(cacheKey, notifications, cacheOptions);
-        }
-
-        return notifications;
-    }
-
-    /// <summary>
-    /// Gets count of unread notifications for a specific user
-    /// </summary>
-    public async Task<int> GetUnreadCountAsync(Guid userId, CancellationToken cancellationToken = default)
-    {
-        string cacheKey = GetCacheKey(CacheKeyType.UnreadCount, userId.ToString());
-
-        if (!_cache.TryGetValue(cacheKey, out int count))
-        {
-            _logger.LogDebug("Cache miss for unread count: {UserId}", userId);
-            count = await _notificationsRepository.GetUnreadCountAsync(userId, cancellationToken);
-
-            // Cache with a short expiration time
-            var cacheOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(1))
-                .SetPriority(CacheItemPriority.High);
-
-            _cache.Set(cacheKey, count, cacheOptions);
-        }
-
-        return count;
-    }
-
-    /// <summary>
-    /// Marks a specific notification as read
-    /// </summary>
-    public async Task<bool> MarkNotificationAsReadAsync(Guid notificationId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            bool success = await _notificationsRepository.MarkAsReadAsync(notificationId, cancellationToken);
-
-            if (success)
-            {
-                // Find the notification to get its user ID
-                var notification = await _notificationsRepository.GetAsync(
-                    predicate: n => n.Id == notificationId,
-                    cancellationToken: cancellationToken);
-
-                if (notification != null)
-                {
-                    // Invalidate relevant caches
-                    InvalidateUserNotificationCache(notification.UserId.ToString());
-
-                    // Check if user has notifications enabled
-                    var user = await _usersService.GetUserByIdAsync(notification.UserId);
-                    if (user != null && user.NotificationPreference.IsInAppNotificationEnabled)
-                    {
-                        // Notify clients via SignalR
-                        await _hubContext.Clients.User(notification.UserId.ToString())
-                            .SendAsync("NotificationRead", notification.Id.ToString());
-
-                        _logger.LogDebug("Notification {Id} marked as read for user {UserId}",
-                            notificationId, notification.UserId);
-                    }
-                }
-            }
-
-            return success;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to mark notification {Id} as read", notificationId);
-            throw new NotificationException($"Failed to mark notification {notificationId} as read", ex);
-        }
-    }
-
-    /// <summary>
-    /// Marks all notifications for a user as read
-    /// </summary>
-    public async Task MarkNotificationsAsReadAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _notificationsRepository.MarkAllAsReadAsync(userId, cancellationToken);
-
-            // Invalidate cache
-            InvalidateUserNotificationCache(userId.ToString());
-
-            // Check if user has notifications enabled
-            var user = await _usersService.GetUserByIdAsync(userId);
-            if (user != null && user.NotificationPreference.IsInAppNotificationEnabled)
-            {
-                // Notify clients
-                await _hubContext.Clients.User(userId.ToString())
-                    .SendAsync("NotificationsAllRead");
-
-                _logger.LogInformation("All notifications marked as read for user {UserId}", userId);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to mark all notifications as read for user {UserId}", userId);
-            throw new NotificationException($"Failed to mark all notifications as read for user {userId}", ex);
-        }
-    }
-
     #region Private Helper Methods
 
     /// <summary>
@@ -480,24 +404,6 @@ public class NotificationsService : INotificationService
     }
 
     /// <summary>
-    /// Generates a standardized cache key
-    /// </summary>
-    private string GetCacheKey(CacheKeyType type, string identifier, int? pageIndex = null, int? pageSize = null)
-    {
-        switch (type)
-        {
-            case CacheKeyType.AllNotifications:
-                return $"notifications_user_{identifier}";
-            case CacheKeyType.UnreadNotifications:
-                return $"unread_notifications_user_{identifier}_{pageIndex}_{pageSize}";
-            case CacheKeyType.UnreadCount:
-                return $"unread_count_{identifier}";
-            default:
-                throw new ArgumentOutOfRangeException(nameof(type));
-        }
-    }
-
-    /// <summary>
     /// Sanitizes content to prevent XSS attacks without HTML-encoding single quotes and other characters
     /// </summary>
     private string SanitizeContent(string content)
@@ -516,9 +422,7 @@ public class NotificationsService : INotificationService
             .Replace("script", "scr_ipt"); // Breaks script tags without affecting normal text
     }
 
-    /// <summary>
-    /// Invalidates all cache entries related to a user's notifications
-    /// </summary>
+
     private void InvalidateUserNotificationCache(string userId)
     {
         // Remove specific cache keys
@@ -538,6 +442,20 @@ public class NotificationsService : INotificationService
     }
 
     #endregion
+    private string GetCacheKey(CacheKeyType type, string identifier, int? pageIndex = null, int? pageSize = null)
+    {
+        switch (type)
+        {
+            case CacheKeyType.AllNotifications:
+                return $"notifications_user_{identifier}";
+            case CacheKeyType.UnreadNotifications:
+                return $"unread_notifications_user_{identifier}_{pageIndex}_{pageSize}";
+            case CacheKeyType.UnreadCount:
+                return $"unread_count_{identifier}";
+            default:
+                throw new ArgumentOutOfRangeException(nameof(type));
+        }
+    }
 }
 
 /// <summary>

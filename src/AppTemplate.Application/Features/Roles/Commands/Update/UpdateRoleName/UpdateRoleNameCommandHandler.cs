@@ -1,13 +1,13 @@
-﻿using Ardalis.Result;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Ardalis.Result;
+using Myrtus.Clarity.Core.Application.Abstractions.Caching;
+using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
+using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
+using Myrtus.Clarity.Core.Domain.Abstractions;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Domain.AppUsers;
-using Microsoft.AspNetCore.Http;
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdateRoleName;
 
@@ -23,13 +23,13 @@ public sealed class UpdateRoleNameCommandHandler(
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly ICacheService _cacheService = cacheService;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-        
+
     public async Task<Result<UpdateRoleNameCommandResponse>> Handle(UpdateRoleNameCommand request, CancellationToken cancellationToken)
     {
-       var role = await _rolesRepository.GetAsync(
-            predicate: r => r.Id == request.RoleId,
-            include: r => r.Permissions,
-            cancellationToken: cancellationToken);
+        var role = await _rolesRepository.GetAsync(
+             predicate: r => r.Id == request.RoleId,
+             include: r => r.Permissions,
+             cancellationToken: cancellationToken);
 
         if (role is null)
         {
@@ -62,7 +62,7 @@ public sealed class UpdateRoleNameCommandHandler(
 
         const int batchSize = 1000;
         int pageIndex = 0;
-        PaginatedList<AppUser> usersBatch;
+        IPaginatedList<AppUser> usersBatch;
 
         do
         {

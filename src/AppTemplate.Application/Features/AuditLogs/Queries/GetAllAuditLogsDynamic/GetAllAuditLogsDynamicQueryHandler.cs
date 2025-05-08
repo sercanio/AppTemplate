@@ -1,10 +1,10 @@
+using AppTemplate.Application.Repositories;
+using AppTemplate.Domain.AuditLogs;
 using Ardalis.Result;
 using MediatR;
 using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
 using Myrtus.Clarity.Core.Infrastructure.Dynamic;
 using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using AppTemplate.Application.Repositories;
-using AppTemplate.Domain.AuditLogs;
 
 namespace AppTemplate.Application.Features.AuditLogs.Queries.GetAllAuditLogsDynamic;
 
@@ -21,7 +21,7 @@ public class GetAllAuditLogsDynamicQueryHandler : IRequestHandler<GetAllAuditLog
         GetAllAuditLogsDynamicQuery request,
         CancellationToken cancellationToken)
     {
-        IPaginatedList<AuditLog> auditLogs = await _auditLogsRepository.GetAllAsync(
+        Myrtus.Clarity.Core.Application.Abstractions.Pagination.IPaginatedList<AuditLog> auditLogs = await _auditLogsRepository.GetAllAsync(
                         pageIndex: 0,
                         pageSize: int.MaxValue,
                         predicate: null,
