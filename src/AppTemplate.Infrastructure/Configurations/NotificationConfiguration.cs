@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using AppTemplate.Domain.Notifications;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AppTemplate.Infrastructure.Configurations;
@@ -46,10 +47,16 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
             .HasDefaultValue(false)
             .HasComment("Whether the notification has been read");
 
-        // PostgreSQL jsonb type
+        // Define a ValueComparer for AdditionalData
+        var dictionaryComparer = new ValueComparer<Dictionary<string, object>?>(
+            (d1, d2) => d1 != null && d2 != null && d1.SequenceEqual(d2),
+            d => d != null ? d.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())) : 0,
+            d => d != null ? d.ToDictionary(entry => entry.Key, entry => entry.Value) : null
+        );
+
+        // Configure AdditionalData with a ValueComparer
         builder.Property(n => n.AdditionalData)
             .HasColumnType("jsonb")
-            // Remove HasCompressionEnabled() as PostgreSQL handles JSONB compression differently
             .HasConversion(
                 v => v == null ? null : JsonSerializer.Serialize(v, new JsonSerializerOptions
                 {
@@ -58,9 +65,10 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
                 v => v == null ? null : JsonSerializer.Deserialize<Dictionary<string, object>>(v, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
-                })
-            )
-            .HasComment("Additional JSON data associated with the notification");
+                }))
+
+            .HasComment("Additional JSON data associated with the notification")
+            .Metadata.SetValueComparer(dictionaryComparer);
 
         builder.HasIndex(n => n.UserId)
             .HasDatabaseName("IX_Notifications_UserId")

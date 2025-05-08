@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using AppTemplate.Domain.AuditLogs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AppTemplate.Infrastructure.Configurations;
@@ -22,12 +23,18 @@ internal sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(a => a.Details);
 
         // Use JSONB column for additional data  
+        var dictionaryComparer = new ValueComparer<Dictionary<string, object>?>(
+            (d1, d2) => d1 != null && d2 != null && d1.SequenceEqual(d2),
+            d => d != null ? d.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())) : 0,
+            d => d != null ? d.ToDictionary(entry => entry.Key, entry => entry.Value) : null);
+
         builder.Property(a => a.AdditionalData)
                .HasColumnType("jsonb")
                .HasConversion(
                    v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                    v => v == null ? null : JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions?)null)
-               );
+               )
+               .Metadata.SetValueComparer(dictionaryComparer);
 
         // Add optimized indexes for common queries  
         builder.HasIndex(a => a.EntityId).HasDatabaseName("IX_AuditLogs_EntityId");
