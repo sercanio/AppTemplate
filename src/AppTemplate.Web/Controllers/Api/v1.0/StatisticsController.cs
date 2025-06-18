@@ -1,4 +1,5 @@
 ﻿using AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
+using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUsersCount;
 using Ardalis.Result;
@@ -58,14 +59,11 @@ public class StatisticsController : BaseController
     public async Task<IActionResult> GetRoleStatistics(CancellationToken cancellationToken = default)
     {
         var query = new GetRoleStatisticsQuery();
-        var result = await _sender.Send(query, cancellationToken) as Result<RoleStatisticsResponse>;
+        var result = await _sender.Send(query, cancellationToken);
 
-        if (result == null)
-        {
-            return _errorHandlingService.HandleErrorResponse(Result<RoleStatisticsResponse>.Error("Failed to retrieve role statistics."));
-        }
-
-        return result.IsSuccess ? Ok(result.Value) : _errorHandlingService.HandleErrorResponse(result);
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : _errorHandlingService.HandleErrorResponse(result);
     }
 
     [HttpGet("notifications")]
@@ -95,13 +93,6 @@ public class StatisticsController : BaseController
 
         return result.IsSuccess ? Ok(result.Value) : _errorHandlingService.HandleErrorResponse(result);
     }
-
-    public record GetRoleStatisticsQuery();
-    public record RoleStatisticsResponse(
-        int TotalRoles,
-        int TotalPermissions,
-        Dictionary<string, int> PermissionsPerRole,
-        Dictionary<string, int> UsersPerRole);
 
     public record GetNotificationStatisticsQuery();
     public record NotificationStatisticsResponse(
