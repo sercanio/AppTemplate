@@ -1,4 +1,5 @@
-﻿using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
+﻿using AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
+using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUsersCount;
 using Ardalis.Result;
 using MediatR;
@@ -42,6 +43,17 @@ public class StatisticsController : BaseController
             : _errorHandlingService.HandleErrorResponse(result);
     }
 
+    [HttpGet("authentication")]
+    public async Task<IActionResult> GetAuthenticationStatistics(CancellationToken cancellationToken = default)
+    {
+        var query = new GetAuthenticationStatisticsQuery();
+        var result = await _sender.Send(query, cancellationToken);
+
+        return result.IsSuccess
+            ? Ok(result.Value)
+            : _errorHandlingService.HandleErrorResponse(result);
+    }
+
     [HttpGet("roles")]
     public async Task<IActionResult> GetRoleStatistics(CancellationToken cancellationToken = default)
     {
@@ -70,20 +82,6 @@ public class StatisticsController : BaseController
         return result.IsSuccess ? Ok(result.Value) : _errorHandlingService.HandleErrorResponse(result);
     }
 
-    [HttpGet("authentication")]
-    public async Task<IActionResult> GetAuthenticationStatistics(CancellationToken cancellationToken = default)
-    {
-        var query = new GetAuthenticationStatisticsQuery();
-        var result = await _sender.Send(query, cancellationToken) as Result<AuthenticationStatisticsResponse>;
-
-        if (result == null)
-        {
-            return _errorHandlingService.HandleErrorResponse(Result<AuthenticationStatisticsResponse>.Error("Failed to retrieve authentication statistics."));
-        }
-
-        return result.IsSuccess ? Ok(result.Value) : _errorHandlingService.HandleErrorResponse(result);
-    }
-
     [HttpGet("system")]
     public async Task<IActionResult> GetSystemStatistics(CancellationToken cancellationToken = default)
     {
@@ -96,18 +94,7 @@ public class StatisticsController : BaseController
         }
 
         return result.IsSuccess ? Ok(result.Value) : _errorHandlingService.HandleErrorResponse(result);
-
     }
-
-    // Request/Response DTOs
-    public record GetUserStatisticsQuery();
-    public record UserStatisticsResponse(
-        int TotalUsers,
-        int ActiveUsers,
-        int NewUsersToday,
-        int NewUsersThisWeek,
-        int NewUsersThisMonth,
-        Dictionary<string, int> UsersByRole);
 
     public record GetRoleStatisticsQuery();
     public record RoleStatisticsResponse(
@@ -123,14 +110,6 @@ public class StatisticsController : BaseController
         int NotificationsToday,
         Dictionary<string, int> NotificationsByType,
         Dictionary<string, int> NotificationsByChannel);
-
-    public record GetAuthenticationStatisticsQuery();
-    public record AuthenticationStatisticsResponse(
-        int SuccessfulLogins,
-        int FailedLogins,
-        int TwoFactorLogins,
-        int PasswordResets,
-        int AccountLockouts);
 
     public record GetSystemStatisticsQuery();
     public record SystemStatisticsResponse(

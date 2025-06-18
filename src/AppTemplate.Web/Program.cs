@@ -1,10 +1,11 @@
 using AppTemplate.Application;
-using AppTemplate.Infrastructure.Autorization;
 using AppTemplate.Infrastructure;
+using AppTemplate.Infrastructure.Autorization;
+using AppTemplate.Web;
 using AppTemplate.Web.Controllers.Api;
 using AppTemplate.Web.Extensions;
+using AppTemplate.Web.Middlewares;
 using AppTemplate.Web.services;
-using AppTemplate.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -25,7 +26,6 @@ builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHand
 
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
-//builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 
 builder.Services.AddTransient<IEmailSender, AzureEmailSender>();
 builder.Services.AddMemoryCache();
@@ -80,6 +80,7 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseRouting();
 app.UseCors("CorsPolicy");
+app.UseSessionTracking();
 app.UseAuthorization();
 app.UseCustomForbiddenRequestHandler();
 app.UseRateLimiter();

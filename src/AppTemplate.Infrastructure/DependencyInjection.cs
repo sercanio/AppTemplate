@@ -1,5 +1,7 @@
 using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Notifications;
+using AppTemplate.Application.Services.Statistics;
 using AppTemplate.Infrastructure.Autorization;
 using AppTemplate.Infrastructure.Repositories;
 using Asp.Versioning;
@@ -38,6 +40,7 @@ public static class DependencyInjection
         AddAuthorization(services);
         AddNotification(services);
         AddSignalR(services);
+        AddAuthenticationStatisticsServices(services, configuration);
 
         return services;
     }
@@ -101,5 +104,23 @@ public static class DependencyInjection
     private static void AddSignalR(IServiceCollection services)
     {
         services.AddSignalR();
+    }
+
+    private static void AddAuthenticationStatisticsServices(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<IActiveSessionService, ActiveSessionService>();
+
+        // Register authentication events service
+        services.AddScoped<AuthenticationEventsService>();
+
+        // Configure authentication events
+        services.ConfigureApplicationCookie(options =>
+        {
+            var serviceProvider = services.BuildServiceProvider();
+            var authEventsService = serviceProvider.GetRequiredService<AuthenticationEventsService>();
+
+            options.Events.OnSignedIn = authEventsService.OnSignedIn;
+            options.Events.OnSigningOut = authEventsService.OnSignedOut;
+        });
     }
 }
