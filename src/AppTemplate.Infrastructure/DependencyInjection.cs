@@ -1,5 +1,4 @@
 using AppTemplate.Application.Repositories;
-using AppTemplate.Application.Services.AuditLogs;
 using AppTemplate.Application.Services.Notifications;
 using AppTemplate.Infrastructure.Autorization;
 using AppTemplate.Infrastructure.Repositories;
@@ -35,11 +34,9 @@ public static class DependencyInjection
         AddConnectionProviders(services);
         AddBackgroundJobs(services, configuration);
         AddApiVersioning(services);
-        AddAuditing(services);
         AddPersistence(services, configuration);
         AddAuthorization(services);
         AddNotification(services);
-        AddAuditing(services);
         AddSignalR(services);
 
         return services;
@@ -89,7 +86,6 @@ public static class DependencyInjection
             .AddScoped<IAppUsersRepository, AppUsersRepository>()
             .AddScoped<IRolesRepository, RolesRepository>()
             .AddScoped<IPermissionsRepository, PermissionsRepository>()
-            .AddScoped<IAuditLogsRepository, AuditLogsRepository>()
             .AddScoped<INotificationsRepository, NotificationsRepository>();
     }
 
@@ -100,11 +96,6 @@ public static class DependencyInjection
     private static void AddNotification(IServiceCollection services)
     {
         services.AddTransient<INotificationService, NotificationsService>();
-    }
-
-    private static void AddAuditing(IServiceCollection services)
-    {
-        services.AddTransient<IAuditLogService, AuditLogService>();
     }
 
     private static void AddSignalR(IServiceCollection services)

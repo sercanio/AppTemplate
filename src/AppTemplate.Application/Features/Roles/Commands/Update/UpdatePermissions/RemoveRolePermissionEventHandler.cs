@@ -1,38 +1,15 @@
-﻿using AppTemplate.Application.Repositories;
-using AppTemplate.Application.Services.AuditLogs;
-using AppTemplate.Domain.AuditLogs;
-using AppTemplate.Domain.Roles.DomainEvents;
+﻿using AppTemplate.Domain.Roles.DomainEvents;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 
 internal class RemoveRolePermissionEventHandler(
-    IRolesRepository roleRepository,
-    IPermissionsRepository permissionRepository,
-    IAuditLogService auditLogService) : INotificationHandler<RolePermissionRemovedDomainEvent>
+    ILogger<RemoveRolePermissionEventHandler> logger) : INotificationHandler<RolePermissionRemovedDomainEvent>
 {
-    private readonly IRolesRepository _roleRepository = roleRepository;
-    private readonly IPermissionsRepository _permissionRepository = permissionRepository;
-    private readonly IAuditLogService _auditLogService = auditLogService;
-
     public async Task Handle(RolePermissionRemovedDomainEvent notification, CancellationToken cancellationToken)
     {
-        var role = await _roleRepository.GetAsync(
-            predicate: role => role.Id == notification.RoleId,
-            cancellationToken: cancellationToken);
-
-        var permission = await _permissionRepository.GetAsync(
-            predicate: permission => permission.Id == notification.PermissionId,
-            cancellationToken: cancellationToken);
-
-        AuditLog log = new()
-        {
-            User = role!.UpdatedBy!,
-            Action = RoleDomainEvents.RemovedPermission,
-            Entity = role.GetType().Name,
-            EntityId = role.Id.ToString(),
-            Details = $"{role.GetType().Name} '{role.Name}' has been revoked permission '{permission!.Name}'."
-        };
-        await _auditLogService.LogAsync(log);
+        logger.LogInformation("Handling RolePermissionRemovedDomainEvent for RoleId: {RoleId}, PermissionId: {PermissionId}",
+            notification.RoleId, notification.PermissionId);
     }
 }

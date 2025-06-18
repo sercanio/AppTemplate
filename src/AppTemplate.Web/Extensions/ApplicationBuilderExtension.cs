@@ -131,7 +131,7 @@ internal static class ApplicationBuilderExtensions
             services.AddAntiforgery(options =>
             {
                 options.Cookie.Name = "AppTemplate.AntiForgery";
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
                 options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
                 options.HeaderName = "X-XSRF-TOKEN";
             });
@@ -205,7 +205,7 @@ internal static class ApplicationBuilderExtensions
             options.AddFixedWindowLimiter("Fixed", limiterOptions =>
             {
                 limiterOptions.Window = TimeSpan.FromSeconds(60);
-                limiterOptions.PermitLimit = 30;
+                limiterOptions.PermitLimit = 60;
                 limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 limiterOptions.QueueLimit = 0;
             });
