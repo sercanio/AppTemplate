@@ -50,8 +50,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrastructure.Pagination", "..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj", "{AE216B0C-CFEA-397E-BFB5-40AE9743976C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrastructure.Repositories", "..\core\Myrtus.Clarity.Core.Infrastructure.Repositories\Myrtus.Clarity.Core.Infrastructure.Repositories.csproj", "{549E27C8-268D-6CB4-937D-412ADF089C33}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrastructure.SignalR", "..\core\Myrtus.Clarity.Core.Infrastructure.SignalR\Myrtus.Clarity.Core.Infrastructure.SignalR.csproj", "{9A684CC3-DA4D-9A26-1A1A-96ECFF220B4F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.WebApi", "..\core\Myrtus.Clarity.Core.WebApi\Myrtus.Clarity.Core.WebApi.csproj", "{780DB2DF-E4BB-F6DE-18F5-C160FE3425DB}"
@@ -166,10 +164,6 @@ Global
 		{AE216B0C-CFEA-397E-BFB5-40AE9743976C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE216B0C-CFEA-397E-BFB5-40AE9743976C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE216B0C-CFEA-397E-BFB5-40AE9743976C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{549E27C8-268D-6CB4-937D-412ADF089C33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{549E27C8-268D-6CB4-937D-412ADF089C33}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{549E27C8-268D-6CB4-937D-412ADF089C33}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{549E27C8-268D-6CB4-937D-412ADF089C33}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9A684CC3-DA4D-9A26-1A1A-96ECFF220B4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9A684CC3-DA4D-9A26-1A1A-96ECFF220B4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A684CC3-DA4D-9A26-1A1A-96ECFF220B4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -225,7 +219,6 @@ Global
 		{2594BBDE-864F-FA70-6461-33E3AE7F79AC} = {E18BC562-C9C1-4E5C-89A6-3CEAE589B4A0}
 		{98AE78EA-7699-0B75-6928-BD7C042795AD} = {E18BC562-C9C1-4E5C-89A6-3CEAE589B4A0}
 		{AE216B0C-CFEA-397E-BFB5-40AE9743976C} = {E18BC562-C9C1-4E5C-89A6-3CEAE589B4A0}
-		{549E27C8-268D-6CB4-937D-412ADF089C33} = {E18BC562-C9C1-4E5C-89A6-3CEAE589B4A0}
 		{9A684CC3-DA4D-9A26-1A1A-96ECFF220B4F} = {E18BC562-C9C1-4E5C-89A6-3CEAE589B4A0}
 		{780DB2DF-E4BB-F6DE-18F5-C160FE3425DB} = {E18BC562-C9C1-4E5C-89A6-3CEAE589B4A0}
 		{C2866876-6BE4-3F64-CF81-9F9F3D6573FC} = {E18BC562-C9C1-4E5C-89A6-3CEAE589B4A0}
