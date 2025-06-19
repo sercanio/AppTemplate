@@ -7,6 +7,8 @@ using Myrtus.Clarity.Core.WebAPI;
 using Myrtus.Clarity.Core.WebAPI.Controllers;
 using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Web.Attributes;
+using Myrtus.Clarity.Core.Infrastructure.Authorization;
 
 namespace AppTemplate.Web.Controllers;
 
@@ -22,6 +24,7 @@ public class PermissionsController : BaseController
     }
 
     [HttpGet]
+    [HasPermission(Permissions.PermissionsRead)]
     public async Task<IActionResult> GetAllPermissions(
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10,

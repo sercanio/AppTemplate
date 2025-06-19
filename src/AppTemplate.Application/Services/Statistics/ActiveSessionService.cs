@@ -80,7 +80,7 @@ public class ActiveSessionService : IActiveSessionService
             serializedSessions,
             new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1) // Cache for 1 day
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(1)
             });
     }
 }

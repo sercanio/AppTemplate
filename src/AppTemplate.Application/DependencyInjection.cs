@@ -1,5 +1,6 @@
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Roles;
+using AppTemplate.Application.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
 using Myrtus.Clarity.Core.Application.Abstractions.Behaviors;
 using Myrtus.Clarity.Core.Application.Abstractions.Caching;
@@ -39,7 +40,6 @@ public static class DependencyInjection
 
     private static void AddCache(IServiceCollection services)
     {
-        services.AddDistributedMemoryCache();
         services.AddScoped<ICacheService, CacheService>();
     }
 }

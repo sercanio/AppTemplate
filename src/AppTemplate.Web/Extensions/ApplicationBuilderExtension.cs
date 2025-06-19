@@ -205,7 +205,7 @@ internal static class ApplicationBuilderExtensions
             options.AddFixedWindowLimiter("Fixed", limiterOptions =>
             {
                 limiterOptions.Window = TimeSpan.FromSeconds(60);
-                limiterOptions.PermitLimit = 60;
+                limiterOptions.PermitLimit = 180;
                 limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 limiterOptions.QueueLimit = 0;
             });

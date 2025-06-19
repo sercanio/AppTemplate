@@ -2,10 +2,12 @@
 using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUsersCount;
+using AppTemplate.Web.Attributes;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.WebAPI;
 using Myrtus.Clarity.Core.WebAPI.Controllers;
 
@@ -23,6 +25,7 @@ public class StatisticsController : BaseController
     }
 
     [HttpGet("users/count")]
+    [HasPermission(Permissions.StatisticsRead)]
     public async Task<IActionResult> GetUsersCount(CancellationToken cancellationToken = default)
     {
         var query = new GetUsersCountQuery();
@@ -34,6 +37,7 @@ public class StatisticsController : BaseController
     }
 
     [HttpGet("users/trends")]
+    [HasPermission(Permissions.StatisticsRead)]
     public async Task<IActionResult> GetUserRegistrationTrends(CancellationToken cancellationToken = default)
     {
         var query = new GetUserRegistrationTrendsQuery();
@@ -45,6 +49,7 @@ public class StatisticsController : BaseController
     }
 
     [HttpGet("authentication")]
+    [HasPermission(Permissions.StatisticsRead)]
     public async Task<IActionResult> GetAuthenticationStatistics(CancellationToken cancellationToken = default)
     {
         var query = new GetAuthenticationStatisticsQuery();
@@ -56,6 +61,7 @@ public class StatisticsController : BaseController
     }
 
     [HttpGet("roles")]
+    [HasPermission(Permissions.StatisticsRead)]
     public async Task<IActionResult> GetRoleStatistics(CancellationToken cancellationToken = default)
     {
         var query = new GetRoleStatisticsQuery();
@@ -67,6 +73,7 @@ public class StatisticsController : BaseController
     }
 
     [HttpGet("notifications")]
+    [HasPermission(Permissions.StatisticsRead)]
     public async Task<IActionResult> GetNotificationStatistics(CancellationToken cancellationToken = default)
     {
         var query = new GetNotificationStatisticsQuery();
@@ -81,6 +88,7 @@ public class StatisticsController : BaseController
     }
 
     [HttpGet("system")]
+    [HasPermission(Permissions.StatisticsRead)]
     public async Task<IActionResult> GetSystemStatistics(CancellationToken cancellationToken = default)
     {
         var query = new GetSystemStatisticsQuery();

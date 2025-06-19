@@ -2,10 +2,12 @@ using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Notifications;
 using AppTemplate.Application.Services.Statistics;
+using AppTemplate.Infrastructure.Authorization;
 using AppTemplate.Infrastructure.Autorization;
 using AppTemplate.Infrastructure.Repositories;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +16,7 @@ using Myrtus.Clarity.Core.Application.Abstractions.Clock;
 using Myrtus.Clarity.Core.Application.Abstractions.Data.Dapper;
 using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Authentication.Azure;
+using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.Infrastructure.Clock;
 using Myrtus.Clarity.Core.Infrastructure.Data.Dapper;
 using Myrtus.Clarity.Core.Infrastructure.Outbox;
@@ -94,7 +97,11 @@ public static class DependencyInjection
 
     private static void AddAuthorization(IServiceCollection services)
     {
-        services.AddScoped<IClaimsTransformation, RoleClaimsTransformation>();
+        services.AddScoped<AuthorizationService>();
+
+        services.AddTransient<IClaimsTransformation, CustomClaimsTransformation>()
+                .AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>()
+                .AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
     }
     private static void AddNotification(IServiceCollection services)
     {

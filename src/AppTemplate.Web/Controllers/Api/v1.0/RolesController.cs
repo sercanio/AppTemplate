@@ -15,6 +15,7 @@ using AppTemplate.Application.Features.Roles.Queries.GetAllRoles;
 using AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 using ApiVersion = Microsoft.AspNetCore.Mvc.ApiVersion;
 using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Web.Attributes;
 
 namespace AppTemplate.Web.Controllers;
 
@@ -44,7 +45,7 @@ public class RolesController : BaseController
     }
 
     [HttpGet("{roleId}")]
-    //[HasPermission(Permissions.RolesRead)]
+    [HasPermission(Permissions.RolesRead)]
     public async Task<IActionResult> GetRoleById([FromRoute] Guid roleId, CancellationToken cancellationToken = default)
     {
         GetRoleByIdQuery query = new(roleId);
@@ -54,7 +55,7 @@ public class RolesController : BaseController
     }
 
     [HttpPost]
-    //[HasPermission(Permissions.RolesCreate)]
+    [HasPermission(Permissions.RolesCreate)]
     public async Task<IActionResult> CreateRole(
             CreateRoleRequest request,
             CancellationToken cancellationToken = default)
@@ -66,7 +67,7 @@ public class RolesController : BaseController
     }
 
     [HttpPatch("{roleId}/permissions")]
-    //[HasPermission(Permissions.RolesUpdate)]
+    [HasPermission(Permissions.RolesUpdate)]
     public async Task<IActionResult> UpdateRolePermissions(
             [FromBody] UpdateRolePermissionsRequest request,
             [FromRoute] Guid roleId,
@@ -79,7 +80,7 @@ public class RolesController : BaseController
     }
 
     [HttpPatch("{roleId}/name")]
-    //[HasPermission(Permissions.RolesUpdate)]
+    [HasPermission(Permissions.RolesUpdate)]
     public async Task<IActionResult> UpdateRoleName(
             [FromBody] UpdateRoleNameRequest request,
             [FromRoute] Guid roleId,
@@ -92,7 +93,7 @@ public class RolesController : BaseController
     }
 
     [HttpDelete("{roleId}")]
-    //[HasPermission(Permissions.RolesDelete)]
+    [HasPermission(Permissions.RolesDelete)]
     public async Task<IActionResult> DeleteRole(
             [FromRoute] Guid roleId,
             CancellationToken cancellationToken = default)

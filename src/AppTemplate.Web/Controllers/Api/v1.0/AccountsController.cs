@@ -1,22 +1,22 @@
-﻿using Ardalis.Result;
-using Microsoft.AspNetCore.WebUtilities;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Text.Encodings.Web;
+﻿using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
+using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
+using AppTemplate.Domain.AppUsers.ValueObjects;
+using AppTemplate.Web.Attributes;
+using AppTemplate.Web.Controllers.Api;
+using Ardalis.Result;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.WebUtilities;
 using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.WebAPI;
 using Myrtus.Clarity.Core.WebAPI.Controllers;
-using AppTemplate.Application.Enums;
-using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
-using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
-using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
-using AppTemplate.Domain.AppUsers.ValueObjects;
-using AppTemplate.Web.Controllers.Api;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Encodings.Web;
 
 namespace AppTemplate.Web.Controllers;
 
@@ -206,6 +206,7 @@ public class AccountController : BaseController
 
     [IgnoreAntiforgeryToken]
     [HttpPost("logout")]
+    [Authorize]
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
@@ -241,6 +242,7 @@ public class AccountController : BaseController
 
     // POST: /api/v1.0/account/resendemailconfirmation
     [HttpPost("resendemailconfirmation")]
+    [Authorize]
     public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
     {
         if (string.IsNullOrEmpty(request.Email))
@@ -290,6 +292,7 @@ public class AccountController : BaseController
 
     [IgnoreAntiforgeryToken]
     [HttpGet("me")]
+    [Authorize]
     public async Task<IActionResult> GetCurrentUser([FromQuery] Guid? id)
     {
         var query = new GetLoggedInUserQuery();
@@ -302,7 +305,7 @@ public class AccountController : BaseController
     }
 
     [HttpPatch("me/notifications")]
-    //[HasPermission(Permissions.NotificationsRead)]
+    [HasPermission(Permissions.NotificationsUpdate)]
     public async Task<IActionResult> UpdateNotifications(
     UpdateUserNotificationsRequest request,
     CancellationToken cancellationToken)
