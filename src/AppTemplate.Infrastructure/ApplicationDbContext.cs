@@ -9,7 +9,6 @@ using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Outbox;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
-using AppTemplate.Domain.AuditLogs;
 using AppTemplate.Domain.Notifications;
 
 namespace AppTemplate.Infrastructure;
@@ -26,7 +25,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
     public DbSet<AppUser> AppUsers { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
-    public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<Notification> Notifications { get; set; }
 
     public ApplicationDbContext(

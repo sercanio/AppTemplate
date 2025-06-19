@@ -16,18 +16,18 @@ services:
       timeout: 10s
       retries: 3
 
-  AppTemplate-mongodb:
-    image: mongo:latest
-    container_name: AppTemplate.MongoDb
+  AppTemplate-redis:
+    image: redis:latest
+    container_name: AppTemplate.Redis
+    command: redis-server --requirepass redis
     environment:
-      MONGO_INITDB_ROOT_USERNAME: mongo
-      MONGO_INITDB_ROOT_PASSWORD: mongo
+      REDIS_PASSWORD: redis
     volumes:
-      - ./containers/mongodb:/data/db
+      - ./containers/redis:/data
     ports:
-      - "27017:27017"
+      - "6379:6379"
     healthcheck:
-      test: ["CMD", "mongosh", "-u", "mongo", "-p", "mongo", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,7 +41,7 @@ services:
     depends_on:
       AppTemplate-db:
         condition: service_healthy
-      AppTemplate-mongodb:
+      AppTemplate-redis:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
@@ -53,4 +53,4 @@ services:
 
 volumes: 
   AppTemplate-db-data:
-  AppTemplate-mongodb-data:
+  AppTemplate-redis-data:

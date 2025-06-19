@@ -20,6 +20,7 @@ namespace AppTemplate.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("AppTemplate.Domain.AppUsers.AppUser", b =>
@@ -61,9 +62,120 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("55c7f429-0916-4d84-8b76-d45185d89aa7"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 423, DateTimeKind.Utc).AddTicks(3910),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 209, DateTimeKind.Utc).AddTicks(6857),
                             IdentityId = "b3398ff2-1b43-4af7-812d-eb4347eecbb8"
                         });
+                });
+
+            modelBuilder.Entity("AppTemplate.Domain.Notifications.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasComment("The action that triggered this notification");
+
+                    b.Property<string>("AdditionalData")
+                        .HasColumnType("jsonb")
+                        .HasComment("Additional JSON data associated with the notification");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasComment("Detailed description of the notification");
+
+                    b.Property<string>("Entity")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasComment("The entity type related to this notification");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasComment("The ID of the related entity");
+
+                    b.Property<bool>("IsRead")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasComment("Whether the notification has been read");
+
+                    b.Property<DateTime>("Timestamp")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                        .HasComment("When the notification was created");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedOnUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasComment("The ID of the user who owns this notification");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)")
+                        .HasComment("The username of the notification owner");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdditionalData")
+                        .HasDatabaseName("IX_Notifications_AdditionalData")
+                        .HasFilter("\"DeletedOnUtc\" IS NULL");
+
+                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("AdditionalData"), "gin");
+
+                    b.HasIndex("Timestamp")
+                        .HasDatabaseName("IX_Notifications_Timestamp")
+                        .HasFilter("\"DeletedOnUtc\" IS NULL");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_Notifications_UserId")
+                        .HasFilter("\"DeletedOnUtc\" IS NULL");
+
+                    b.HasIndex("Entity", "EntityId")
+                        .HasDatabaseName("IX_Notifications_Entity_EntityId")
+                        .HasFilter("\"DeletedOnUtc\" IS NULL");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("Entity", "EntityId"), new[] { "UserId", "Timestamp" });
+
+                    b.HasIndex("UserId", "IsRead")
+                        .HasDatabaseName("IX_Notifications_UserId_IsRead")
+                        .HasFilter("\"DeletedOnUtc\" IS NULL");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("UserId", "IsRead"), new[] { "Timestamp", "Details" });
+
+                    b.HasIndex("UserId", "Timestamp")
+                        .HasDatabaseName("IX_Notifications_Unread")
+                        .HasFilter("\"IsRead\" = false AND \"DeletedOnUtc\" IS NULL");
+
+                    NpgsqlIndexBuilderExtensions.IncludeProperties(b.HasIndex("UserId", "Timestamp"), new[] { "Details", "Action" });
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("AppTemplate.Domain.Roles.Permission", b =>
@@ -107,7 +219,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("33261a4a-c423-4876-8f15-e40068aea5ca"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(7605),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(7612),
                             Feature = "users",
                             Name = "users:read"
                         },
@@ -115,7 +227,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("9f79a54c-0b54-4de5-94b9-8582a5f32e78"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9069),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9009),
                             Feature = "users",
                             Name = "users:create"
                         },
@@ -123,7 +235,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("25bb194c-ea15-4339-9f45-5a895c51b626"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9074),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9015),
                             Feature = "users",
                             Name = "users:update"
                         },
@@ -131,7 +243,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("559dd4ec-4d2e-479d-a0a9-5229ecc04fb4"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9075),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9018),
                             Feature = "users",
                             Name = "users:delete"
                         },
@@ -139,7 +251,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("d066e4ee-6af2-4857-bd40-b9b058fa2201"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9077),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9020),
                             Feature = "roles",
                             Name = "roles:read"
                         },
@@ -147,7 +259,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("940c88ad-24fe-4d86-a982-fa5ea224edba"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9078),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9022),
                             Feature = "roles",
                             Name = "roles:create"
                         },
@@ -155,7 +267,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("346d3cc6-ac81-42b1-8539-cd53f42b6566"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9080),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9024),
                             Feature = "roles",
                             Name = "roles:update"
                         },
@@ -163,7 +275,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("386e40e9-da38-4d2f-8d02-ac4cbaddf760"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9081),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9026),
                             Feature = "roles",
                             Name = "roles:delete"
                         },
@@ -171,7 +283,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("0eeb5f27-10fd-430a-9257-a8457107141a"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9083),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9028),
                             Feature = "permissions",
                             Name = "permissions:read"
                         },
@@ -179,7 +291,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("3050d953-5dcf-4eb0-a18d-a3ce62a0dd3c"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9084),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9030),
                             Feature = "auditlogs",
                             Name = "auditlogs:read"
                         },
@@ -187,7 +299,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("a03a127b-9a03-46a0-b709-b6919f2598be"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9086),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9032),
                             Feature = "notifications",
                             Name = "notifications:read"
                         },
@@ -195,9 +307,17 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 426, DateTimeKind.Utc).AddTicks(9087),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9034),
                             Feature = "notifications",
                             Name = "notifications:update"
+                        },
+                        new
+                        {
+                            Id = new Guid("8f97aeb9-a9fd-470f-bae9-c9f5f0534d23"),
+                            CreatedBy = "System",
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 232, DateTimeKind.Utc).AddTicks(9036),
+                            Feature = "statistics",
+                            Name = "statistics:read"
                         });
                 });
 
@@ -241,7 +361,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("4b606d86-3537-475a-aa20-26aadd8f5cfd"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 432, DateTimeKind.Utc).AddTicks(2657),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 237, DateTimeKind.Utc).AddTicks(9336),
                             IsDefault = false,
                             Name = "Admin"
                         },
@@ -249,7 +369,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("5dc6ec47-5b7c-4c2b-86cd-3a671834e56e"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 3, 26, 21, 55, 15, 432, DateTimeKind.Utc).AddTicks(3113),
+                            CreatedOnUtc = new DateTime(2025, 6, 19, 5, 12, 0, 238, DateTimeKind.Utc).AddTicks(77),
                             IsDefault = true,
                             Name = "Registered"
                         });
@@ -374,15 +494,15 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = "b3398ff2-1b43-4af7-812d-eb4347eecbb8",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "b6b1015e-397e-4251-8559-aef7fc8a6a58",
+                            ConcurrencyStamp = "ebed255d-a8a6-4b56-a94f-910d1df5a229",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHIU5u89fB0DtgDjmowFzlj1AyWVMP1Q6bz+zueZKex/vzQIIRFTQzSOsLy2veEhjA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEDNrC/Cu+4ewaCRX0gtiR1e2k3Q+OEKP6MXguXvyNm4oedJW6rFuGNOHSxYDmNeMgw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "5e24ddd3-fd6e-4cee-831d-82573724aa1f",
+                            SecurityStamp = "58a601b1-51ee-4110-aa5f-f8ac7c55e72c",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
@@ -668,6 +788,17 @@ namespace AppTemplate.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("AppTemplate.Domain.Notifications.Notification", b =>
+                {
+                    b.HasOne("AppTemplate.Domain.AppUsers.AppUser", "AppUser")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -751,6 +882,11 @@ namespace AppTemplate.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_RoleUser_AppUsers_UserId");
+                });
+
+            modelBuilder.Entity("AppTemplate.Domain.AppUsers.AppUser", b =>
+                {
+                    b.Navigation("Notifications");
                 });
 #pragma warning restore 612, 618
         }

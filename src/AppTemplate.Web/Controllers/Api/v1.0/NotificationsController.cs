@@ -9,6 +9,7 @@ using Myrtus.Clarity.Core.WebAPI.Controllers;
 using AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsAsRead;
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Domain.Roles;
 
 namespace AppTemplate.Web.Controllers;
 
@@ -39,7 +40,6 @@ public class NotificationsController(
     }
 
     [HttpPatch("read")]
-    // [HasPermission(Permissions.NotificationsUpdate)]
     public async Task<IActionResult> MarkNotificationsAsRead(
         CancellationToken cancellationToken = default)
     {

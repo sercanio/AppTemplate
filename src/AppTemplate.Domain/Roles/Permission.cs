@@ -20,7 +20,9 @@ public sealed class Permission : Entity
 
     public static readonly Permission NotificationsRead = new(Guid.Parse("a03a127b-9a03-46a0-b709-b6919f2598be"), "notifications", "notifications:read");
     public static readonly Permission NotificationsUpdate = new(Guid.Parse("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"), "notifications", "notifications:update");
-    
+
+    public static readonly Permission StatisticsRead = new(Guid.Parse("8f97aeb9-a9fd-470f-bae9-c9f5f0534d23"), "statistics", "statistics:read");
+
     public Permission(Guid id, string feature, string name) : base(id)
     {
         Feature = feature;

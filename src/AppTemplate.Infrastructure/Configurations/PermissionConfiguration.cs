@@ -30,7 +30,9 @@ internal sealed class PermissionConfiguration : IEntityTypeConfiguration<Permiss
             Permission.AuditLogsRead,
 
             Permission.NotificationsRead,
-            Permission.NotificationsUpdate
+            Permission.NotificationsUpdate,
+
+            Permission.StatisticsRead
         );
     }
 }

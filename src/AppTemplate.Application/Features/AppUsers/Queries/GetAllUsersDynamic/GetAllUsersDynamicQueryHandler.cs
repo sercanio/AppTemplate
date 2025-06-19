@@ -29,7 +29,6 @@ public sealed class GetAllUsersDynamicQueryHandler(IAppUsersRepository userRepos
         List<GetAllUsersDynamicQueryResponse> mappedUsers = users.Items.Select(
             user => new GetAllUsersDynamicQueryResponse(
             user.Id,
-            email: user.IdentityUser?.Email ?? string.Empty,
             userName: user.IdentityUser?.UserName ?? string.Empty,
             roles: new Collection<LoggedInUserRolesDto>(
                         user.Roles?.Where(

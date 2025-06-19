@@ -27,7 +27,6 @@ public sealed class GetAllUsersQueryHandler(IAppUsersRepository userRepository) 
         List<GetAllUsersQueryResponse> mappedUsers = users.Items.Select(
             user => new GetAllUsersQueryResponse(
             user.Id,
-            email: user.IdentityUser?.Email ?? string.Empty,
             userName: user.IdentityUser?.UserName ?? string.Empty,
             roles: new Collection<LoggedInUserRolesDto>(
                         user.Roles?.Where(

@@ -15,6 +15,7 @@ using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Features.AppUsers.Queries.GetUser;
 using AppTemplate.Application.Features.Users.Queries.GetAllUsers;
 using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Web.Attributes;
 
 namespace AppTemplate.Web.Controllers;
 
@@ -30,6 +31,7 @@ public class UsersController : BaseController
     }
 
     [HttpGet]
+    [HasPermission(Permissions.UsersRead)]
     public async Task<IActionResult> GetAllUsers(
         [FromQuery] int pageIndex = 0,
         [FromQuery] int pageSize = 10,
@@ -43,7 +45,7 @@ public class UsersController : BaseController
     }
 
     [HttpPost("dynamic")]
-    //[HasPermission(Permissions.UsersRead)]
+    [HasPermission(Permissions.UsersRead)]
     public async Task<IActionResult> GetAllUsersDynamic(
         [FromBody] DynamicQuery dynamicQuery,
         [FromQuery] int pageIndex = 0,
@@ -62,7 +64,7 @@ public class UsersController : BaseController
     }
 
     [HttpGet("{userId}")]
-    //[HasPermission(Permissions.UsersRead)]
+    [HasPermission(Permissions.UsersRead)]
     public async Task<IActionResult> GetUserById(
         Guid userId,
         CancellationToken cancellationToken = default)
@@ -75,7 +77,7 @@ public class UsersController : BaseController
     }
 
     [HttpGet("roles/{roleId}")]
-    // [HasPermission(Permissions.UsersRead)]
+    [HasPermission(Permissions.UsersRead)]
     public async Task<IActionResult> GetAllUsersByRoleId(
             Guid roleId,
             [FromQuery] int PageIndex = 0,
@@ -89,7 +91,7 @@ public class UsersController : BaseController
     }
 
     [HttpPatch("{userId}/roles")]
-    //[HasPermission(Permissions.UsersRead)]
+    [HasPermission(Permissions.UsersUpdate)]
     public async Task<IActionResult> UpdateUserRoles(
         UpdateUserRolesRequest request,
         Guid userId,

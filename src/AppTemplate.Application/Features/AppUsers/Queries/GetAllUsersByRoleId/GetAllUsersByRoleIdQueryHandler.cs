@@ -29,8 +29,7 @@ public sealed class GetAllUsersByRoleIdQueryHandler(IAppUsersRepository userRepo
         List<GetAllUsersByRoleIdQueryResponse> mappedUsers = users.Items.Select(
             user => new GetAllUsersByRoleIdQueryResponse(
                 user.Id,
-                user.IdentityUser.Email!,
-                user.IdentityUser.Email!,
+                user.IdentityUser.UserName!,
                 new Collection<LoggedInUserRolesDto>(
                     user.Roles.Where(
                         role => role.DeletedOnUtc == null).Select(

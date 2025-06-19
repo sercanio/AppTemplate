@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Myrtus.Clarity.Core.Infrastructure.Authorization;
+using System.Threading.Tasks;
 
-namespace AppTemplate.Infrastructure.Autorization;
+namespace AppTemplate.Infrastructure.Authorization;
 
 public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
 {
@@ -9,10 +10,8 @@ public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionReq
         AuthorizationHandlerContext context,
         PermissionRequirement requirement)
     {
-        if (context.User.HasClaim(c => c.Type == requirement.Permission && c.Value.Equals("true", StringComparison.OrdinalIgnoreCase)))
-        {
+        if (context.User.HasClaim("permission", requirement.Permission))
             context.Succeed(requirement);
-        }
 
         return Task.CompletedTask;
     }

@@ -30,7 +30,6 @@ public sealed class GetUserQueryHandler(IAppUsersRepository userRepository) : IQ
 
         GetUserQueryResponse response = new(
             user.Id,
-            user.IdentityUser.Email!,
             user.IdentityUser.UserName!,
             new Collection<GetRoleByIdQueryResponse>(mappedRoles));
 
