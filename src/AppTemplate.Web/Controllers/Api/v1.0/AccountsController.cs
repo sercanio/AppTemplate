@@ -42,27 +42,43 @@ public class AccountController : BaseController
         _emailSender = emailSender;
     }
 
+    private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
+    {
+        if (identityResult.Succeeded)
+        {
+            return Result.Success(value);
+        }
+
+        var errors = identityResult.Errors.Select(e => e.Description).ToList();
+        // Fix for CS1503: Convert List<string> to ErrorList using the appropriate constructor or method
+        var errorList = new Ardalis.Result.ErrorList(errors);
+        // Fix for CA1860: Use Count == 0 instead of Any()
+        return Result.Error(errors.Count > 0 ? errorList : new Ardalis.Result.ErrorList(new[] { defaultErrorMessage }));
+    }
+
     // GET: /api/v1.0/account/confirmemail?userId=...&code=...
     [HttpGet("confirmemail")]
     public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string code)
     {
         if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
         {
-            return BadRequest(new { error = "UserId and code are required." });
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("UserId and code are required.")));
         }
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return NotFound(new { error = $"Unable to load user with ID '{userId}'." });
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound($"Unable to load user with ID '{userId}'."));
         }
 
         code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-        var result = await _userManager.ConfirmEmailAsync(user, code);
+        var identityResult = await _userManager.ConfirmEmailAsync(user, code);
 
-        return result.Succeeded
-            ? Ok(new { message = "Email confirmed successfully." })
-            : BadRequest(new { error = "Error confirming email.", details = result.Errors });
+        var result = ConvertIdentityResult(identityResult, "Email confirmed successfully.", "Error confirming email.");
+
+        return result.IsSuccess
+            ? Ok(new { message = result.Value })
+            : _errorHandlingService.HandleErrorResponse(result);
     }
 
     // GET: /api/v1.0/account/confirmemailchange?userId=...&email=...&code=...
@@ -103,18 +119,20 @@ public class AccountController : BaseController
         var user = await _userManager.GetUserAsync(User);
         if (user == null)
         {
-            return NotFound(new { error = $"Unable to load user." });
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
         }
 
-        var changePasswordResult = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
-        if (!changePasswordResult.Succeeded)
+        var identityResult = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+        var result = ConvertIdentityResult(identityResult, "Your password has been changed successfully.", "Password change failed.");
+
+        if (result.IsSuccess)
         {
-            return BadRequest(new { error = "Password change failed.", details = changePasswordResult.Errors });
+            await _signInManager.RefreshSignInAsync(user);
         }
 
-        await _signInManager.RefreshSignInAsync(user);
-
-        return Ok(new { message = "Your password has been changed successfully." });
+        return result.IsSuccess
+            ? Ok(new { message = result.Value })
+            : _errorHandlingService.HandleErrorResponse(result);
     }
 
     // POST: /api/v1.0/account/forgotpassword
@@ -123,7 +141,7 @@ public class AccountController : BaseController
     {
         if (string.IsNullOrEmpty(request.Email))
         {
-            return BadRequest(new { error = "Email is required." });
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid());
         }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
