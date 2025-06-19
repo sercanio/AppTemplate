@@ -7,7 +7,7 @@ public class ActiveSessionService : IActiveSessionService
 {
     private readonly IDistributedCache _cache;
     private readonly TimeSpan _sessionTimeout = TimeSpan.FromMinutes(30);
-    private const string ActiveSessionsKey = "ActiveSessions";
+    private const string ActiveSessionsKey = "activesessions";
 
     public ActiveSessionService(IDistributedCache cache)
     {

@@ -54,7 +54,8 @@ internal sealed class GetLoggedInUserQueryHandler : IQueryHandler<GetLoggedInUse
             Email = user.IdentityUser.Email!,
             UserName = user.IdentityUser.UserName!,
             Roles = mappedRoles,
-            NotificationPreference = user.NotificationPreference
+            NotificationPreference = user.NotificationPreference,
+            EmailConfirmed = user.IdentityUser.EmailConfirmed
         };
 
         return Result.Success(userResponse);

@@ -97,6 +97,26 @@ public class AccountController : BaseController
         return Ok(new { message = "Email change confirmed." });
     }
 
+    [HttpPost("changepassword")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound(new { error = $"Unable to load user." });
+        }
+
+        var changePasswordResult = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+        if (!changePasswordResult.Succeeded)
+        {
+            return BadRequest(new { error = "Password change failed.", details = changePasswordResult.Errors });
+        }
+
+        await _signInManager.RefreshSignInAsync(user);
+
+        return Ok(new { message = "Your password has been changed successfully." });
+    }
+
     // POST: /api/v1.0/account/forgotpassword
     [HttpPost("forgotpassword")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
@@ -292,7 +312,6 @@ public class AccountController : BaseController
 
     [IgnoreAntiforgeryToken]
     [HttpGet("me")]
-    [Authorize]
     public async Task<IActionResult> GetCurrentUser([FromQuery] Guid? id)
     {
         var query = new GetLoggedInUserQuery();
@@ -323,7 +342,21 @@ public class AccountController : BaseController
 }
 
 // Request DTOs
+public class ChangePasswordRequest
+{
+    [Required]
+    [DataType(DataType.Password)]
+    public string OldPassword { get; set; }
 
+    [Required]
+    [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+    [DataType(DataType.Password)]
+    public string NewPassword { get; set; }
+
+    [DataType(DataType.Password)]
+    [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
+    public string ConfirmPassword { get; set; }
+}
 public class ForgotPasswordRequest
 {
     [Required, EmailAddress]
