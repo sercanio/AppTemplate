@@ -1,5 +1,8 @@
 ﻿using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
+using AppTemplate.Application.Services.AppUsers;
+using AppTemplate.Application.Services.EmailSenders;
+using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
@@ -11,6 +14,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
+using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.WebAPI;
 using Myrtus.Clarity.Core.WebAPI.Controllers;
@@ -28,11 +32,15 @@ public class AccountController : BaseController
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly IAppUsersService _appUsersService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IEmailSender _emailSender;
 
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
+        IAppUsersService appUsersService,
+        IUnitOfWork unitOfWork,
         IEmailSender emailSender,
         ISender sender, IErrorHandlingService errorHandlingService
         ) : base(sender, errorHandlingService)
@@ -40,6 +48,8 @@ public class AccountController : BaseController
         _userManager = userManager;
         _signInManager = signInManager;
         _emailSender = emailSender;
+        _appUsersService = appUsersService;
+        _unitOfWork = unitOfWork;
     }
 
     private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
@@ -81,6 +91,104 @@ public class AccountController : BaseController
             : _errorHandlingService.HandleErrorResponse(result);
     }
 
+    [HttpPost("changeemail")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound(new { error = $"Unable to load user." });
+        }
+
+        var email = await _userManager.GetEmailAsync(user);
+        if (request.NewEmail == email)
+        {
+            return Ok(new { message = "Your email is unchanged." });
+        }
+
+        var existingUser = await _userManager.FindByEmailAsync(request.NewEmail);
+        if (existingUser != null)
+        {
+            return BadRequest(new { error = "Email already in use." });
+        }
+
+        var userId = await _userManager.GetUserIdAsync(user);
+        var code = await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        //await _emailSender.SendEmailAsync(
+        //    request.NewEmail,
+        //    "Confirm your email",
+        //    $"Please confirm your account by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
+
+        await ((AzureEmailSender)_emailSender).SendEmailChangeConfirmationAsync(
+            request.NewEmail,
+            userId,
+            code,
+            user.UserName);
+
+
+        return Ok(new { message = "Confirmation link to change email sent. Please check your email." });
+    }
+
+    // POST: /api/v1.0/account/sendverificationemail
+    [HttpPost("sendverificationemail")]
+    public async Task<IActionResult> SendVerificationEmail()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound(new { error = $"Unable to load user." });
+        }
+
+        if (await _userManager.IsEmailConfirmedAsync(user))
+        {
+            return Ok(new { message = "Your email is already confirmed." });
+        }
+
+        var userId = await _userManager.GetUserIdAsync(user);
+        var email = await _userManager.GetEmailAsync(user);
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+            email,
+            userId,
+            code,
+            user.UserName);
+
+        return Ok(new { message = "Verification email sent. Please check your email." });
+    }
+
+    //[EnableRateLimiting("ResendEmailConfirmationLimiter")]
+    [HttpPost("resendemailconfirmation")]
+    public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
+    {
+        if (string.IsNullOrEmpty(request.Email))
+        {
+            return BadRequest(new { error = "Email is required." });
+        }
+
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+        {
+            // To prevent user enumeration, always return success.
+            return Ok(new { message = "Verification email sent. Please check your email." });
+        }
+
+        var userId = await _userManager.GetUserIdAsync(user);
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+            request.Email,
+            userId,
+            code,
+            user.UserName);
+
+        return Ok(new { message = "Verification email sent. Please check your email." });
+    }
+
     // GET: /api/v1.0/account/confirmemailchange?userId=...&email=...&code=...
     [HttpGet("confirmemailchange")]
     public async Task<IActionResult> ConfirmEmailChange([FromQuery] string userId, [FromQuery] string email, [FromQuery] string code)
@@ -101,12 +209,6 @@ public class AccountController : BaseController
         if (!changeResult.Succeeded)
         {
             return BadRequest(new { error = "Error changing email.", details = changeResult.Errors });
-        }
-
-        var setNameResult = await _userManager.SetUserNameAsync(user, email);
-        if (!setNameResult.Succeeded)
-        {
-            return BadRequest(new { error = "Error updating username.", details = setNameResult.Errors });
         }
 
         await _signInManager.RefreshSignInAsync(user);
@@ -433,57 +535,35 @@ public class AccountController : BaseController
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        var user = new IdentityUser { UserName = request.Username, Email = request.Email };
-        var result = await _userManager.CreateAsync(user, request.Password);
+        var identityUser = new IdentityUser { UserName = request.Username, Email = request.Email };
+        var result = await _userManager.CreateAsync(identityUser, request.Password);
 
         if (result.Succeeded)
         {
-            var userId = await _userManager.GetUserIdAsync(user);
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId, code }, Request.Scheme);
+            var identityId = await _userManager.GetUserIdAsync(identityUser);
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
 
-            await _emailSender.SendEmailAsync(request.Email, "Confirm your email",
-                $"Confirm your account by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
+            AppUser user = AppUser.Create();
+            user.SetIdentityId(identityId);
+
+            await _appUsersService.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var userId = identityId;
+
+            await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+                request.Email,
+                userId,
+                code,
+                request.Username);
 
             return Ok(new { message = "User registered successfully. Please confirm your email." });
         }
         return BadRequest(new { error = "Registration failed.", details = result.Errors });
     }
 
-    // POST: /api/v1.0/account/resendemailconfirmation
-    [HttpPost("resendemailconfirmation")]
-    [Authorize]
-    public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
-    {
-        if (string.IsNullOrEmpty(request.Email))
-        {
-            return BadRequest(new { error = "Email is required." });
-        }
-
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null)
-        {
-            // To prevent user enumeration, always return success.
-            return Ok(new { message = "Verification email sent. Please check your email." });
-        }
-
-        var userId = await _userManager.GetUserIdAsync(user);
-        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId, code }, Request.Scheme);
-
-        await _emailSender.SendEmailAsync(request.Email, "Confirm your email",
-            $"Confirm your account by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
-
-        return Ok(new { message = "Verification email sent. Please check your email." });
-    }
-
+    
     // POST: /api/v1.0/account/resetpassword
     [HttpPost("resetpassword")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
@@ -581,6 +661,13 @@ public class ChangePasswordRequest
     [DataType(DataType.Password)]
     [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
     public string ConfirmPassword { get; set; }
+}
+
+public class ChangeEmailRequest
+{
+    [Required]
+    [EmailAddress]
+    public string NewEmail { get; set; }
 }
 
 public class EnableAuthenticatorRequest

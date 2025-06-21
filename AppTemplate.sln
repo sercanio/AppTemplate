@@ -59,8 +59,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrastructure.Pagination", "core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj", "{9A8841B7-C19B-B3C0-7F8C-616473B2A81F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrastructure.Repositories", "core\Myrtus.Clarity.Core.Infrastructure.Repositories\Myrtus.Clarity.Core.Infrastructure.Repositories.csproj", "{88B22115-56A1-CC27-73E1-66DB6F093DCD}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.Infrastructure.SignalR", "core\Myrtus.Clarity.Core.Infrastructure.SignalR\Myrtus.Clarity.Core.Infrastructure.SignalR.csproj", "{54246929-DEEC-DE29-365D-051EF6AD60DF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Myrtus.Clarity.Core.WebApi", "core\Myrtus.Clarity.Core.WebApi\Myrtus.Clarity.Core.WebApi.csproj", "{1D3EC838-5FF5-0040-B6B8-BCFD0FEDBF8A}"

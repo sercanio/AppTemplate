@@ -1,4 +1,5 @@
 using AppTemplate.Application;
+using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Authorization;
 using AppTemplate.Infrastructure.Autorization;
@@ -6,7 +7,6 @@ using AppTemplate.Web;
 using AppTemplate.Web.Controllers.Api;
 using AppTemplate.Web.Extensions;
 using AppTemplate.Web.Middlewares;
-using AppTemplate.Web.services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -28,7 +28,6 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 
-builder.Services.AddTransient<IEmailSender, AzureEmailSender>();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
