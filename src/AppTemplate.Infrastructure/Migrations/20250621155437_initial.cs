@@ -14,9 +14,6 @@ namespace AppTemplate.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:PostgresExtension:postgis", ",,");
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -322,26 +319,26 @@ namespace AppTemplate.Infrastructure.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "b3398ff2-1b43-4af7-812d-eb4347eecbb8", 0, "fe973c9b-2f60-4ccc-8984-c640617ba9e2", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEHxV2BVA02rzy9naT7MX6uJ/56BWWw/5TD5wmxu/gXU4a6KFXj9UJdWT4SJl81Dg+w==", null, false, "9f7a3705-708c-4598-824a-21c2a5486c9f", false, "admin" });
+                values: new object[] { "b3398ff2-1b43-4af7-812d-eb4347eecbb8", 0, "a0123870-2c47-4a4d-b614-53af81a89a94", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEHYxvKnGHhiiRoK/gkzQpr0MdCDF0ujLzUEHZJUvxuCuONkFJhWe32TszjIIiWEIjg==", null, false, "14e7b303-738e-48c6-af04-aa0032b2fcdd", false, "admin" });
 
             migrationBuilder.InsertData(
                 table: "Permissions",
                 columns: new[] { "Id", "CreatedBy", "CreatedOnUtc", "DeletedOnUtc", "feature", "name", "UpdatedBy", "UpdatedOnUtc" },
                 values: new object[,]
                 {
-                    { new Guid("0eeb5f27-10fd-430a-9257-a8457107141a"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2186), null, "permissions", "permissions:read", null, null },
-                    { new Guid("25bb194c-ea15-4339-9f45-5a895c51b626"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2170), null, "users", "users:update", null, null },
-                    { new Guid("3050d953-5dcf-4eb0-a18d-a3ce62a0dd3c"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2188), null, "auditlogs", "auditlogs:read", null, null },
-                    { new Guid("33261a4a-c423-4876-8f15-e40068aea5ca"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 592, DateTimeKind.Utc).AddTicks(9419), null, "users", "users:read", null, null },
-                    { new Guid("346d3cc6-ac81-42b1-8539-cd53f42b6566"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2182), null, "roles", "roles:update", null, null },
-                    { new Guid("386e40e9-da38-4d2f-8d02-ac4cbaddf760"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2184), null, "roles", "roles:delete", null, null },
-                    { new Guid("559dd4ec-4d2e-479d-a0a9-5229ecc04fb4"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2172), null, "users", "users:delete", null, null },
-                    { new Guid("8f97aeb9-a9fd-470f-bae9-c9f5f0534d23"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2195), null, "statistics", "statistics:read", null, null },
-                    { new Guid("940c88ad-24fe-4d86-a982-fa5ea224edba"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2179), null, "roles", "roles:create", null, null },
-                    { new Guid("9f79a54c-0b54-4de5-94b9-8582a5f32e78"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2161), null, "users", "users:create", null, null },
-                    { new Guid("a03a127b-9a03-46a0-b709-b6919f2598be"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2191), null, "notifications", "notifications:read", null, null },
-                    { new Guid("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2193), null, "notifications", "notifications:update", null, null },
-                    { new Guid("d066e4ee-6af2-4857-bd40-b9b058fa2201"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2175), null, "roles", "roles:read", null, null }
+                    { new Guid("0eeb5f27-10fd-430a-9257-a8457107141a"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5711), null, "permissions", "permissions:read", null, null },
+                    { new Guid("25bb194c-ea15-4339-9f45-5a895c51b626"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5685), null, "users", "users:update", null, null },
+                    { new Guid("3050d953-5dcf-4eb0-a18d-a3ce62a0dd3c"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5715), null, "auditlogs", "auditlogs:read", null, null },
+                    { new Guid("33261a4a-c423-4876-8f15-e40068aea5ca"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(2191), null, "users", "users:read", null, null },
+                    { new Guid("346d3cc6-ac81-42b1-8539-cd53f42b6566"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5703), null, "roles", "roles:update", null, null },
+                    { new Guid("386e40e9-da38-4d2f-8d02-ac4cbaddf760"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5707), null, "roles", "roles:delete", null, null },
+                    { new Guid("559dd4ec-4d2e-479d-a0a9-5229ecc04fb4"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5690), null, "users", "users:delete", null, null },
+                    { new Guid("8f97aeb9-a9fd-470f-bae9-c9f5f0534d23"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5727), null, "statistics", "statistics:read", null, null },
+                    { new Guid("940c88ad-24fe-4d86-a982-fa5ea224edba"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5699), null, "roles", "roles:create", null, null },
+                    { new Guid("9f79a54c-0b54-4de5-94b9-8582a5f32e78"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5670), null, "users", "users:create", null, null },
+                    { new Guid("a03a127b-9a03-46a0-b709-b6919f2598be"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5719), null, "notifications", "notifications:read", null, null },
+                    { new Guid("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5723), null, "notifications", "notifications:update", null, null },
+                    { new Guid("d066e4ee-6af2-4857-bd40-b9b058fa2201"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5695), null, "roles", "roles:read", null, null }
                 });
 
             migrationBuilder.InsertData(
@@ -349,14 +346,14 @@ namespace AppTemplate.Infrastructure.Migrations
                 columns: new[] { "Id", "CreatedBy", "CreatedOnUtc", "DeletedOnUtc", "is_default", "name", "UpdatedBy", "UpdatedOnUtc" },
                 values: new object[,]
                 {
-                    { new Guid("4b606d86-3537-475a-aa20-26aadd8f5cfd"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 599, DateTimeKind.Utc).AddTicks(1141), null, false, "Admin", null, null },
-                    { new Guid("5dc6ec47-5b7c-4c2b-86cd-3a671834e56e"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 599, DateTimeKind.Utc).AddTicks(2261), null, true, "Registered", null, null }
+                    { new Guid("4b606d86-3537-475a-aa20-26aadd8f5cfd"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 326, DateTimeKind.Utc).AddTicks(1565), null, false, "Admin", null, null },
+                    { new Guid("5dc6ec47-5b7c-4c2b-86cd-3a671834e56e"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 326, DateTimeKind.Utc).AddTicks(2474), null, true, "Registered", null, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "AppUsers",
                 columns: new[] { "Id", "CreatedBy", "CreatedOnUtc", "DeletedOnUtc", "identity_id", "UpdatedBy", "UpdatedOnUtc", "email_notification", "in_app_notification", "push_notification" },
-                values: new object[] { new Guid("55c7f429-0916-4d84-8b76-d45185d89aa7"), "System", new DateTime(2025, 6, 21, 12, 41, 32, 553, DateTimeKind.Utc).AddTicks(2966), null, "b3398ff2-1b43-4af7-812d-eb4347eecbb8", null, null, true, true, true });
+                values: new object[] { new Guid("55c7f429-0916-4d84-8b76-d45185d89aa7"), "System", new DateTime(2025, 6, 21, 15, 54, 35, 277, DateTimeKind.Utc).AddTicks(1596), null, "b3398ff2-1b43-4af7-812d-eb4347eecbb8", null, null, true, true, true });
 
             migrationBuilder.InsertData(
                 table: "RolePermission",

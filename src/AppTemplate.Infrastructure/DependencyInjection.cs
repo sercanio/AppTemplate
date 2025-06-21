@@ -88,7 +88,7 @@ public static class DependencyInjection
 
         // Use Npgsql (PostgresSQL provider) instead of SQLite.
         services.AddDbContext<ApplicationDbContext>(options =>
-             options.UseNpgsql(connectionString, npgsqlOptions => npgsqlOptions.UseNetTopologySuite()));
+             options.UseNpgsql(connectionString));
         services.AddDatabaseDeveloperPageExceptionFilter();
 
         services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>()
