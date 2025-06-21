@@ -1,5 +1,8 @@
 ﻿using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
+using AppTemplate.Application.Services.AppUsers;
+using AppTemplate.Application.Services.EmailSenders;
+using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
@@ -11,6 +14,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
+using Myrtus.Clarity.Core.Domain.Abstractions;
 using Myrtus.Clarity.Core.Infrastructure.Authorization;
 using Myrtus.Clarity.Core.WebAPI;
 using Myrtus.Clarity.Core.WebAPI.Controllers;
@@ -28,11 +32,15 @@ public class AccountController : BaseController
 {
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly IAppUsersService _appUsersService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IEmailSender _emailSender;
 
     public AccountController(
         UserManager<IdentityUser> userManager,
         SignInManager<IdentityUser> signInManager,
+        IAppUsersService appUsersService,
+        IUnitOfWork unitOfWork,
         IEmailSender emailSender,
         ISender sender, IErrorHandlingService errorHandlingService
         ) : base(sender, errorHandlingService)
@@ -40,6 +48,8 @@ public class AccountController : BaseController
         _userManager = userManager;
         _signInManager = signInManager;
         _emailSender = emailSender;
+        _appUsersService = appUsersService;
+        _unitOfWork = unitOfWork;
     }
 
     private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
@@ -81,6 +91,99 @@ public class AccountController : BaseController
             : _errorHandlingService.HandleErrorResponse(result);
     }
 
+    [HttpPost("changeemail")]
+    public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound(new { error = $"Unable to load user." });
+        }
+
+        var email = await _userManager.GetEmailAsync(user);
+        if (request.NewEmail == email)
+        {
+            return Ok(new { message = "Your email is unchanged." });
+        }
+
+        var existingUser = await _userManager.FindByEmailAsync(request.NewEmail);
+        if (existingUser != null)
+        {
+            return BadRequest(new { error = "Email already in use." });
+        }
+
+        var userId = await _userManager.GetUserIdAsync(user);
+        var code = await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        await ((AzureEmailSender)_emailSender).SendEmailChangeConfirmationAsync(
+            request.NewEmail,
+            userId,
+            code,
+            user.UserName);
+
+
+        return Ok(new { message = "Confirmation link to change email sent. Please check your email." });
+    }
+
+    // POST: /api/v1.0/account/sendverificationemail
+    [HttpPost("sendverificationemail")]
+    public async Task<IActionResult> SendVerificationEmail()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return NotFound(new { error = $"Unable to load user." });
+        }
+
+        if (await _userManager.IsEmailConfirmedAsync(user))
+        {
+            return Ok(new { message = "Your email is already confirmed." });
+        }
+
+        var userId = await _userManager.GetUserIdAsync(user);
+        var email = await _userManager.GetEmailAsync(user);
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+            email,
+            userId,
+            code,
+            user.UserName);
+
+        return Ok(new { message = "Verification email sent. Please check your email." });
+    }
+
+    //[EnableRateLimiting("ResendEmailConfirmationLimiter")]
+    [HttpPost("resendemailconfirmation")]
+    public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
+    {
+        if (string.IsNullOrEmpty(request.Email))
+        {
+            return BadRequest(new { error = "Email is required." });
+        }
+
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+        {
+            // To prevent user enumeration, always return success.
+            return Ok(new { message = "Verification email sent. Please check your email." });
+        }
+
+        var userId = await _userManager.GetUserIdAsync(user);
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+            request.Email,
+            userId,
+            code,
+            user.UserName);
+
+        return Ok(new { message = "Verification email sent. Please check your email." });
+    }
+
     // GET: /api/v1.0/account/confirmemailchange?userId=...&email=...&code=...
     [HttpGet("confirmemailchange")]
     public async Task<IActionResult> ConfirmEmailChange([FromQuery] string userId, [FromQuery] string email, [FromQuery] string code)
@@ -101,12 +204,6 @@ public class AccountController : BaseController
         if (!changeResult.Succeeded)
         {
             return BadRequest(new { error = "Error changing email.", details = changeResult.Errors });
-        }
-
-        var setNameResult = await _userManager.SetUserNameAsync(user, email);
-        if (!setNameResult.Succeeded)
-        {
-            return BadRequest(new { error = "Error updating username.", details = setNameResult.Errors });
         }
 
         await _signInManager.RefreshSignInAsync(user);
@@ -141,7 +238,7 @@ public class AccountController : BaseController
     {
         if (string.IsNullOrEmpty(request.Email))
         {
-            return _errorHandlingService.HandleErrorResponse(Result.Invalid());
+            return BadRequest(new { error = "Email is required." });
         }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
@@ -153,10 +250,11 @@ public class AccountController : BaseController
 
         var code = await _userManager.GeneratePasswordResetTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = Url.Action("ResetPassword", "Account", new { code }, Request.Scheme);
 
-        await _emailSender.SendEmailAsync(request.Email, "Reset Password",
-            $"Please reset your password by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
+        await ((AzureEmailSender)_emailSender).SendPasswordResetAsync(
+        request.Email,
+        code,
+        user.UserName);
 
         return Ok(new { message = "Verification email sent. Please check your email." });
     }
@@ -194,8 +292,187 @@ public class AccountController : BaseController
         return BadRequest(new { error = "Invalid password." });
     }
 
-    // POST: /api/v1.0/account/loginwith2fa
-    [HttpPost("loginwith2fa")]
+    // GET: /api/v1.0/account/2fa/status
+    [HttpGet("2fa/status")]
+    [Authorize]
+    public async Task<IActionResult> GetTwoFactorStatus()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+        var hasAuthenticator = await _userManager.GetAuthenticatorKeyAsync(user) != null;
+        var recoveryCodesLeft = await _userManager.CountRecoveryCodesAsync(user);
+        var isMachineRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user);
+
+        return Ok(new
+        {
+            is2faEnabled = isTwoFactorEnabled,
+            hasAuthenticator = hasAuthenticator,
+            recoveryCodesLeft = recoveryCodesLeft,
+            isMachineRemembered = isMachineRemembered
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/disable
+    [HttpPost("2fa/disable")]
+    [Authorize]
+    public async Task<IActionResult> Disable2fa()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+        if (!isTwoFactorEnabled)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Two-factor authentication is not currently enabled.")));
+        }
+
+        var result = await _userManager.SetTwoFactorEnabledAsync(user, false);
+        if (!result.Succeeded)
+        {
+        return _errorHandlingService.HandleErrorResponse(ConvertIdentityResult<string>(result, defaultErrorMessage: "Error disabling 2FA."));
+        }
+
+        return Ok(new { message = "Two-factor authentication has been disabled." });
+    }
+
+    // POST: /api/v1.0/account/2fa/forget-browser
+    [HttpPost("2fa/forget-browser")]
+    [Authorize]
+    public async Task<IActionResult> ForgetBrowser()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        await _signInManager.ForgetTwoFactorClientAsync();
+        return Ok(new { message = "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2FA code." });
+    }
+
+    // GET: /api/v1.0/account/2fa/authenticator
+    [HttpGet("2fa/authenticator")]
+    [Authorize]
+    public async Task<IActionResult> GetAuthenticatorInfo()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        // Load the authenticator key & QR code URI
+        var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
+        if (string.IsNullOrEmpty(unformattedKey))
+        {
+            await _userManager.ResetAuthenticatorKeyAsync(user);
+            unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
+        }
+
+        var sharedKey = FormatKey(unformattedKey);
+        var email = await _userManager.GetEmailAsync(user);
+        var authenticatorUri = GenerateQrCodeUri(email, unformattedKey);
+
+        return Ok(new
+        {
+            sharedKey,
+            authenticatorUri
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/authenticator
+    [HttpPost("2fa/authenticator")]
+    [Authorize]
+    public async Task<IActionResult> EnableAuthenticator([FromBody] EnableAuthenticatorRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        // Strip spaces and hyphens
+        var verificationCode = request.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+        var is2faTokenValid = await _userManager.VerifyTwoFactorTokenAsync(
+            user, _userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
+
+        if (!is2faTokenValid)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Verification code is invalid.")));
+        }
+
+        await _userManager.SetTwoFactorEnabledAsync(user, true);
+        var userId = await _userManager.GetUserIdAsync(user);
+
+        var recoveryCodes = new List<string>();
+        if (await _userManager.CountRecoveryCodesAsync(user) == 0)
+        {
+            var newRecoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            recoveryCodes.AddRange(newRecoveryCodes);
+        }
+
+        return Ok(new
+        {
+            message = "Your authenticator app has been verified.",
+            recoveryCodes = recoveryCodes.Count > 0 ? recoveryCodes : null
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/authenticator/reset
+    [HttpPost("2fa/authenticator/reset")]
+    [Authorize]
+    public async Task<IActionResult> ResetAuthenticator()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        await _userManager.SetTwoFactorEnabledAsync(user, false);
+        await _userManager.ResetAuthenticatorKeyAsync(user);
+        await _signInManager.RefreshSignInAsync(user);
+
+        return Ok(new { message = "Your authenticator app key has been reset." });
+    }
+
+    // POST: /api/v1.0/account/2fa/recovery-codes/generate
+    [HttpPost("2fa/recovery-codes/generate")]
+    [Authorize]
+    public async Task<IActionResult> GenerateRecoveryCodes()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+        if (!isTwoFactorEnabled)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Cannot generate recovery codes for user because they do not have 2FA enabled.")));
+        }
+
+        var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+
+        return Ok(new
+        {
+            recoveryCodes = recoveryCodes.ToArray(),
+            message = "You have generated new recovery codes."
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/login
+    [HttpPost("2fa/login")]
     public async Task<IActionResult> LoginWith2fa([FromBody] LoginWith2faRequest request)
     {
         var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -218,8 +495,8 @@ public class AccountController : BaseController
         return BadRequest(new { error = "Invalid authenticator code." });
     }
 
-    // POST: /api/v1.0/account/loginwithrecoverycode
-    [HttpPost("loginwithrecoverycode")]
+    // POST: /api/v1.0/account/2fa/login-recovery
+    [HttpPost("2fa/login-recovery")]
     public async Task<IActionResult> LoginWithRecoveryCode([FromBody] LoginWithRecoveryCodeRequest request)
     {
         var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -241,7 +518,6 @@ public class AccountController : BaseController
         }
         return BadRequest(new { error = "Invalid recovery code." });
     }
-
     [IgnoreAntiforgeryToken]
     [HttpPost("logout")]
     [Authorize]
@@ -255,65 +531,38 @@ public class AccountController : BaseController
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
-        var user = new IdentityUser { UserName = request.Username, Email = request.Email };
-        var result = await _userManager.CreateAsync(user, request.Password);
+        var identityUser = new IdentityUser { UserName = request.Username, Email = request.Email };
+        var result = await _userManager.CreateAsync(identityUser, request.Password);
 
         if (result.Succeeded)
         {
-            var userId = await _userManager.GetUserIdAsync(user);
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId, code }, Request.Scheme);
+            var identityId = await _userManager.GetUserIdAsync(identityUser);
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
 
-            await _emailSender.SendEmailAsync(request.Email, "Confirm your email",
-                $"Confirm your account by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
+            AppUser user = AppUser.Create();
+            user.SetIdentityId(identityId);
+
+            await _appUsersService.AddAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var userId = identityId;
+
+            await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+                request.Email,
+                userId,
+                code,
+                request.Username);
 
             return Ok(new { message = "User registered successfully. Please confirm your email." });
         }
         return BadRequest(new { error = "Registration failed.", details = result.Errors });
     }
 
-    // POST: /api/v1.0/account/resendemailconfirmation
-    [HttpPost("resendemailconfirmation")]
-    [Authorize]
-    public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
-    {
-        if (string.IsNullOrEmpty(request.Email))
-        {
-            return BadRequest(new { error = "Email is required." });
-        }
-
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null)
-        {
-            // To prevent user enumeration, always return success.
-            return Ok(new { message = "Verification email sent. Please check your email." });
-        }
-
-        var userId = await _userManager.GetUserIdAsync(user);
-        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId, code }, Request.Scheme);
-
-        await _emailSender.SendEmailAsync(request.Email, "Confirm your email",
-            $"Confirm your account by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
-
-        return Ok(new { message = "Verification email sent. Please check your email." });
-    }
-
     // POST: /api/v1.0/account/resetpassword
     [HttpPost("resetpassword")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
@@ -322,7 +571,17 @@ public class AccountController : BaseController
             return Ok(new { message = "Password reset successful. Please check your email for further instructions." });
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Code, request.Password);
+        string decodedCode;
+        try
+        {
+            decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Code));
+        }
+        catch
+        {
+            decodedCode = request.Code;
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, decodedCode, request.Password);
         return result.Succeeded
             ? Ok(new { message = "Password reset successful." })
             : BadRequest(new { error = "Password reset failed.", details = result.Errors });
@@ -357,6 +616,35 @@ public class AccountController : BaseController
 
         return !result.IsSuccess ? _errorHandlingService.HandleErrorResponse(result) : NoContent();
     }
+
+    // Helper methods for 2FA
+    private string FormatKey(string unformattedKey)
+    {
+        var result = new StringBuilder();
+        int currentPosition = 0;
+        while (currentPosition + 4 < unformattedKey.Length)
+        {
+            result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
+            currentPosition += 4;
+        }
+        if (currentPosition < unformattedKey.Length)
+        {
+            result.Append(unformattedKey.AsSpan(currentPosition));
+        }
+
+        return result.ToString().ToLowerInvariant();
+    }
+
+    private string GenerateQrCodeUri(string email, string unformattedKey)
+    {
+        const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
+        return string.Format(
+            System.Globalization.CultureInfo.InvariantCulture,
+            AuthenticatorUriFormat,
+            System.Web.HttpUtility.UrlEncode("AppTemplate"),
+            System.Web.HttpUtility.UrlEncode(email),
+            unformattedKey);
+    }
 }
 
 // Request DTOs
@@ -375,6 +663,22 @@ public class ChangePasswordRequest
     [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
     public string ConfirmPassword { get; set; }
 }
+
+public class ChangeEmailRequest
+{
+    [Required]
+    [EmailAddress]
+    public string NewEmail { get; set; }
+}
+
+public class EnableAuthenticatorRequest
+{
+    [Required]
+    [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+    [DataType(DataType.Text)]
+    public string Code { get; set; }
+}
+
 public class ForgotPasswordRequest
 {
     [Required, EmailAddress]

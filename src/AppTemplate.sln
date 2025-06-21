@@ -70,6 +70,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppTemplate.Infrastructure"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppTemplate.Web", "AppTemplate.Web\AppTemplate.Web.csproj", "{CA07950F-4C87-73A7-3762-FC62504BDD9C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{F6310E5D-CF56-4996-BBF7-657BBB2B561E}"
+	ProjectSection(SolutionItems) = preProject
+		..\.github\copilot-instructions.md = ..\.github\copilot-instructions.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{D15659E9-782A-4FD7-A637-1CD0BCB4040A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -226,6 +233,8 @@ Global
 		{00D0F320-E464-DA93-6966-0307B3C3ECFB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{13D6E180-6EA2-5879-B108-02D11140BF69} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{CA07950F-4C87-73A7-3762-FC62504BDD9C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F6310E5D-CF56-4996-BBF7-657BBB2B561E} = {1228850D-ACAF-4AC8-8D8D-EAA572FDA42E}
+		{D15659E9-782A-4FD7-A637-1CD0BCB4040A} = {F6310E5D-CF56-4996-BBF7-657BBB2B561E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DF5A5E3C-0497-447E-8501-6462B9A4059C}

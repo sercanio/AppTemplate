@@ -1,5 +1,6 @@
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Authentication;
+using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Application.Services.Notifications;
 using AppTemplate.Application.Services.Statistics;
 using AppTemplate.Infrastructure.Authorization;
@@ -8,6 +9,8 @@ using AppTemplate.Infrastructure.Repositories;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,6 +47,7 @@ public static class DependencyInjection
         AddNotification(services);
         AddSignalR(services);
         AddAuthenticationStatisticsServices(services, configuration);
+        AddEmailServices(services);
 
         return services;
     }
@@ -129,5 +133,11 @@ public static class DependencyInjection
             options.Events.OnSignedIn = authEventsService.OnSignedIn;
             options.Events.OnSigningOut = authEventsService.OnSignedOut;
         });
+    }
+
+    private static void AddEmailServices(IServiceCollection services)
+    {
+        services.AddScoped<IEmailSender, AzureEmailSender>();
+        services.AddSingleton<EmailTemplateService>();
     }
 }
