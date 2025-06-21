@@ -20,7 +20,6 @@ namespace AppTemplate.Infrastructure.Migrations
                 .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("AppTemplate.Domain.AppUsers.AppUser", b =>
@@ -62,7 +61,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("55c7f429-0916-4d84-8b76-d45185d89aa7"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 553, DateTimeKind.Utc).AddTicks(2966),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 277, DateTimeKind.Utc).AddTicks(1596),
                             IdentityId = "b3398ff2-1b43-4af7-812d-eb4347eecbb8"
                         });
                 });
@@ -219,7 +218,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("33261a4a-c423-4876-8f15-e40068aea5ca"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 592, DateTimeKind.Utc).AddTicks(9419),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(2191),
                             Feature = "users",
                             Name = "users:read"
                         },
@@ -227,7 +226,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("9f79a54c-0b54-4de5-94b9-8582a5f32e78"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2161),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5670),
                             Feature = "users",
                             Name = "users:create"
                         },
@@ -235,7 +234,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("25bb194c-ea15-4339-9f45-5a895c51b626"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2170),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5685),
                             Feature = "users",
                             Name = "users:update"
                         },
@@ -243,7 +242,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("559dd4ec-4d2e-479d-a0a9-5229ecc04fb4"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2172),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5690),
                             Feature = "users",
                             Name = "users:delete"
                         },
@@ -251,7 +250,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("d066e4ee-6af2-4857-bd40-b9b058fa2201"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2175),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5695),
                             Feature = "roles",
                             Name = "roles:read"
                         },
@@ -259,7 +258,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("940c88ad-24fe-4d86-a982-fa5ea224edba"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2179),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5699),
                             Feature = "roles",
                             Name = "roles:create"
                         },
@@ -267,7 +266,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("346d3cc6-ac81-42b1-8539-cd53f42b6566"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2182),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5703),
                             Feature = "roles",
                             Name = "roles:update"
                         },
@@ -275,7 +274,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("386e40e9-da38-4d2f-8d02-ac4cbaddf760"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2184),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5707),
                             Feature = "roles",
                             Name = "roles:delete"
                         },
@@ -283,7 +282,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("0eeb5f27-10fd-430a-9257-a8457107141a"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2186),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5711),
                             Feature = "permissions",
                             Name = "permissions:read"
                         },
@@ -291,7 +290,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("3050d953-5dcf-4eb0-a18d-a3ce62a0dd3c"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2188),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5715),
                             Feature = "auditlogs",
                             Name = "auditlogs:read"
                         },
@@ -299,7 +298,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("a03a127b-9a03-46a0-b709-b6919f2598be"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2191),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5719),
                             Feature = "notifications",
                             Name = "notifications:read"
                         },
@@ -307,7 +306,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2193),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5723),
                             Feature = "notifications",
                             Name = "notifications:update"
                         },
@@ -315,7 +314,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("8f97aeb9-a9fd-470f-bae9-c9f5f0534d23"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 593, DateTimeKind.Utc).AddTicks(2195),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 318, DateTimeKind.Utc).AddTicks(5727),
                             Feature = "statistics",
                             Name = "statistics:read"
                         });
@@ -361,7 +360,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("4b606d86-3537-475a-aa20-26aadd8f5cfd"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 599, DateTimeKind.Utc).AddTicks(1141),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 326, DateTimeKind.Utc).AddTicks(1565),
                             IsDefault = false,
                             Name = "Admin"
                         },
@@ -369,7 +368,7 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = new Guid("5dc6ec47-5b7c-4c2b-86cd-3a671834e56e"),
                             CreatedBy = "System",
-                            CreatedOnUtc = new DateTime(2025, 6, 21, 12, 41, 32, 599, DateTimeKind.Utc).AddTicks(2261),
+                            CreatedOnUtc = new DateTime(2025, 6, 21, 15, 54, 35, 326, DateTimeKind.Utc).AddTicks(2474),
                             IsDefault = true,
                             Name = "Registered"
                         });
@@ -494,15 +493,15 @@ namespace AppTemplate.Infrastructure.Migrations
                         {
                             Id = "b3398ff2-1b43-4af7-812d-eb4347eecbb8",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "fe973c9b-2f60-4ccc-8984-c640617ba9e2",
+                            ConcurrencyStamp = "a0123870-2c47-4a4d-b614-53af81a89a94",
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEHxV2BVA02rzy9naT7MX6uJ/56BWWw/5TD5wmxu/gXU4a6KFXj9UJdWT4SJl81Dg+w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEHYxvKnGHhiiRoK/gkzQpr0MdCDF0ujLzUEHZJUvxuCuONkFJhWe32TszjIIiWEIjg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "9f7a3705-708c-4598-824a-21c2a5486c9f",
+                            SecurityStamp = "14e7b303-738e-48c6-af04-aa0032b2fcdd",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
