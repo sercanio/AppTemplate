@@ -116,11 +116,6 @@ public class AccountController : BaseController
         var code = await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-        //await _emailSender.SendEmailAsync(
-        //    request.NewEmail,
-        //    "Confirm your email",
-        //    $"Please confirm your account by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
-
         await ((AzureEmailSender)_emailSender).SendEmailChangeConfirmationAsync(
             request.NewEmail,
             userId,
@@ -243,7 +238,7 @@ public class AccountController : BaseController
     {
         if (string.IsNullOrEmpty(request.Email))
         {
-            return _errorHandlingService.HandleErrorResponse(Result.Invalid());
+            return BadRequest(new { error = "Email is required." });
         }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
@@ -255,10 +250,11 @@ public class AccountController : BaseController
 
         var code = await _userManager.GeneratePasswordResetTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-        var callbackUrl = Url.Action("ResetPassword", "Account", new { code }, Request.Scheme);
 
-        await _emailSender.SendEmailAsync(request.Email, "Reset Password",
-            $"Please reset your password by clicking here: {HtmlEncoder.Default.Encode(callbackUrl)}");
+        await ((AzureEmailSender)_emailSender).SendPasswordResetAsync(
+        request.Email,
+        code,
+        user.UserName);
 
         return Ok(new { message = "Verification email sent. Please check your email." });
     }
@@ -563,15 +559,10 @@ public class AccountController : BaseController
         return BadRequest(new { error = "Registration failed.", details = result.Errors });
     }
 
-    
     // POST: /api/v1.0/account/resetpassword
     [HttpPost("resetpassword")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
 
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
@@ -580,7 +571,17 @@ public class AccountController : BaseController
             return Ok(new { message = "Password reset successful. Please check your email for further instructions." });
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Code, request.Password);
+        string decodedCode;
+        try
+        {
+            decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Code));
+        }
+        catch
+        {
+            decodedCode = request.Code;
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, decodedCode, request.Password);
         return result.Succeeded
             ? Ok(new { message = "Password reset successful." })
             : BadRequest(new { error = "Password reset failed.", details = result.Errors });

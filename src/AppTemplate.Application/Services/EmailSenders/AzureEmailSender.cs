@@ -46,7 +46,7 @@ public class AzureEmailSender : IEmailSender
 
     public async Task SendPasswordResetAsync(string email, string code, string username = "")
     {
-        string callbackUrl = GetFrontendUrl("auth/reset-password", new { email, code, username });
+        string callbackUrl = GetFrontendUrl("reset-password", new { email, code, username });
         string htmlMessage = EmailTemplateService.GetPasswordResetTemplate(callbackUrl, username);
         await SendEmailAsync(email, "Reset your password", htmlMessage);
     }
