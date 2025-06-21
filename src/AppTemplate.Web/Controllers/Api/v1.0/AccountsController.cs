@@ -194,8 +194,187 @@ public class AccountController : BaseController
         return BadRequest(new { error = "Invalid password." });
     }
 
-    // POST: /api/v1.0/account/loginwith2fa
-    [HttpPost("loginwith2fa")]
+    // GET: /api/v1.0/account/2fa/status
+    [HttpGet("2fa/status")]
+    [Authorize]
+    public async Task<IActionResult> GetTwoFactorStatus()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+        var hasAuthenticator = await _userManager.GetAuthenticatorKeyAsync(user) != null;
+        var recoveryCodesLeft = await _userManager.CountRecoveryCodesAsync(user);
+        var isMachineRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user);
+
+        return Ok(new
+        {
+            is2faEnabled = isTwoFactorEnabled,
+            hasAuthenticator = hasAuthenticator,
+            recoveryCodesLeft = recoveryCodesLeft,
+            isMachineRemembered = isMachineRemembered
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/disable
+    [HttpPost("2fa/disable")]
+    [Authorize]
+    public async Task<IActionResult> Disable2fa()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+        if (!isTwoFactorEnabled)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Two-factor authentication is not currently enabled.")));
+        }
+
+        var result = await _userManager.SetTwoFactorEnabledAsync(user, false);
+        if (!result.Succeeded)
+        {
+        return _errorHandlingService.HandleErrorResponse(ConvertIdentityResult<string>(result, defaultErrorMessage: "Error disabling 2FA."));
+        }
+
+        return Ok(new { message = "Two-factor authentication has been disabled." });
+    }
+
+    // POST: /api/v1.0/account/2fa/forget-browser
+    [HttpPost("2fa/forget-browser")]
+    [Authorize]
+    public async Task<IActionResult> ForgetBrowser()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        await _signInManager.ForgetTwoFactorClientAsync();
+        return Ok(new { message = "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2FA code." });
+    }
+
+    // GET: /api/v1.0/account/2fa/authenticator
+    [HttpGet("2fa/authenticator")]
+    [Authorize]
+    public async Task<IActionResult> GetAuthenticatorInfo()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        // Load the authenticator key & QR code URI
+        var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
+        if (string.IsNullOrEmpty(unformattedKey))
+        {
+            await _userManager.ResetAuthenticatorKeyAsync(user);
+            unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
+        }
+
+        var sharedKey = FormatKey(unformattedKey);
+        var email = await _userManager.GetEmailAsync(user);
+        var authenticatorUri = GenerateQrCodeUri(email, unformattedKey);
+
+        return Ok(new
+        {
+            sharedKey,
+            authenticatorUri
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/authenticator
+    [HttpPost("2fa/authenticator")]
+    [Authorize]
+    public async Task<IActionResult> EnableAuthenticator([FromBody] EnableAuthenticatorRequest request)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        // Strip spaces and hyphens
+        var verificationCode = request.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+        var is2faTokenValid = await _userManager.VerifyTwoFactorTokenAsync(
+            user, _userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
+
+        if (!is2faTokenValid)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Verification code is invalid.")));
+        }
+
+        await _userManager.SetTwoFactorEnabledAsync(user, true);
+        var userId = await _userManager.GetUserIdAsync(user);
+
+        var recoveryCodes = new List<string>();
+        if (await _userManager.CountRecoveryCodesAsync(user) == 0)
+        {
+            var newRecoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+            recoveryCodes.AddRange(newRecoveryCodes);
+        }
+
+        return Ok(new
+        {
+            message = "Your authenticator app has been verified.",
+            recoveryCodes = recoveryCodes.Count > 0 ? recoveryCodes : null
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/authenticator/reset
+    [HttpPost("2fa/authenticator/reset")]
+    [Authorize]
+    public async Task<IActionResult> ResetAuthenticator()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        await _userManager.SetTwoFactorEnabledAsync(user, false);
+        await _userManager.ResetAuthenticatorKeyAsync(user);
+        await _signInManager.RefreshSignInAsync(user);
+
+        return Ok(new { message = "Your authenticator app key has been reset." });
+    }
+
+    // POST: /api/v1.0/account/2fa/recovery-codes/generate
+    [HttpPost("2fa/recovery-codes/generate")]
+    [Authorize]
+    public async Task<IActionResult> GenerateRecoveryCodes()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
+        }
+
+        var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
+        if (!isTwoFactorEnabled)
+        {
+            return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Cannot generate recovery codes for user because they do not have 2FA enabled.")));
+        }
+
+        var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+
+        return Ok(new
+        {
+            recoveryCodes = recoveryCodes.ToArray(),
+            message = "You have generated new recovery codes."
+        });
+    }
+
+    // POST: /api/v1.0/account/2fa/login
+    [HttpPost("2fa/login")]
     public async Task<IActionResult> LoginWith2fa([FromBody] LoginWith2faRequest request)
     {
         var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -218,8 +397,8 @@ public class AccountController : BaseController
         return BadRequest(new { error = "Invalid authenticator code." });
     }
 
-    // POST: /api/v1.0/account/loginwithrecoverycode
-    [HttpPost("loginwithrecoverycode")]
+    // POST: /api/v1.0/account/2fa/login-recovery
+    [HttpPost("2fa/login-recovery")]
     public async Task<IActionResult> LoginWithRecoveryCode([FromBody] LoginWithRecoveryCodeRequest request)
     {
         var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
@@ -241,7 +420,6 @@ public class AccountController : BaseController
         }
         return BadRequest(new { error = "Invalid recovery code." });
     }
-
     [IgnoreAntiforgeryToken]
     [HttpPost("logout")]
     [Authorize]
@@ -357,6 +535,35 @@ public class AccountController : BaseController
 
         return !result.IsSuccess ? _errorHandlingService.HandleErrorResponse(result) : NoContent();
     }
+
+    // Helper methods for 2FA
+    private string FormatKey(string unformattedKey)
+    {
+        var result = new StringBuilder();
+        int currentPosition = 0;
+        while (currentPosition + 4 < unformattedKey.Length)
+        {
+            result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
+            currentPosition += 4;
+        }
+        if (currentPosition < unformattedKey.Length)
+        {
+            result.Append(unformattedKey.AsSpan(currentPosition));
+        }
+
+        return result.ToString().ToLowerInvariant();
+    }
+
+    private string GenerateQrCodeUri(string email, string unformattedKey)
+    {
+        const string AuthenticatorUriFormat = "otpauth://totp/{0}:{1}?secret={2}&issuer={0}&digits=6";
+        return string.Format(
+            System.Globalization.CultureInfo.InvariantCulture,
+            AuthenticatorUriFormat,
+            System.Web.HttpUtility.UrlEncode("AppTemplate"),
+            System.Web.HttpUtility.UrlEncode(email),
+            unformattedKey);
+    }
 }
 
 // Request DTOs
@@ -375,6 +582,15 @@ public class ChangePasswordRequest
     [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
     public string ConfirmPassword { get; set; }
 }
+
+public class EnableAuthenticatorRequest
+{
+    [Required]
+    [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+    [DataType(DataType.Text)]
+    public string Code { get; set; }
+}
+
 public class ForgotPasswordRequest
 {
     [Required, EmailAddress]
