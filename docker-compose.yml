@@ -1,13 +1,15 @@
+version: '3.8'
+
 services:
-  AppTemplate-db:
+  apptemplate-db:
     image: postgres:latest
     container_name: AppTemplate.Db
     environment:
-      POSTGRES_DB: MyrtusDB
+      POSTGRES_DB: AppTemplateDb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - ./containers/database:/var/lib/postgresql/data
+      - apptemplate-db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -16,14 +18,14 @@ services:
       timeout: 10s
       retries: 3
 
-  AppTemplate-redis:
+  apptemplate-redis:
     image: redis:latest
     container_name: AppTemplate.Redis
     command: redis-server --requirepass redis
     environment:
       REDIS_PASSWORD: redis
     volumes:
-      - ./containers/redis:/data
+      - apptemplate-redis-data:/data
     ports:
       - "6379:6379"
     healthcheck:
@@ -32,25 +34,40 @@ services:
       timeout: 10s
       retries: 3
 
-  AppTemplate-web:
-    image: ${DOCKER_REGISTRY-}apptemplateweb
+  apptemplate-web:
+    image: ${DOCKER_REGISTRY-}apptemplate-web
     container_name: AppTemplate.Web
     build:
       context: .
       dockerfile: src/AppTemplate.Web/Dockerfile
     depends_on:
-      AppTemplate-db:
+      apptemplate-db:
         condition: service_healthy
-      AppTemplate-redis:
+      apptemplate-redis:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: "http://+:5000"
+      ASPNETCORE_URLS: "http://+:5070"
+      ConnectionStrings__Database: "Host=apptemplate-db;Port=5432;Database=AppTemplateDb;Username=postgres;Password=postgres;"
+      ConnectionStrings__Redis: "apptemplate-redis:6379,password=redis"
     ports:
-      - "5000:5000"
+      - "5070:5070"
     volumes:
       - ./usersecrets:/app/.microsoft/usersecrets:ro
 
+  apptemplate-webui:
+    image: ${DOCKER_REGISTRY-}apptemplate-webui
+    container_name: AppTemplate.WebUI
+    build:
+      context: ./WebUI
+      dockerfile: Dockerfile
+    depends_on:
+      - apptemplate-web
+    environment:
+      VITE_API_URL: "http://apptemplate-web:5070/api/v1"
+    ports:
+      - "3000:80"
+
 volumes: 
-  AppTemplate-db-data:
-  AppTemplate-redis-data:
+  apptemplate-db-data:
+  apptemplate-redis-data:
