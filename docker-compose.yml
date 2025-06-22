@@ -64,7 +64,7 @@ services:
     depends_on:
       - apptemplate-web
     environment:
-      VITE_API_URL: "http://apptemplate-web:5070/api/v1"
+      VITE_API_URL: "http://localhost:5070/api/v1"
     ports:
       - "3000:80"
 
