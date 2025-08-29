@@ -1,4 +1,4 @@
-﻿using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
+using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Delete;
 

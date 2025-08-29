@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain.Users.DomainEvents;
 using MediatR;
@@ -11,12 +11,12 @@ public class RemoveUserRoleEventHandler(
     IRolesService roleRepository,
     ILogger<RemoveUserRoleEventHandler> logger) : INotificationHandler<AppUserRoleRemovedDomainEvent>
 {
-    private readonly IAppUsersRepository _userRepository = userRepository;
-    private readonly IRolesService _roleService = roleRepository;
+  private readonly IAppUsersRepository _userRepository = userRepository;
+  private readonly IRolesService _roleService = roleRepository;
 
-    public async Task Handle(AppUserRoleRemovedDomainEvent notification, CancellationToken cancellationToken)
-    {
-        logger.LogInformation("Handling AppUserRoleRemovedDomainEvent for UserId: {UserId}, RoleId: {RoleId}",
-            notification.UserId, notification.RoleId);
-    }
+  public async Task Handle(AppUserRoleRemovedDomainEvent notification, CancellationToken cancellationToken)
+  {
+    logger.LogInformation("Handling AppUserRoleRemovedDomainEvent for UserId: {UserId}, RoleId: {RoleId}",
+        notification.UserId, notification.RoleId);
+  }
 }

@@ -1,4 +1,8 @@
-﻿namespace AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsAsRead;
+namespace AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsAsRead;
 
-public sealed class MarkNotificationsAsReadCommandResponse();
+public sealed class MarkNotificationAsReadCommandResponse
+{
+  public bool Success { get; }
+  public MarkNotificationAsReadCommandResponse(bool success) => Success = success;
+}
 
