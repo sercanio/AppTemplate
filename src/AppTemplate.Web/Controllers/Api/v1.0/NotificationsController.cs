@@ -1,15 +1,14 @@
 using AppTemplate.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
 using AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsAsRead;
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
+using AppTemplate.Core.Infrastructure.Authorization;
+using AppTemplate.Core.WebApi;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
-using Myrtus.Clarity.Core.WebAPI;
-using Myrtus.Clarity.Core.WebAPI.Controllers;
 
 namespace AppTemplate.Web.Controllers;
 

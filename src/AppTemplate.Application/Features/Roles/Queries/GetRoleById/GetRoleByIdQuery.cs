@@ -1,4 +1,4 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
+using AppTemplate.Core.Application.Abstractions.Caching;
 
 namespace AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 

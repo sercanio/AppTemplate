@@ -1,10 +1,8 @@
-using AppTemplate.Infrastructure.Authorization;
+using AppTemplate.Core.Application.Abstractions.Authentication.Azure;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.DependencyInjection;
-using Myrtus.Clarity.Core.Infrastructure.Authentication.Azure;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace AppTemplate.Infrastructure.Authorization;
 

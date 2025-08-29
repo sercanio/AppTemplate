@@ -1,11 +1,10 @@
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
 using System.Collections.ObjectModel;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;

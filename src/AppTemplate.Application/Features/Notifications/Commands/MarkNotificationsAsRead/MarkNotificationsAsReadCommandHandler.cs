@@ -1,9 +1,9 @@
-using System.Security.Claims;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Notifications;
+using AppTemplate.Core.Application.Abstractions.Messaging;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
+using System.Security.Claims;
 
 namespace AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsAsRead;
 

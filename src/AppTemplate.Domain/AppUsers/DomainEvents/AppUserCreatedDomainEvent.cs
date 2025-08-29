@@ -1,5 +1,5 @@
-﻿using Myrtus.Clarity.Core.Domain.Abstractions;
+using AppTemplate.Core.Domain.Abstractions;
 
-namespace AppTemplate.Domain.Users.DomainEvents;
+namespace AppTemplate.Domain.AppUsers.DomainEvents;
 
 public sealed record AppUserCreatedDomainEvent(Guid UserId) : IDomainEvent;

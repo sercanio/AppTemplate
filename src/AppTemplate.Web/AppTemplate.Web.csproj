@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -22,10 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Module\Myrtus.Clarity.Core.Application.Abstractions.Module.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authorization\Myrtus.Clarity.Core.Infrastructure.Authorization.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Localization\Myrtus.Clarity.Core.Infrastructure.Localization.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.WebApi\Myrtus.Clarity.Core.WebApi.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Localization\AppTemplate.Core.Infrastructure.Localization.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.WebApi\AppTemplate.Core.WebApi.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Module\AppTemplate.Core.Application.Abstractions.Module.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Authorization\AppTemplate.Core.Infrastructure.Authorization.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Localization\AppTemplate.Core.Infrastructure.Localization.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.WebApi\AppTemplate.Core.WebApi.csproj" />
     <ProjectReference Include="..\AppTemplate.Infrastructure\AppTemplate.Infrastructure.csproj" />
   </ItemGroup>
 

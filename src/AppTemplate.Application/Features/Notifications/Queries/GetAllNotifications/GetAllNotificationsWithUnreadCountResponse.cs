@@ -1,4 +1,4 @@
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using AppTemplate.Core.Infrastructure.Pagination;
 
 namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 

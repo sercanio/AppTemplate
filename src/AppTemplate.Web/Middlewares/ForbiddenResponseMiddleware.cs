@@ -1,9 +1,9 @@
+using AppTemplate.Core.Application.Abstractions.Localization.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using Myrtus.Clarity.Core.Application.Abstractions.Localization.Services;
 
 namespace AppTemplate.Web.Middlewares;
 

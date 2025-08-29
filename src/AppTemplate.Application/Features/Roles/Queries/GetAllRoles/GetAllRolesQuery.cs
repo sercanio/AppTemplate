@@ -1,5 +1,5 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Core.Infrastructure.Pagination;
 
 namespace AppTemplate.Application.Features.Roles.Queries.GetAllRoles;
 

@@ -1,7 +1,7 @@
-﻿using AppTemplate.Domain.AppUsers;
+using AppTemplate.Core.Application.Abstractions.Caching;
+using AppTemplate.Domain.AppUsers;
 using AppTemplate.Infrastructure.Autorization;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
 
 namespace AppTemplate.Infrastructure.Authorization;
 

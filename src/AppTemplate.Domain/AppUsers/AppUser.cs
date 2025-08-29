@@ -1,9 +1,10 @@
+using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Domain.AppUsers.DomainEvents;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Users.DomainEvents;
 using Microsoft.AspNetCore.Identity;
-using Myrtus.Clarity.Core.Domain.Abstractions;
 
 namespace AppTemplate.Domain.AppUsers;
 

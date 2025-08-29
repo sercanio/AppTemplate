@@ -1,10 +1,9 @@
-using System.Data;
-using MediatR;
-using Ardalis.Result;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.Roles;
+using Ardalis.Result;
+using MediatR;
+using System.Data;
 
 namespace AppTemplate.Application.Features.Roles.Queries.GetAllRoles;
 

@@ -1,5 +1,4 @@
 using AppTemplate.Domain.Notifications;
-using Myrtus.Clarity.Core.Application.Abstractions.Repositories;
 using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Repositories;

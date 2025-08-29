@@ -1,4 +1,4 @@
-using Myrtus.Clarity.Core.Domain.Abstractions;
+using AppTemplate.Core.Domain.Abstractions;
 
 namespace AppTemplate.Domain.Roles;
 

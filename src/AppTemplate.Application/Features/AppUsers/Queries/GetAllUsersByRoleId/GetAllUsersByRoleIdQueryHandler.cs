@@ -4,9 +4,9 @@ using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using AppTemplate.Core.Infrastructure.Pagination;
 using System.Collections.ObjectModel;
-
+  
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 
 public sealed class GetAllUsersByRoleIdQueryHandler(IAppUsersRepository userRepository) : IRequestHandler<GetAllUsersByRoleIdQuery, Result<PaginatedList<GetAllUsersByRoleIdQueryResponse>>>

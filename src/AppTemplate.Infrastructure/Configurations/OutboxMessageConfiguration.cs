@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using AppTemplate.Core.Infrastructure.Outbox;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Myrtus.Clarity.Core.Infrastructure.Outbox;
 
 namespace AppTemplate.Infrastructure.Configurations;
 

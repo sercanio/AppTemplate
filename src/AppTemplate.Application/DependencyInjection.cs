@@ -1,9 +1,9 @@
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Roles;
+using AppTemplate.Core.Application.Abstractions.Behaviours;
+using AppTemplate.Core.Application.Abstractions.Caching;
+using AppTemplate.Core.Infrastructure.Caching;
 using Microsoft.Extensions.DependencyInjection;
-using Myrtus.Clarity.Core.Application.Abstractions.Behaviors;
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
-using Myrtus.Clarity.Core.Infrastructure.Caching;
 
 namespace AppTemplate.Application;
 

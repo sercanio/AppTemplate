@@ -1,6 +1,5 @@
+using AppTemplate.Core.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Authorization;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
-using System.Threading.Tasks;
 
 namespace AppTemplate.Infrastructure.Authorization;
 

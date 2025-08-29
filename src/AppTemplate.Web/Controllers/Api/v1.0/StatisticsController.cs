@@ -1,15 +1,14 @@
-﻿using AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
+using AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
 using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUsersCount;
+using AppTemplate.Core.Infrastructure.Authorization;
+using AppTemplate.Core.WebApi;
 using AppTemplate.Web.Attributes;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
-using Myrtus.Clarity.Core.WebAPI;
-using Myrtus.Clarity.Core.WebAPI.Controllers;
 
 namespace AppTemplate.Web.Controllers.Api;
 

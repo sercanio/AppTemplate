@@ -1,5 +1,4 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
+using AppTemplate.Core.Application.Abstractions.Messaging;
 
 namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 

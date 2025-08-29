@@ -1,11 +1,10 @@
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Core.Application.Abstractions.Messaging;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
 using System.Security.Claims;
 
 internal sealed class GetLoggedInUserQueryHandler : IQueryHandler<GetLoggedInUserQuery, UserResponse>

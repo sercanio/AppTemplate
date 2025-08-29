@@ -1,9 +1,8 @@
-﻿using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Core.WebApi;
+using AppTemplate.Web.Controllers.Api;
 using MediatR;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
-using Myrtus.Clarity.Core.WebAPI;
-using Myrtus.Clarity.Core.WebAPI.Controllers;
 
 namespace AppTemplate.Web.Controllers;
 

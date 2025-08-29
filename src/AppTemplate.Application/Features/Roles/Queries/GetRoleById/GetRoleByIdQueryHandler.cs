@@ -1,9 +1,9 @@
 using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Core.Application.Abstractions.Messaging;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
 using System.Collections.ObjectModel;
 using System.Data;
 

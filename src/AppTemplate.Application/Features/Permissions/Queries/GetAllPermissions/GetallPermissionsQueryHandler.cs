@@ -1,8 +1,8 @@
-﻿using Ardalis.Result;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Core.Application.Abstractions.Pagination;
+using AppTemplate.Core.Infrastructure.Pagination;
+using Ardalis.Result;
 
 namespace AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 

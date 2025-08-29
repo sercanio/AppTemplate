@@ -1,7 +1,3 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.RateLimiting;
 using AppTemplate.Application.Features.Roles.Commands.Create;
 using AppTemplate.Infrastructure;
 using AppTemplate.Web.Middlewares;
@@ -9,7 +5,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Module;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 namespace AppTemplate.Web.Extensions;
 

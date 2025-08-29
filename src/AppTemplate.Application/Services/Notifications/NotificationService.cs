@@ -1,19 +1,17 @@
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Roles;
+using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;
 using AppTemplate.Domain.Roles;
-using Microsoft.AspNetCore.SignalR;
+using Ganss.Xss;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.SignalR.Hubs;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
-using Ganss.Xss;
 
 namespace AppTemplate.Application.Services.Notifications;
 
@@ -22,7 +20,6 @@ public sealed class NotificationsService(
     IUnitOfWork unitOfWork,
     IAppUsersService usersService,
     IRolesService rolesService,
-    IHubContext<NotificationHub> hubContext,
     IMemoryCache cache,
     ILogger<NotificationsService> logger) : INotificationService
 {
@@ -30,7 +27,6 @@ public sealed class NotificationsService(
   private readonly IUnitOfWork _unitOfWork = unitOfWork;
   private readonly IAppUsersService _usersService = usersService;
   private readonly IRolesService _rolesService = rolesService;
-  private readonly IHubContext<NotificationHub> _hubContext = hubContext;
   private readonly ILogger<NotificationsService> _logger = logger;
   private readonly IMemoryCache _cache = cache;
 
@@ -155,7 +151,6 @@ public sealed class NotificationsService(
 
       // Serialize the notification for SignalR
       string serializedMessage = JsonConvert.SerializeObject(notification, _jsonSettings);
-      await _hubContext.Clients.All.SendAsync("ReceiveNotification", serializedMessage);
 
       _logger.LogInformation("System notification sent: {Details}", message);
     }
@@ -203,7 +198,6 @@ public sealed class NotificationsService(
       if (canSendInAppNotification)
       {
         string serializedMessage = JsonConvert.SerializeObject(notification, _jsonSettings); // Renamed variable to avoid conflict
-        await _hubContext.Clients.User(userId.ToString()).SendAsync("ReceiveNotification", serializedMessage);
         _logger.LogDebug("Real-time notification sent to user {UserId}: {SerializedMessage}", userId, serializedMessage);
       }
     }
@@ -352,7 +346,6 @@ public sealed class NotificationsService(
         if (usersWithNotificationsEnabled.Contains(notification.RecipientId.ToString()))
         {
           string notificationMessage = JsonConvert.SerializeObject(notification, _jsonSettings);
-          await _hubContext.Clients.User(notification.RecipientId.ToString()).SendAsync("ReceiveNotification", notificationMessage);
         }
       }
 
@@ -366,7 +359,6 @@ public sealed class NotificationsService(
       };
 
       string groupMessage = JsonConvert.SerializeObject(groupNotification, _jsonSettings);
-      await _hubContext.Clients.Group(groupName).SendAsync("ReceiveGroupNotification", groupMessage);
 
       _logger.LogInformation("Successfully sent notification to {Count} users in group {GroupName}: {Message}",
           filteredUsers.Count, groupName, message);

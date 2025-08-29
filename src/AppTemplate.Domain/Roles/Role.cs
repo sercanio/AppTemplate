@@ -1,7 +1,7 @@
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles.DomainEvents;
 using AppTemplate.Domain.Roles.ValueObjects;
-using Myrtus.Clarity.Core.Domain.Abstractions;
+using AppTemplate.Core.Domain.Abstractions;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppTemplate.Domain.Roles;

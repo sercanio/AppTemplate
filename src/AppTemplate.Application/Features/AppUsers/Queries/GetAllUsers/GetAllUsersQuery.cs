@@ -1,9 +1,8 @@
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Core.Infrastructure.Pagination;
 
-namespace AppTemplate.Application.Features.Users.Queries.GetAllUsers;
+namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsers;
 
 public sealed record GetAllUsersQuery(
     int PageIndex,

@@ -1,19 +1,12 @@
 using AppTemplate.Application;
-using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Infrastructure;
-using AppTemplate.Infrastructure.Authorization;
-using AppTemplate.Infrastructure.Autorization;
 using AppTemplate.Web;
 using AppTemplate.Web.Controllers.Api;
 using AppTemplate.Web.Extensions;
 using AppTemplate.Web.Middlewares;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
-using Myrtus.Clarity.Core.Infrastructure.SignalR.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -96,8 +89,5 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 app.MapRazorPages().WithStaticAssets();
-
-app.MapHub<AuditLogHub>("/auditLogHub");
-app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();

@@ -1,10 +1,10 @@
 using AppTemplate.Application.Repositories;
+using AppTemplate.Core.Application.Abstractions.Authentication;
+using AppTemplate.Core.Application.Abstractions.Caching;
+using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Core.Domain.Abstractions;
 using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Authentication;
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Domain.Abstractions;
 
 namespace AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 

@@ -1,15 +1,15 @@
+using AppTemplate.Core.Application.Abstractions.Clock;
+using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Core.Infrastructure.Outbox;
+using AppTemplate.Domain.AppUsers;
+using AppTemplate.Domain.Notifications;
+using AppTemplate.Domain.Roles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Newtonsoft.Json;
-using Myrtus.Clarity.Core.Application.Abstractions.Clock;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.Outbox;
-using AppTemplate.Domain.AppUsers;
-using AppTemplate.Domain.Roles;
-using AppTemplate.Domain.Notifications;
 
 namespace AppTemplate.Infrastructure;
 

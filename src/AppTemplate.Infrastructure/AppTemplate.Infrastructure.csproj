@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -23,11 +23,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authentication.Azure\Myrtus.Clarity.Core.Infrastructure.Authentication.Azure.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authorization\Myrtus.Clarity.Core.Infrastructure.Authorization.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Data.Dapper\Myrtus.Clarity.Core.Infrastructure.Data.Dapper.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Outbox\Myrtus.Clarity.Core.Infrastructure.Outbox.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Clock\AppTemplate.Core.Application.Abstractions.Clock.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Authorization\AppTemplate.Core.Infrastructure.Authorization.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Clock\AppTemplate.Core.Infrastructure.Clock.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Data.Dapper\AppTemplate.Core.Infrastructure.Data.Dapper.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Outbox\AppTemplate.Core.Infrastructure.Outbox.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Authorization\AppTemplate.Core.Infrastructure.Authorization.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Data.Dapper\AppTemplate.Core.Infrastructure.Data.Dapper.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Outbox\AppTemplate.Core.Infrastructure.Outbox.csproj" />
+    <ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Pagination\AppTemplate.Core.Infrastructure.Pagination.csproj" />
     <ProjectReference Include="..\AppTemplate.Application\AppTemplate.Application.csproj" />
     <ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />
   </ItemGroup>

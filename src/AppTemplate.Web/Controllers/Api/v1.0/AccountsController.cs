@@ -1,7 +1,10 @@
-﻿using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
+using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.EmailSenders;
+using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Core.Infrastructure.Authorization;
+using AppTemplate.Core.WebApi;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Web.Attributes;
@@ -14,13 +17,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
-using Myrtus.Clarity.Core.WebAPI;
-using Myrtus.Clarity.Core.WebAPI.Controllers;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Text.Encodings.Web;
 
 namespace AppTemplate.Web.Controllers;
 

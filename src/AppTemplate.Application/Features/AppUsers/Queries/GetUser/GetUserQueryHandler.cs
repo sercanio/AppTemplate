@@ -3,7 +3,7 @@ using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
+using AppTemplate.Core.Application.Abstractions.Messaging;
 using System.Collections.ObjectModel;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetUser;

@@ -1,6 +1,5 @@
+using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.AppUsers;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
 using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.AppUsers;

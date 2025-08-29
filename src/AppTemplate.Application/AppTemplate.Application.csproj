@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -17,13 +17,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Authentication\Myrtus.Clarity.Core.Application.Abstractions.Authentication.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Behaviours\Myrtus.Clarity.Core.Application.Abstractions.Behaviours.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Messaging\Myrtus.Clarity.Core.Application.Abstractions.Messaging.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Repositories\Myrtus.Clarity.Core.Application.Abstractions.Repositories.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Caching\Myrtus.Clarity.Core.Infrastructure.Caching.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.SignalR\Myrtus.Clarity.Core.Infrastructure.SignalR.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Authentication\AppTemplate.Core.Application.Abstractions.Authentication.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Behaviours\AppTemplate.Core.Application.Abstractions.Behaviours.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Caching\AppTemplate.Core.Infrastructure.Caching.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.DynamicQuery\AppTemplate.Core.Infrastructure.DynamicQuery.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Pagination\AppTemplate.Core.Infrastructure.Pagination.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Authentication\AppTemplate.Core.Application.Abstractions.Authentication.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Behaviours\AppTemplate.Core.Application.Abstractions.Behaviours.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Messaging\AppTemplate.Core.Application.Abstractions.Messaging.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Repositories\AppTemplate.Core.Application.Abstractions.Repositories.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Caching\AppTemplate.Core.Infrastructure.Caching.csproj" />
+		<ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Pagination\AppTemplate.Core.Infrastructure.Pagination.csproj" />
 		<ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />
 	</ItemGroup>
 

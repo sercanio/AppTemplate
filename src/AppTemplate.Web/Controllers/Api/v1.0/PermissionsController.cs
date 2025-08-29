@@ -1,14 +1,13 @@
-﻿using Ardalis.Result;
+using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
+using AppTemplate.Core.Application.Abstractions.Pagination;
+using AppTemplate.Core.Infrastructure.Authorization;
+using AppTemplate.Core.WebApi;
+using AppTemplate.Web.Attributes;
+using AppTemplate.Web.Controllers.Api;
+using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.WebAPI;
-using Myrtus.Clarity.Core.WebAPI.Controllers;
-using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
-using AppTemplate.Web.Controllers.Api;
-using AppTemplate.Web.Attributes;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
 
 namespace AppTemplate.Web.Controllers;
 

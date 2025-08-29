@@ -1,6 +1,6 @@
 using Ardalis.Result;
 using MediatR;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using AppTemplate.Core.Infrastructure.Pagination;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 
