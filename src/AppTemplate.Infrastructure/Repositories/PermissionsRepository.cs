@@ -1,9 +1,10 @@
-﻿using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.Roles;
 
 namespace AppTemplate.Infrastructure.Repositories;
 
-internal sealed class PermissionsRepository(ApplicationDbContext dbContext) 
-    : Repository<Permission>(dbContext), IPermissionsRepository
+internal sealed class PermissionsRepository
+    : Repository<Permission, Guid>, IPermissionsRepository
 {
+  public PermissionsRepository(ApplicationDbContext dbContext) : base(dbContext) { }
 }

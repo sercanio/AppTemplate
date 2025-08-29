@@ -1,4 +1,4 @@
-﻿using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
+using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
 using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
 
 namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
@@ -6,5 +6,6 @@ namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotificat
 public sealed record GetAllNotificationsQuery(
     int PageIndex,
     int PageSize,
-    CancellationToken CancellationToken) : IQuery<IPaginatedList<GetAllNotificationsQueryResponse>>;
+    CancellationToken CancellationToken
+) : IQuery<GetAllNotificationsWithUnreadCountResponse>;
 

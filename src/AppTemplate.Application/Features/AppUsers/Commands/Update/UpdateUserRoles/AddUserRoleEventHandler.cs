@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain.Users.DomainEvents;
 using MediatR;
@@ -11,14 +11,14 @@ public class AddUserRoleEventHandler(
     IRolesService roleService,
     ILogger<AddUserRoleEventHandler> logger) : INotificationHandler<AppUserRoleAddedDomainEvent>
 {
-    private readonly IAppUsersRepository _userRepository = userRepository;
-    private readonly IRolesService _roleService = roleService;
+  private readonly IAppUsersRepository _userRepository = userRepository;
+  private readonly IRolesService _roleService = roleService;
 
-    public async Task Handle(AppUserRoleAddedDomainEvent notification, CancellationToken cancellationToken)
-    {
-        // just log the event for now
-       
-        logger.LogInformation("Handling AppUserRoleAddedDomainEvent for UserId: {UserId}, RoleId: {RoleId}",
-            notification.UserId, notification.RoleId);
-    }
+  public async Task Handle(AppUserRoleAddedDomainEvent notification, CancellationToken cancellationToken)
+  {
+    // just log the event for now
+
+    logger.LogInformation("Handling AppUserRoleAddedDomainEvent for UserId: {UserId}, RoleId: {RoleId}",
+        notification.UserId, notification.RoleId);
+  }
 }

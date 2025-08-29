@@ -1,21 +1,21 @@
-using Ardalis.Result;
-using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
-using Myrtus.Clarity.Core.Infrastructure.Dynamic;
-using Myrtus.Clarity.Core.WebAPI;
-using Myrtus.Clarity.Core.WebAPI.Controllers;
-using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
+using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Features.AppUsers.Queries.GetUser;
 using AppTemplate.Application.Features.Users.Queries.GetAllUsers;
-using AppTemplate.Web.Controllers.Api;
 using AppTemplate.Web.Attributes;
+using AppTemplate.Web.Controllers.Api;
+using Ardalis.Result;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Myrtus.Clarity.Core.Infrastructure.Authorization;
+using Myrtus.Clarity.Core.Infrastructure.Dynamic;
+using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using Myrtus.Clarity.Core.WebAPI;
+using Myrtus.Clarity.Core.WebAPI.Controllers;
 
 namespace AppTemplate.Web.Controllers;
 
@@ -39,7 +39,7 @@ public class UsersController : BaseController
     {
         GetAllUsersQuery query = new(pageIndex, pageSize);
 
-        Result<IPaginatedList<GetAllUsersQueryResponse>> result = await _sender.Send(query, cancellationToken);
+        Result<PaginatedList<GetAllUsersQueryResponse>> result = await _sender.Send(query, cancellationToken);
 
         return !result.IsSuccess ? _errorHandlingService.HandleErrorResponse(result) : Ok(result.Value);
     }
@@ -58,7 +58,7 @@ public class UsersController : BaseController
             dynamicQuery
         );
 
-        Result<IPaginatedList<GetAllUsersDynamicQueryResponse>> result = await _sender.Send(query, cancellationToken);
+        Result<PaginatedList<GetAllUsersDynamicQueryResponse>> result = await _sender.Send(query, cancellationToken);
 
         return !result.IsSuccess ? _errorHandlingService.HandleErrorResponse(result) : Ok(result.Value);
     }
@@ -86,7 +86,7 @@ public class UsersController : BaseController
     {
         GetAllUsersByRoleIdQuery query = new(PageIndex, PageSize, roleId);
 
-        Result<IPaginatedList<GetAllUsersByRoleIdQueryResponse>> result = await _sender.Send(query, cancellationToken);
+        Result<PaginatedList<GetAllUsersByRoleIdQueryResponse>> result = await _sender.Send(query, cancellationToken);
         return !result.IsSuccess ? _errorHandlingService.HandleErrorResponse(result) : Ok(result.Value);
     }
 

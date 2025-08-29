@@ -1,15 +1,15 @@
-﻿namespace AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
+namespace AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
 
 public sealed record UpdateUserRolesCommandResponse
 {
-    public Guid RoleId { get; init; }
-    public Guid UserId { get; init; }
+  public Guid RoleId { get; init; }
+  public Guid UserId { get; init; }
 
-    public UpdateUserRolesCommandResponse(Guid roleId, Guid userId)
-    {
-        RoleId = roleId;
-        UserId = userId;
-    }
+  public UpdateUserRolesCommandResponse(Guid roleId, Guid userId)
+  {
+    RoleId = roleId;
+    UserId = userId;
+  }
 
-    private UpdateUserRolesCommandResponse() { }
+  private UpdateUserRolesCommandResponse() { }
 }

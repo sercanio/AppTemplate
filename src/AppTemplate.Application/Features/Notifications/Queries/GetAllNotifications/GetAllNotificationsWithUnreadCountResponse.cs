@@ -1,7 +1,7 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
+using Myrtus.Clarity.Core.Infrastructure.Pagination;
 
 namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 
 public sealed record GetAllNotificationsWithUnreadCountResponse(
-    IPaginatedList<GetAllNotificationsQueryResponse> PaginatedNotifications,
+    PaginatedList<GetAllNotificationsQueryResponse> PaginatedNotifications,
     int UnreadCount);

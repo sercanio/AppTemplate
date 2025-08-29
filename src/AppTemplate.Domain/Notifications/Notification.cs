@@ -1,37 +1,29 @@
-﻿using AppTemplate.Domain.AppUsers;
+using AppTemplate.Domain.AppUsers;
+using AppTemplate.Domain.Notifications.Enums;
 using Myrtus.Clarity.Core.Domain.Abstractions;
 
 namespace AppTemplate.Domain.Notifications;
 
-public class Notification : Entity
+public class Notification : Entity<Guid>
 {
-    public Notification()
-    {
-        // Default constructor for EF Core
-    }
+  public string Title { get; private set; }
+  public string Message { get; private set; }
+  public NotificationTypeEnum Type { get; private set; }
+  public bool IsRead { get; private set; }
 
-    public Notification(Guid userId, string userName, string action, string entity, string entityId, string details)
-    {
-        UserId = userId;
-        UserName = userName;
-        Action = action;
-        Entity = entity;
-        EntityId = entityId;
-        Details = details;
-        Timestamp = DateTime.UtcNow;
-        IsRead = false;
-    }
+  public Guid RecipientId { get; private set; }
+  public AppUser Recipient { get; private set; }
 
-    public string Action { get; set; } = "";
-    public string UserName { get; set; } = "";
-    public string Entity { get; set; } = "";
-    public string EntityId { get; set; } = "";
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    public string Details { get; set; } = "";
-    public bool IsRead { get; set; } = false;
-    public Dictionary<string, object>? AdditionalData { get; set; }
+  public void MarkAsRead() => IsRead = true;
 
-    // Add navigation property for AppUser
-    public Guid UserId { get; set; }
-    public AppUser AppUser { get; set; } = null!;
+  private Notification() { }
+
+  public Notification(Guid recipientId, string title, string message, NotificationTypeEnum type)
+  {
+    RecipientId = recipientId;
+    Title = title;
+    Message = message;
+    Type = type;
+    IsRead = false;
+  }
 }

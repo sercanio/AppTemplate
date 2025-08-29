@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Notifications;
 using Ardalis.Result;
@@ -7,46 +7,45 @@ using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
 
 namespace AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsAsRead;
 
-public sealed class MarkNotificationsAsReadCommandHandler : ICommandHandler<MarkNotificationsAsReadCommand, MarkNotificationsAsReadCommandResponse>
+public sealed class MarkNotificationAsReadCommandHandler : ICommandHandler<MarkNotificationAsReadCommand, MarkNotificationAsReadCommandResponse>
 {
-    private readonly INotificationService _notificationService;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IAppUsersService _appUsersService;
+  private readonly INotificationService _notificationService;
+  private readonly IHttpContextAccessor _httpContextAccessor;
+  private readonly IAppUsersService _appUsersService;
 
-    public MarkNotificationsAsReadCommandHandler(
-        INotificationService notificationService,
-        IHttpContextAccessor httpContextAccessor,
-        IAppUsersService appUsersService)
+  public MarkNotificationAsReadCommandHandler(
+      INotificationService notificationService,
+      IHttpContextAccessor httpContextAccessor,
+      IAppUsersService appUsersService)
+  {
+    _notificationService = notificationService;
+    _httpContextAccessor = httpContextAccessor;
+    _appUsersService = appUsersService;
+  }
+
+  public async Task<Result<MarkNotificationAsReadCommandResponse>> Handle(
+      MarkNotificationAsReadCommand request,
+      CancellationToken cancellationToken)
+  {
+    var identityIdString = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    if (string.IsNullOrEmpty(identityIdString))
     {
-        _notificationService = notificationService;
-        _httpContextAccessor = httpContextAccessor;
-        _appUsersService = appUsersService;
+      return Result.NotFound("IdentityId is null or empty string.");
     }
 
-    public async Task<Result<MarkNotificationsAsReadCommandResponse>> Handle(
-        MarkNotificationsAsReadCommand request,
-        CancellationToken cancellationToken)
+    var user = await _appUsersService.GetAsync(
+        predicate: u => string.Equals(identityIdString, u.IdentityId),
+        cancellationToken: cancellationToken);
+
+    if (user is null)
     {
-        var identityIdString = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(identityIdString))
-        {
-            return Result.NotFound("IdentityId is null or empty string.");
-        }
-
-        var user = await _appUsersService.GetAsync(
-            predicate: u => string.Equals(identityIdString, u.IdentityId),
-            cancellationToken: cancellationToken);
-
-        if (user is null)
-        {
-            return Result.NotFound("User not found.");
-        }
-
-        await _notificationService.MarkNotificationsAsReadAsync(user.Id, cancellationToken);
-
-        MarkNotificationsAsReadCommandResponse response = new();
-
-        return Result.Success(response);
+      return Result.NotFound("User not found.");
     }
+
+    var success = await _notificationService.MarkNotificationAsReadAsync(request.NotificationId, cancellationToken);
+
+    var response = new MarkNotificationAsReadCommandResponse(success);
+    return Result.Success(response);
+  }
 }
