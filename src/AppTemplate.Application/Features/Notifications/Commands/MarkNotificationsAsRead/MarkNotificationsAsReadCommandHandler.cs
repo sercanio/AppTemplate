@@ -1,5 +1,4 @@
-using AppTemplate.Application.Services.AppUsers;
-using AppTemplate.Application.Services.Notifications;
+using AppTemplate.Application.Repositories;
 using AppTemplate.Core.Application.Abstractions.Messaging;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
@@ -9,43 +8,40 @@ namespace AppTemplate.Application.Features.Notifications.Commands.MarkNotificati
 
 public sealed class MarkNotificationAsReadCommandHandler : ICommandHandler<MarkNotificationAsReadCommand, MarkNotificationAsReadCommandResponse>
 {
-  private readonly INotificationService _notificationService;
-  private readonly IHttpContextAccessor _httpContextAccessor;
-  private readonly IAppUsersService _appUsersService;
+    private readonly INotificationsRepository _notificationsRepository;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IAppUsersRepository _appUsersRepository;
 
-  public MarkNotificationAsReadCommandHandler(
-      INotificationService notificationService,
-      IHttpContextAccessor httpContextAccessor,
-      IAppUsersService appUsersService)
-  {
-    _notificationService = notificationService;
-    _httpContextAccessor = httpContextAccessor;
-    _appUsersService = appUsersService;
-  }
-
-  public async Task<Result<MarkNotificationAsReadCommandResponse>> Handle(
-      MarkNotificationAsReadCommand request,
-      CancellationToken cancellationToken)
-  {
-    var identityIdString = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    if (string.IsNullOrEmpty(identityIdString))
+    public MarkNotificationAsReadCommandHandler(
+        INotificationsRepository notificationsRepository,
+        IHttpContextAccessor httpContextAccessor,
+        IAppUsersRepository appUsersRepository)
     {
-      return Result.NotFound("IdentityId is null or empty string.");
+        _notificationsRepository = notificationsRepository;
+        _httpContextAccessor = httpContextAccessor;
+        _appUsersRepository = appUsersRepository;
     }
 
-    var user = await _appUsersService.GetAsync(
-        predicate: u => string.Equals(identityIdString, u.IdentityId),
-        cancellationToken: cancellationToken);
-
-    if (user is null)
+    public async Task<Result<MarkNotificationAsReadCommandResponse>> Handle(
+        MarkNotificationAsReadCommand request,
+        CancellationToken cancellationToken)
     {
-      return Result.NotFound("User not found.");
+        var identityIdString = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(identityIdString))
+        {
+            return Result.NotFound("IdentityId is null or empty string.");
+        }
+
+        var userResult = await _appUsersRepository.GetUserByIdentityIdWithIdentityAndRolesAsync(identityIdString, cancellationToken);
+        if (!userResult.IsSuccess || userResult.Value is null)
+        {
+            return Result.NotFound("User not found.");
+        }
+
+        var success = await _notificationsRepository.MarkAsReadAsync(request.NotificationId, cancellationToken);
+
+        var response = new MarkNotificationAsReadCommandResponse(success);
+        return Result.Success(response);
     }
-
-    var success = await _notificationService.MarkNotificationAsReadAsync(request.NotificationId, cancellationToken);
-
-    var response = new MarkNotificationAsReadCommandResponse(success);
-    return Result.Success(response);
-  }
 }

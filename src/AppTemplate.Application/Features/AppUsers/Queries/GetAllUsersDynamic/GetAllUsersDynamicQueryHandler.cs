@@ -1,49 +1,49 @@
+using System.Collections.ObjectModel;
+using Ardalis.Result;
+using MediatR;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Core.Infrastructure.Pagination;
-using AppTemplate.Domain.AppUsers;
-using Ardalis.Result;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.ObjectModel;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 
 public sealed class GetAllUsersDynamicQueryHandler(IAppUsersRepository userRepository) : IRequestHandler<GetAllUsersDynamicQuery, Result<PaginatedList<GetAllUsersDynamicQueryResponse>>>
 {
-  private readonly IAppUsersRepository _userRepository = userRepository;
+    private readonly IAppUsersRepository _userRepository = userRepository;
 
-  public async Task<Result<PaginatedList<GetAllUsersDynamicQueryResponse>>> Handle(GetAllUsersDynamicQuery request, CancellationToken cancellationToken)
-  {
+    public async Task<Result<PaginatedList<GetAllUsersDynamicQueryResponse>>> Handle(GetAllUsersDynamicQuery request, CancellationToken cancellationToken)
+    {
+        var result = await _userRepository.GetAllUsersDynamicWithIdentityAndRolesAsync(
+            request.DynamicQuery,
+            request.PageIndex,
+            request.PageSize,
+            cancellationToken);
 
-    PaginatedList<AppUser> users = await _userRepository.GetAllDynamicAsync(
-        dynamicQuery: request.DynamicQuery,
-        pageIndex: request.PageIndex,
-        pageSize: request.PageSize,
-        includeSoftDeleted: false,
-        include: query => query.
-            Include(u => u.IdentityUser).
-            Include(u => u.Roles.Where(r => r.DeletedOnUtc == null)),
-        cancellationToken: cancellationToken);
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return Result<PaginatedList<GetAllUsersDynamicQueryResponse>>.Error("Could not retrieve users.");
+        }
 
-    List<GetAllUsersDynamicQueryResponse> mappedUsers = users.Items.Select(
-        user => new GetAllUsersDynamicQueryResponse(
-        user.Id,
-        userName: user.IdentityUser?.UserName ?? string.Empty,
-        roles: new Collection<LoggedInUserRolesDto>(
-                    user.Roles?.Where(
-                        role => role.DeletedOnUtc == null).Select(
-                        role => new LoggedInUserRolesDto(role.Id, role.Name.Value, role.DisplayName.Value)).ToList()
-                        ?? new List<LoggedInUserRolesDto>())
-                )).ToList();
+        var users = result.Value;
 
-    PaginatedList<GetAllUsersDynamicQueryResponse> paginatedList = new(
-        mappedUsers,
-        users.TotalCount,
-        request.PageIndex,
-        request.PageSize
-    );
+        List<GetAllUsersDynamicQueryResponse> mappedUsers = users.Items.Select(
+            user => new GetAllUsersDynamicQueryResponse(
+                user.Id,
+                userName: user.IdentityUser?.UserName ?? string.Empty,
+                roles: new Collection<LoggedInUserRolesDto>(
+                    user.Roles?
+                        .Where(role => role.DeletedOnUtc == null)
+                        .Select(role => new LoggedInUserRolesDto(role.Id, role.Name.Value, role.DisplayName.Value))
+                        .ToList() ?? new List<LoggedInUserRolesDto>())
+            )).ToList();
 
-    return Result.Success<PaginatedList<GetAllUsersDynamicQueryResponse>>(paginatedList);
-  }
+        PaginatedList<GetAllUsersDynamicQueryResponse> paginatedList = new(
+            mappedUsers,
+            users.TotalCount,
+            request.PageIndex,
+            request.PageSize
+        );
+
+        return Result.Success(paginatedList);
+    }
 }

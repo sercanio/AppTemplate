@@ -143,6 +143,22 @@ internal abstract class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
     }
   }
 
+  public async Task<int> CountAsync(
+      Expression<Func<TEntity, bool>>? predicate = null,
+      bool includeSoftDeleted = false,
+      CancellationToken cancellationToken = default)
+  {
+    IQueryable<TEntity> query = DbContext.Set<TEntity>();
+
+    if (!includeSoftDeleted && HasSoftDelete())
+      query = query.Where(e => EF.Property<DateTime?>(e, "DeletedOnUtc") == null);
+
+    if (predicate != null)
+      query = query.Where(predicate);
+
+    return await query.CountAsync(cancellationToken);
+  }
+
   private static bool HasSoftDelete()
       => typeof(TEntity).GetProperty("DeletedOnUtc") != null;
 }

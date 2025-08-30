@@ -7,7 +7,7 @@ using Ardalis.Result;
 namespace AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 
 public class GetallPermissionsQueryHandler(IPermissionsRepository permissionRepository)
-            : IQueryHandler<GetAllPermissionsQuery, IPaginatedList<GetAllPermissionsQueryResponse>>
+    : IQueryHandler<GetAllPermissionsQuery, IPaginatedList<GetAllPermissionsQueryResponse>>
 {
     private readonly IPermissionsRepository _permissionRepository = permissionRepository;
 
@@ -15,10 +15,17 @@ public class GetallPermissionsQueryHandler(IPermissionsRepository permissionRepo
         GetAllPermissionsQuery request,
         CancellationToken cancellationToken)
     {
-        var permissions = await _permissionRepository.GetAllAsync(
+        var result = await _permissionRepository.GetAllPermissionsAsync(
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return Result.Error("Could not retrieve permissions.");
+        }
+
+        var permissions = result.Value;
 
         List<GetAllPermissionsQueryResponse> mappedPermissions = permissions.Items.Select(permission =>
             new GetAllPermissionsQueryResponse(permission.Id, permission.Feature, permission.Name)).ToList();
