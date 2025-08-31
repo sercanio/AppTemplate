@@ -3,6 +3,7 @@ using Xunit;
 
 namespace AppTemplate.Domain.Tests.Unit.AppUsersTests;
 
+[Trait("Category", "Unit")]
 public class NotificationPreferenceUnitTests
 {
   [Fact]

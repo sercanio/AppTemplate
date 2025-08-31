@@ -2,6 +2,7 @@ using AppTemplate.Domain.Roles.DomainEvents;
 
 namespace AppTemplate.Domain.Tests.Unit.RolesTests;
 
+[Trait("Category", "Unit")]
 public class RoleDomainEventsUnitTests
 {
   [Fact]

@@ -2,6 +2,7 @@ using AppTemplate.Domain.AppUsers;
 
 namespace AppTemplate.Domain.Tests.Unit.AppUsersTests;
 
+[Trait("Category", "Unit")]
 public class AppUserErrorsUnitTests
 {
   [Fact]

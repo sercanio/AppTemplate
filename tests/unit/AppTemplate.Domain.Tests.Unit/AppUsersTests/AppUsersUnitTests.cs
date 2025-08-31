@@ -5,6 +5,7 @@ using AppTemplate.Domain.Users.DomainEvents;
 
 namespace AppTemplate.Domain.Tests.Unit.AppUsersTests;
 
+[Trait("Category", "Unit")]
 public class AppUsersUnitTests
 {
   [Fact]

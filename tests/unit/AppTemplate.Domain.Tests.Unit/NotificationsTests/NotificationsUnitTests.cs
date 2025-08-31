@@ -3,6 +3,7 @@ using AppTemplate.Domain.Notifications.Enums;
 
 namespace AppTemplate.Domain.Tests.Unit.NotificationsTests;
 
+[Trait("Category", "Unit")]
 public class NotificationsUnitTests
 {
   [Fact]

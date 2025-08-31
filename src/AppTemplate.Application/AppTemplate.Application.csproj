@@ -25,7 +25,6 @@
 		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Authentication\AppTemplate.Core.Application.Abstractions.Authentication.csproj" />
 		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Behaviours\AppTemplate.Core.Application.Abstractions.Behaviours.csproj" />
 		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Messaging\AppTemplate.Core.Application.Abstractions.Messaging.csproj" />
-		<ProjectReference Include="..\..\core\AppTemplate.Core.Application.Abstractions.Repositories\AppTemplate.Core.Application.Abstractions.Repositories.csproj" />
 		<ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Caching\AppTemplate.Core.Infrastructure.Caching.csproj" />
 		<ProjectReference Include="..\..\core\AppTemplate.Core.Infrastructure.Pagination\AppTemplate.Core.Infrastructure.Pagination.csproj" />
 		<ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />

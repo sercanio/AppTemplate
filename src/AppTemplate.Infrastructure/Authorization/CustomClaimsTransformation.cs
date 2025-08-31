@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Core.Application.Abstractions.Authentication.Azure;
 
+namespace AppTemplate.Infrastructure.Authorization;
+
 public sealed class CustomClaimsTransformation : IClaimsTransformation
 {
     private readonly IAuthorizationService _authorizationService;

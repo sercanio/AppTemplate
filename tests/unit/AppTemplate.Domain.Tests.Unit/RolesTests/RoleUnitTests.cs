@@ -4,6 +4,7 @@ using AppTemplate.Domain.Roles.DomainEvents;
 
 namespace AppTemplate.Domain.Tests.Unit.RolesTests;
 
+[Trait("Category", "Unit")]
 public class RoleUnitTests
 {
   [Fact]
@@ -81,6 +82,7 @@ public class RoleUnitTests
   }
 }
 
+[Trait("Category", "Unit")]
 public class RoleStaticTests
 {
   [Fact]
@@ -91,6 +93,8 @@ public class RoleStaticTests
     Assert.True(r.IsDefault);
   }
 }
+
+[Trait("Category", "Unit")]
 
 public class RoleUserTests
 {
@@ -114,6 +118,7 @@ public class RoleUserTests
   }
 }
 
+[Trait("Category", "Unit")]
 public class RolePermissionTests
 {
   [Fact]

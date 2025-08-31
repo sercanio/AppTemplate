@@ -40,16 +40,29 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
     optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
   }
 
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
+  protected override void OnModelCreating(ModelBuilder builder)
   {
-    base.OnModelCreating(modelBuilder);
+    base.OnModelCreating(builder);
+
+    builder.Entity<IdentityUser>(b =>
+    {
+      b.Property(u => u.UserName)
+          .IsRequired();
+      b.HasIndex(u => u.UserName)
+          .IsUnique();
+
+      b.Property(u => u.Email)
+          .IsRequired();
+      b.HasIndex(u => u.Email)
+          .IsUnique();
+    });
 
     var hasher = new PasswordHasher<IdentityUser>();
     var dummyUser = new IdentityUser();
     string password = "Passw0rd!";
     string hashedPassword = hasher.HashPassword(dummyUser, password);
 
-    modelBuilder.Entity<IdentityUser>().HasData(
+    builder.Entity<IdentityUser>().HasData(
     new IdentityUser
     {
       Id = "b3398ff2-1b43-4af7-812d-eb4347eecbb8",
@@ -62,7 +75,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
       SecurityStamp = Guid.NewGuid().ToString("D")
     });
 
-    modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+    builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
   }
 
   public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

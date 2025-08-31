@@ -2,6 +2,7 @@ using AppTemplate.Domain.Roles;
 
 namespace AppTemplate.Domain.Tests.Unit.RolesTests;
 
+[Trait("Category", "Unit")]
 public class RoleErrorsUnitTests
 {
   [Fact]
