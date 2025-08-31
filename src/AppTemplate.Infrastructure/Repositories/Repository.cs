@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace AppTemplate.Infrastructure.Repositories;
 
-internal abstract class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
+public abstract class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
     where TEntity : Entity<TKey>
 {
   protected readonly ApplicationDbContext DbContext;

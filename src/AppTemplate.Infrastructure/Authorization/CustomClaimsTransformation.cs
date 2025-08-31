@@ -1,18 +1,16 @@
-using AppTemplate.Core.Application.Abstractions.Authentication.Azure;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
-
-namespace AppTemplate.Infrastructure.Authorization;
+using AppTemplate.Application.Services.Authorization;
+using AppTemplate.Core.Application.Abstractions.Authentication.Azure;
 
 public sealed class CustomClaimsTransformation : IClaimsTransformation
 {
-    private readonly IServiceProvider _services;
+    private readonly IAuthorizationService _authorizationService;
 
-    public CustomClaimsTransformation(IServiceProvider services)
+    public CustomClaimsTransformation(IAuthorizationService authorizationService)
     {
-        _services = services;
+        _authorizationService = authorizationService;
     }
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -24,12 +22,10 @@ public sealed class CustomClaimsTransformation : IClaimsTransformation
             return principal;
         }
 
-        using var scope = _services.CreateScope();
-        var authSvc = scope.ServiceProvider.GetRequiredService<AuthorizationService>();
         var identityId = principal.GetIdentityId();
 
-        var rolesResponse = await authSvc.GetRolesForUserAsync(identityId);
-        var permissions = await authSvc.GetPermissionsForUserAsync(identityId);
+        var rolesResponse = await _authorizationService.GetRolesForUserAsync(identityId);
+        var permissions = await _authorizationService.GetPermissionsForUserAsync(identityId);
 
         var ci = new ClaimsIdentity(
             CookieAuthenticationDefaults.AuthenticationScheme,
@@ -41,7 +37,6 @@ public sealed class CustomClaimsTransformation : IClaimsTransformation
 
         foreach (var role in rolesResponse.Roles)
         {
-            // assuming Role.Name.Value is your role string
             ci.AddClaim(new Claim(ClaimTypes.Role, role.Name.Value));
         }
 

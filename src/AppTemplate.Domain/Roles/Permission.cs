@@ -90,7 +90,7 @@ public sealed class Permission : Entity<Guid>
     Roles = new List<Role>([]);
   }
 
-  internal Permission()
+  public Permission()
   {
     Feature = string.Empty;
     Name = string.Empty;

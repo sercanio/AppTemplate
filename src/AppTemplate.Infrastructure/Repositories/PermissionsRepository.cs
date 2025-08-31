@@ -5,7 +5,7 @@ using Ardalis.Result;
 
 namespace AppTemplate.Infrastructure.Repositories;
 
-internal sealed class PermissionsRepository
+public sealed class PermissionsRepository
     : Repository<Permission, Guid>, IPermissionsRepository
 {
     public PermissionsRepository(ApplicationDbContext dbContext) : base(dbContext) { }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Infrastructure.Repositories;
 
-internal sealed class RolesRepository : Repository<Role, Guid>, IRolesRepository
+public sealed class RolesRepository : Repository<Role, Guid>, IRolesRepository
 {
     public RolesRepository(ApplicationDbContext dbContext) : base(dbContext) { }
 

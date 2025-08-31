@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 
 namespace AppTemplate.Infrastructure.Repositories;
 
-internal sealed class NotificationsRepository
+public sealed class NotificationsRepository
     : Repository<Notification, Guid>, INotificationsRepository
 {
     public NotificationsRepository(ApplicationDbContext dbContext) : base(dbContext) { }

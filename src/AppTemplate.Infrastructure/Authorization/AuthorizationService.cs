@@ -1,14 +1,20 @@
+using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Core.Application.Abstractions.Caching;
 using AppTemplate.Domain.AppUsers;
-using AppTemplate.Infrastructure.Autorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Infrastructure.Authorization;
 
-internal sealed class AuthorizationService(ApplicationDbContext dbContext, ICacheService cacheService)
+public sealed class AuthorizationService : IAuthorizationService
 {
-    private readonly ApplicationDbContext _dbContext = dbContext;
-    private readonly ICacheService _cacheService = cacheService;
+    private readonly ApplicationDbContext _dbContext;
+    private readonly ICacheService _cacheService;
+
+    public AuthorizationService(ApplicationDbContext dbContext, ICacheService cacheService)
+    {
+        _dbContext = dbContext;
+        _cacheService = cacheService;
+    }
 
     public async Task<UserRolesResponse> GetRolesForUserAsync(string identityId)
     {
