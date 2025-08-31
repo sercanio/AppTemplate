@@ -18,3 +18,9 @@ obj/
 *.suo
 appsettings.Development.json
 /containers
+
+# Test results
+TestResults/
+
+# Coverage reports
+coverage-report/
