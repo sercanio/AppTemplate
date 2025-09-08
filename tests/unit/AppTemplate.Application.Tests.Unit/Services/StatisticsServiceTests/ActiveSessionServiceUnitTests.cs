@@ -2,9 +2,8 @@ using AppTemplate.Application.Services.Statistics;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
 using System.Text.Json;
-using Xunit;
 
-namespace AppTemplate.Application.Tests.Unit.Services.Statistics;
+namespace AppTemplate.Application.Tests.Unit.Services.StatisticsServiceTests;
 
 [Trait("Category", "Unit")]
 public class ActiveSessionServiceUnitTests

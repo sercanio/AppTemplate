@@ -1,7 +1,6 @@
 using AppTemplate.Application.Services.EmailSenders;
-using Xunit;
 
-namespace AppTemplate.Application.Tests.Unit.Services.EmailSenders;
+namespace AppTemplate.Application.Tests.Unit.Services.EmailSendersServiceTests;
 
 public class EmailTemplateServiceUnitTests
 {

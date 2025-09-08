@@ -2,6 +2,7 @@ using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Notifications;
 using AppTemplate.Application.Services.Roles;
+using AppTemplate.Application.Tests.Unit.Services.NotificationsServiceTests;
 using AppTemplate.Core.Domain.Abstractions;
 using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.AppUsers;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Linq.Expressions;
 
-namespace AppTemplate.Application.Tests.Unit.Services.Notifications;
+namespace AppTemplate.Application.Tests.Unit.Services.NotificationsServiceTests;
 
 [Trait("Category", "Unit")]
 public class NotificationServiceUnitTests

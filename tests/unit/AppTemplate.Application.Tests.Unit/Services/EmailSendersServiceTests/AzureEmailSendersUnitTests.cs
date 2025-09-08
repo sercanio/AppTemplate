@@ -3,7 +3,7 @@ using Azure.Communication.Email;
 using Microsoft.Extensions.Configuration;
 using Moq;
 
-namespace AppTemplate.Application.Tests.Unit.Services.EmailSenders;
+namespace AppTemplate.Application.Tests.Unit.Services.EmailSendersServiceTests;
 
 public class AzureEmailSendersUnitTests
 {
