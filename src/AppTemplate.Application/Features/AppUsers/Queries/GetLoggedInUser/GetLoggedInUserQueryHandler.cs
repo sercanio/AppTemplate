@@ -6,7 +6,7 @@ using AppTemplate.Application.Repositories;
 using AppTemplate.Core.Application.Abstractions.Messaging;
 using AppTemplate.Domain.AppUsers;
 
-internal sealed class GetLoggedInUserQueryHandler : IQueryHandler<GetLoggedInUserQuery, UserResponse>
+public sealed class GetLoggedInUserQueryHandler : IQueryHandler<GetLoggedInUserQuery, UserResponse>
 {
     private readonly IAppUsersRepository _userRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
