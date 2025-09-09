@@ -1,12 +1,12 @@
 using AppTemplate.Application.Features.AppUsers.Queries.GetUser;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.AppUsers;
-using AppTemplate.Domain.Roles;
 using Ardalis.Result;
 using Moq;
 
-namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.GetUserTests;
+namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Queries.GetUserTests;
 
+[Trait("Category", "Unit")]
 public class GetUserQueryHandlerUnitTests
 {
     private readonly Mock<IAppUsersRepository> _userRepositoryMock;

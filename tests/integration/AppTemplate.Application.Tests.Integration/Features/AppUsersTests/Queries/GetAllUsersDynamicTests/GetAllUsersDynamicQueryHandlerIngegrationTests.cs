@@ -7,8 +7,9 @@ using AppTemplate.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.GetAllUsersDynamicTests;
+namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.Queries.GetAllUsersDynamicTests;
 
+[Trait("Category", "Integration")]
 public class GetAllUsersDynamicQueryHandlerIntegrationTests
 {
   private ApplicationDbContext CreateDbContext(string databaseName)

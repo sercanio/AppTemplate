@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Testcontainers.PostgreSql;
 
+namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.Queries.GetAllUsersByRoleIdTests;
+
 [Trait("Category", "Integration")]
 public class GetAllUsersByRoleIdQueryHandlerIntegrationTests : IAsyncLifetime
 {

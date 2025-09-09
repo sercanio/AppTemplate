@@ -2,6 +2,7 @@ using AppTemplate.Application.Services.EmailSenders;
 
 namespace AppTemplate.Application.Tests.Unit.Services.EmailSendersServiceTests;
 
+[Trait("Category", "Unit")]
 public class EmailTemplateServiceUnitTests
 {
     [Fact]

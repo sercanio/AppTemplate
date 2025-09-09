@@ -6,7 +6,7 @@ using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Moq;
 
-namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.GetAllUsersDynamicTests;
+namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Queries.GetAllUsersDynamicTests;
 
 [Trait("Category", "Unit")]
 public class GetAllUsersDynamicQueryHandlerUnitTests

@@ -5,6 +5,7 @@ using Moq;
 
 namespace AppTemplate.Application.Tests.Unit.Services.EmailSendersServiceTests;
 
+[Trait("Category", "Unit")]
 public class AzureEmailSendersUnitTests
 {
   private readonly Mock<IConfiguration> _configMock;

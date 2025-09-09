@@ -5,6 +5,8 @@ using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Moq;
 
+namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Queries.GetAllUsersByRoleIdTests;
+
 [Trait("Category", "Unit")]
 public class GetAllUsersByRoleIdQueryHandlerUnitTests
 {

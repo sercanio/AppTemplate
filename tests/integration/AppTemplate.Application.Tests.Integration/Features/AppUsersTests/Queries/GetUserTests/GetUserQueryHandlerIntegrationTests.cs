@@ -6,8 +6,9 @@ using AppTemplate.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.GetUserTests;
+namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.Queries.GetUserTests;
 
+[Trait("Category", "Integration")]
 public class GetUserQueryHandlerIntegrationTests
 {
   private ApplicationDbContext CreateDbContext()

@@ -8,8 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.GetLoggedInUserTests;
+namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.Queries.GetLoggedInUserTests;
 
+[Trait("Category", "Integration")]
 public class GetLoggedInUserQueryHandlerIntegrationTests
 {
   private ApplicationDbContext CreateDbContext()
