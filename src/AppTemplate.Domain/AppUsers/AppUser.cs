@@ -101,4 +101,8 @@ public sealed class AppUser : Entity<Guid>, IAggregateRoot
     ProfilePictureUrl = url;
     MarkUpdated();
   }
+  public void SetNotificationPreference(NotificationPreference preference)
+  {
+    NotificationPreference = preference;
+  }
 }

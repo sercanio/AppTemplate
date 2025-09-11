@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Communication.Email" Version="1.0.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.9" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.2" />
@@ -18,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\AppTemplate.Application\AppTemplate.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\AppTemplate.Infrastructure\AppTemplate.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

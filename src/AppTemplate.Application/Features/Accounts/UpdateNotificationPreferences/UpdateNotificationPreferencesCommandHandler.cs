@@ -32,10 +32,7 @@ public sealed class UpdateNotificationPreferencesCommandHandler(
       return Result<UpdateNotificationPreferencesCommandResponse>.NotFound();
     }
 
-    user.NotificationPreference.Update(
-        request.NotificationPreference.IsInAppNotificationEnabled,
-        request.NotificationPreference.IsEmailNotificationEnabled,
-        request.NotificationPreference.IsPushNotificationEnabled);
+    user.SetNotificationPreference(request.NotificationPreference);
 
     await _unitOfWork.SaveChangesAsync(cancellationToken);
 
