@@ -72,33 +72,4 @@ public class UpdateUserRolesCommandHandlerUnitTests
 
     Assert.Equal(ResultStatus.NotFound, result.Status);
   }
-
-  //[Fact]
-  //public async Task Handle_ReturnsError_WhenUserNotAuthenticated()
-  //{
-  //  var userId = Guid.NewGuid();
-  //  var roleId = Guid.NewGuid();
-  //  var command = new UpdateUserRolesCommand(userId, Operation.Add, roleId);
-
-  //  var appUser = AppUser.Create();
-  //  _userRepositoryMock
-  //      .Setup(r => r.GetUserWithRolesAndIdentityByIdAsync(userId, It.IsAny<CancellationToken>()))
-  //      .ReturnsAsync(Result.Success(appUser));
-
-  //  _rolesServiceMock
-  //      .Setup(s => s.GetAsync(
-  //          It.IsAny<Expression<Func<Role, bool>>>(),
-  //          false,
-  //          null,
-  //          true,
-  //          It.IsAny<CancellationToken>()))
-  //      .ReturnsAsync(Role.Create("Test", "Test", Guid.NewGuid()));
-
-  //  _httpContextAccessorMock.Setup(x => x.HttpContext).Returns((HttpContext)null);
-
-  //  var result = await _handler.Handle(command, default);
-
-  //  Assert.Equal(ResultStatus.NotFound, result.Status);
-  //  Assert.Contains("Current user not authenticated.", result.Errors);
-  //}
 }
