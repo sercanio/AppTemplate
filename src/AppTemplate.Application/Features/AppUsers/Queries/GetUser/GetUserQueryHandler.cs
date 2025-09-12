@@ -1,6 +1,6 @@
 using AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Application.Services.Messages;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using System.Collections.ObjectModel;

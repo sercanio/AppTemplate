@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Infrastructure.Tests.Unit.RepositoriesTests;
 

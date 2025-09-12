@@ -1,5 +1,5 @@
 using AppTemplate.Application.Services.Authorization;
-using AppTemplate.Core.Application.Abstractions.Caching;
+using AppTemplate.Application.Services.Caching;
 using AppTemplate.Domain.AppUsers;
 using Microsoft.EntityFrameworkCore;
 

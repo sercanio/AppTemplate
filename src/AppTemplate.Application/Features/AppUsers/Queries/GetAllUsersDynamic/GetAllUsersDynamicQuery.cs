@@ -1,7 +1,7 @@
+using AppTemplate.Application.Data.DynamicQuery;
+using AppTemplate.Application.Data.Pagination;
 using Ardalis.Result;
 using MediatR;
-using AppTemplate.Core.Infrastructure.Pagination;
-using AppTemplate.Core.Infrastructure.DynamicQuery;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 

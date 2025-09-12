@@ -1,6 +1,6 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
-using AppTemplate.Core.Application.Abstractions.Messaging;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Services.Messages;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsers;
 

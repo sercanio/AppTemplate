@@ -1,5 +1,3 @@
-using AppTemplate.Core.Domain.Abstractions;
-
 namespace AppTemplate.Domain.AppUsers;
 
 public static class AppUserErrors

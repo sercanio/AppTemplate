@@ -9,12 +9,8 @@
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.2" />
+    <PackageReference Include="MimeKit" Version="4.13.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\core\AppTemplate.Core.Domain.Abstractions\AppTemplate.Core.Domain.Abstractions.csproj" />
-    <ProjectReference Include="..\..\core\AppTemplate.Core.Domain.Abstractions\AppTemplate.Core.Domain.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

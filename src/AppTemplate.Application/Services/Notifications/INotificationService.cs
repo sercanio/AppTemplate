@@ -1,4 +1,4 @@
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;
 using System.Linq.Expressions;

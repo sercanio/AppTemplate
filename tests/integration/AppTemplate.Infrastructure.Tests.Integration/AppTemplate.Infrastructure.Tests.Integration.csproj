@@ -18,8 +18,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\..\core\AppTemplate.Core.Application.Abstractions.Clock\AppTemplate.Core.Application.Abstractions.Clock.csproj" />
-    <ProjectReference Include="..\..\..\core\AppTemplate.Core.Infrastructure.Clock\AppTemplate.Core.Infrastructure.Clock.csproj" />
     <ProjectReference Include="..\..\..\src\AppTemplate.Domain\AppTemplate.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\AppTemplate.Infrastructure\AppTemplate.Infrastructure.csproj" />
   </ItemGroup>

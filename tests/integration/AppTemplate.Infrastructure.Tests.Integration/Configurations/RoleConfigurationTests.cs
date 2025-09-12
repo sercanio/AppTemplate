@@ -1,5 +1,4 @@
-using AppTemplate.Core.Application.Abstractions.Clock;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.Roles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

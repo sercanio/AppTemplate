@@ -1,4 +1,4 @@
-using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Application.Services.Messages;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 
 namespace AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;

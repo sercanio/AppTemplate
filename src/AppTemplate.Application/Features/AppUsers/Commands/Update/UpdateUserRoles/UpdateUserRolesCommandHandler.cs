@@ -1,9 +1,9 @@
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Messages;
 using AppTemplate.Application.Services.Roles;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Application.Abstractions.Messaging;
-using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;

@@ -1,9 +1,9 @@
-﻿using AppTemplate.Application.Enums;
+﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Roles.ValueObjects;
@@ -11,7 +11,6 @@ using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.RolesTests.Commands.Update;
 

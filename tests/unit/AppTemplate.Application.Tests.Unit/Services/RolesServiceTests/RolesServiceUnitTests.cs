@@ -1,6 +1,6 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Roles;
-using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.Roles;
 using Moq;
 using System.Linq.Expressions;

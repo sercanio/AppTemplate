@@ -1,4 +1,4 @@
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Domain.AppUsers;
 using System.Linq.Expressions;
 

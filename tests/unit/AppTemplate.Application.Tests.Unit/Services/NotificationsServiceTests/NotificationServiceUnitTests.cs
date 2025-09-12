@@ -1,10 +1,10 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Notifications;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Application.Tests.Unit.Services.NotificationsServiceTests;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;

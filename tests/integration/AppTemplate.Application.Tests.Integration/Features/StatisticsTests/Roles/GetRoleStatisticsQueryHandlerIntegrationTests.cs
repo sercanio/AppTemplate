@@ -1,5 +1,5 @@
 ﻿using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Roles.ValueObjects;

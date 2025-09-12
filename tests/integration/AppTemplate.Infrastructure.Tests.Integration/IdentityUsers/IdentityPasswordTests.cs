@@ -3,8 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Xunit;
-using AppTemplate.Core.Application.Abstractions.Clock;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 
 namespace AppTemplate.Infrastructure.Tests.Integration.IdentityUsers;
 

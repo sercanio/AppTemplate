@@ -1,13 +1,13 @@
-using Microsoft.AspNetCore.Http;
-using System.Security.Claims;
-using Ardalis.Result;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Application.Abstractions.Messaging;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Messages;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
+using Ardalis.Result;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 

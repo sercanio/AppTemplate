@@ -1,9 +1,9 @@
 ﻿using AppTemplate.Application.Features.Roles.Queries.GetRoleById;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Integration.Features.RolesTests.Queries.GetRoleByIdTests;
 
@@ -14,7 +14,7 @@ public class GetRoleByIdQueryHandlerIntgrationTests
     var options = new DbContextOptionsBuilder<ApplicationDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString())
         .Options;
-    return new ApplicationDbContext(options, new AppTemplate.Core.Infrastructure.Clock.DateTimeProvider());
+    return new ApplicationDbContext(options, new DateTimeProvider());
   }
 
   [Fact]

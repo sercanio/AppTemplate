@@ -1,6 +1,6 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Moq;

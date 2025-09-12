@@ -1,4 +1,3 @@
-using AppTemplate.Core.Domain.Abstractions;
 using AppTemplate.Domain.AppUsers.DomainEvents;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Domain.Notifications;

@@ -1,11 +1,9 @@
-﻿using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
+﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Pagination;
-using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.PermissionsTests;
 

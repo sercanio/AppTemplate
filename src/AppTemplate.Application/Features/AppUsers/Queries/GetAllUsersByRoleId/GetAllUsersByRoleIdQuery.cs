@@ -1,6 +1,6 @@
+using AppTemplate.Application.Data.Pagination;
 using Ardalis.Result;
 using MediatR;
-using AppTemplate.Core.Infrastructure.Pagination;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 

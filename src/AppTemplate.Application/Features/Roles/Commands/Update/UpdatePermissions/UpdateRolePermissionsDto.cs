@@ -1,4 +1,4 @@
-using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Domain;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 

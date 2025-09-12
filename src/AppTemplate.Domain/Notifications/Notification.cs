@@ -1,6 +1,5 @@
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Notifications.Enums;
-using AppTemplate.Core.Domain.Abstractions;
 
 namespace AppTemplate.Domain.Notifications;
 

@@ -1,5 +1,5 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.Roles;
 using System.Linq.Expressions;
 

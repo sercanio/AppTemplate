@@ -1,7 +1,7 @@
 ﻿using AppTemplate.Application.Features.Roles.Commands.Create;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;

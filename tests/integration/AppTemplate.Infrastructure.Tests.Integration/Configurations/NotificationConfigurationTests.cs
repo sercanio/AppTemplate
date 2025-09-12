@@ -1,5 +1,4 @@
-using AppTemplate.Core.Application.Abstractions.Clock;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;

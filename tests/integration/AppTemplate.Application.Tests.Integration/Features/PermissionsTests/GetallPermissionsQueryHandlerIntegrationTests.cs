@@ -1,4 +1,5 @@
 ﻿using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;
@@ -13,7 +14,7 @@ public class GetallPermissionsQueryHandlerIntegrationTests
     var options = new DbContextOptionsBuilder<ApplicationDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString())
         .Options;
-    return new ApplicationDbContext(options, new AppTemplate.Core.Infrastructure.Clock.DateTimeProvider());
+    return new ApplicationDbContext(options, new DateTimeProvider());
   }
 
   [Fact]

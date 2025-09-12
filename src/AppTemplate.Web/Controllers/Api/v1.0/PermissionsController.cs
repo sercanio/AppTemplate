@@ -1,7 +1,7 @@
+using AppTemplate.Application.Authorization;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
-using AppTemplate.Core.Application.Abstractions.Pagination;
-using AppTemplate.Core.Infrastructure.Authorization;
-using AppTemplate.Core.WebApi;
+using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
 using Ardalis.Result;

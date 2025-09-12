@@ -1,7 +1,7 @@
-﻿using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
+﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Moq;

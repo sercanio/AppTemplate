@@ -1,6 +1,5 @@
-using AppTemplate.Core.Application.Abstractions.Localization.Services;
-using AppTemplate.Core.Infrastructure.Localization.Services;
-using AppTemplate.Core.WebApi;
+using AppTemplate.Application.Services.ErrorHandling;
+using AppTemplate.Application.Services.Localization;
 
 namespace AppTemplate.Web;
 

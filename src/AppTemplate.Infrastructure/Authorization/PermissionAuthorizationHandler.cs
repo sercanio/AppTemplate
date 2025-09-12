@@ -1,4 +1,4 @@
-using AppTemplate.Core.Infrastructure.Authorization;
+using AppTemplate.Application.Authorization;
 using Microsoft.AspNetCore.Authorization;
 
 namespace AppTemplate.Infrastructure.Authorization;

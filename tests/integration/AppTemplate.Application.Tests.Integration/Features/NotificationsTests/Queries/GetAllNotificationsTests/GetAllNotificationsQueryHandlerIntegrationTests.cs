@@ -1,6 +1,6 @@
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 using AppTemplate.Application.Services.AppUsers;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;

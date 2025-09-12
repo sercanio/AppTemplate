@@ -1,4 +1,4 @@
-using AppTemplate.Core.Application.Abstractions.Localization.Services;
+using AppTemplate.Application.Services.Localization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using System.Net;

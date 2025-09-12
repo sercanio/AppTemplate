@@ -1,7 +1,6 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Messaging;
-using AppTemplate.Core.Application.Abstractions.Pagination;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Services.Messages;
 using Ardalis.Result;
 
 namespace AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;

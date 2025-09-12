@@ -1,8 +1,7 @@
+using AppTemplate.Application.Behaviors;
 using AppTemplate.Application.Services.AppUsers;
+using AppTemplate.Application.Services.Caching;
 using AppTemplate.Application.Services.Roles;
-using AppTemplate.Core.Application.Abstractions.Behaviours;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Infrastructure.Caching;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AppTemplate.Application;

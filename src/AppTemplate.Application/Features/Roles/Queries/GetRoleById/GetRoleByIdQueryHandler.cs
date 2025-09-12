@@ -1,9 +1,8 @@
 using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Application.Services.Messages;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
 
 namespace AppTemplate.Application.Features.Roles.Queries.GetRoleById;

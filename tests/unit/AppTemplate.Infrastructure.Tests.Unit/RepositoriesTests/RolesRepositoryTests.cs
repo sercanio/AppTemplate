@@ -1,8 +1,8 @@
-using Ardalis.Result;
-using Microsoft.EntityFrameworkCore;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Infrastructure.Repositories;
-using AppTemplate.Core.Infrastructure.Clock;
+using Ardalis.Result;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Infrastructure.Tests.Unit.RepositoriesTests;
 

@@ -1,8 +1,8 @@
-﻿using AppTemplate.Application.Features.Roles.Commands.Update.UpdateRoleName;
+﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Features.Roles.Commands.Update.UpdateRoleName;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;

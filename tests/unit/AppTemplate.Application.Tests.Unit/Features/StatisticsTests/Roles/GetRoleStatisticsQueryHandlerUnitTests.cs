@@ -1,10 +1,9 @@
-﻿using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
+﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Roles.ValueObjects;
 using Moq;
-using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Roles;
 

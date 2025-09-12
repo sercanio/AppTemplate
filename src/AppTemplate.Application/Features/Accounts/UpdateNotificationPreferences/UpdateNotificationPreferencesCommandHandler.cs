@@ -1,8 +1,8 @@
+using AppTemplate.Application.Authentication;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Authentication;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Application.Abstractions.Messaging;
-using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Messages;
+using AppTemplate.Domain;
 using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
 

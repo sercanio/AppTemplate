@@ -1,5 +1,5 @@
-using AppTemplate.Core.Infrastructure.Pagination;
-using AppTemplate.Core.Infrastructure.DynamicQuery;
+using AppTemplate.Application.Data.DynamicQuery;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 

@@ -1,6 +1,7 @@
 ﻿using AppTemplate.Application.Features.Roles.Commands.Delete;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Clock;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Infrastructure;
@@ -52,7 +53,7 @@ public class DeleteRoleCommandHandlerIntegrationTests
     var usersRepo = new AppUsersRepository(dbContext);
     IUnitOfWork unitOfWork = dbContext;
     var distributedCacheMock = new Mock<IDistributedCache>();
-    var cacheService = new AppTemplate.Core.Infrastructure.Caching.CacheService(distributedCacheMock.Object);
+    var cacheService = new CacheService(distributedCacheMock.Object);
 
     var httpContext = new DefaultHttpContext();
     httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, identityUser.Id) }, "TestAuth"));

@@ -1,5 +1,5 @@
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Application.Services.Messages;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;

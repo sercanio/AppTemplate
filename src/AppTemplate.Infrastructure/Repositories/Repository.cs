@@ -1,7 +1,7 @@
+using AppTemplate.Application.Data.DynamicQuery;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.DynamicQuery;
-using AppTemplate.Core.Infrastructure.Pagination;
+using AppTemplate.Domain;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
 using System.Linq.Expressions;

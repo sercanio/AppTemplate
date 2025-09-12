@@ -1,10 +1,9 @@
 ﻿using AppTemplate.Application.Features.Statistics.Users.Queries.GetUsersCount;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
-using AppTemplate.Core.Infrastructure.Clock;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Integration.Features.StatisticsTests.Users;
 

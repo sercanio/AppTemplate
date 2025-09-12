@@ -1,9 +1,9 @@
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Application.Services.Roles;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Caching;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Infrastructure;

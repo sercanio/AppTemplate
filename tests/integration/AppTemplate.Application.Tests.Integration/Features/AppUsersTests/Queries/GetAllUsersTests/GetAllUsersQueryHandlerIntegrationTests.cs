@@ -1,5 +1,5 @@
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsers;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;

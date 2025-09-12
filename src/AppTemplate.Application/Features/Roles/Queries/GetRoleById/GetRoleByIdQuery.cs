@@ -1,4 +1,4 @@
-using AppTemplate.Core.Application.Abstractions.Caching;
+using AppTemplate.Application.Services.Caching;
 
 namespace AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 

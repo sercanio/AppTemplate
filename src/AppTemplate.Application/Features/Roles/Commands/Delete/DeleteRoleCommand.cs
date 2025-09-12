@@ -1,4 +1,4 @@
-using AppTemplate.Core.Application.Abstractions.Messaging;
+using AppTemplate.Application.Services.Messages;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Delete;
 

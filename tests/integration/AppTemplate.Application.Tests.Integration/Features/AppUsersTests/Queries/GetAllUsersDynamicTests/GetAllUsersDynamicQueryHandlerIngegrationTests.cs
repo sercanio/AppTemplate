@@ -1,6 +1,6 @@
+using AppTemplate.Application.Data.DynamicQuery;
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
-using AppTemplate.Core.Infrastructure.Clock;
-using AppTemplate.Core.Infrastructure.DynamicQuery;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;

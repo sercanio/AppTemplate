@@ -1,5 +1,3 @@
-using AppTemplate.Core.Domain.Abstractions;
-
 namespace AppTemplate.Domain.Roles.ValueObjects;
 
 public sealed class RoleName : ValueObject

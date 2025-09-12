@@ -3,8 +3,8 @@ using System.Security.Claims;
 using Ardalis.Result;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Application.Abstractions.Messaging;
 using AppTemplate.Domain.AppUsers;
+using AppTemplate.Application.Services.Messages;
 
 public sealed class GetLoggedInUserQueryHandler : IQueryHandler<GetLoggedInUserQuery, UserResponse>
 {

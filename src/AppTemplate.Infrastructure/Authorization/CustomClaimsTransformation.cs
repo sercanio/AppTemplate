@@ -1,8 +1,8 @@
-using System.Security.Claims;
+using AppTemplate.Application.Authentication;
+using AppTemplate.Application.Services.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using AppTemplate.Application.Services.Authorization;
-using AppTemplate.Core.Application.Abstractions.Authentication.Azure;
+using System.Security.Claims;
 
 namespace AppTemplate.Infrastructure.Authorization;
 

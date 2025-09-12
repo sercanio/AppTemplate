@@ -3,7 +3,7 @@
 #nullable disable
 
 using AppTemplate.Application.Services.AppUsers;
-using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;

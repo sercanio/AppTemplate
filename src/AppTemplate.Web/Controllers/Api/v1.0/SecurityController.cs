@@ -1,4 +1,4 @@
-using AppTemplate.Core.WebApi;
+using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Controllers.Api;
 using MediatR;
 using Microsoft.AspNetCore.Antiforgery;

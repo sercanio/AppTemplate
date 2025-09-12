@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;
 using AppTemplate.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Infrastructure.Tests.Unit.RepositoriesTests;
 

@@ -1,6 +1,6 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
-using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using MediatR;

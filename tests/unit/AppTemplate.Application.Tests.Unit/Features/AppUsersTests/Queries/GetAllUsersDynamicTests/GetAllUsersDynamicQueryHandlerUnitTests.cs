@@ -1,7 +1,7 @@
+using AppTemplate.Application.Data.DynamicQuery;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Infrastructure.DynamicQuery;
-using AppTemplate.Core.Infrastructure.Pagination;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Moq;

@@ -1,12 +1,11 @@
-using System.Security.Claims;
+using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Messages;
+using AppTemplate.Domain;
+using AppTemplate.Domain.Roles;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
-using AppTemplate.Core.Application.Abstractions.Caching;
-using AppTemplate.Core.Application.Abstractions.Messaging;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Application.Repositories;
-using AppTemplate.Domain.Roles;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Delete;
 

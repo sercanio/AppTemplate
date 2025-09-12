@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Ardalis.Result;
+using AppTemplate.Application.Data.DynamicQuery;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Infrastructure.Pagination;
-using AppTemplate.Core.Infrastructure.DynamicQuery;
 using AppTemplate.Domain.AppUsers;
+using Ardalis.Result;
+using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Infrastructure.Repositories;
 

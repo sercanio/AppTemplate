@@ -1,10 +1,10 @@
+using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.EmailSenders;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Authorization;
-using AppTemplate.Core.WebApi;
+using AppTemplate.Application.Services.ErrorHandling;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Web.Attributes;

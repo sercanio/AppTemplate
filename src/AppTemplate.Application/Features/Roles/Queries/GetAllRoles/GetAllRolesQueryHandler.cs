@@ -1,7 +1,7 @@
-using MediatR;
-using Ardalis.Result;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
-using AppTemplate.Core.Infrastructure.Pagination;
+using Ardalis.Result;
+using MediatR;
 
 namespace AppTemplate.Application.Features.Roles.Queries.GetAllRoles;
 

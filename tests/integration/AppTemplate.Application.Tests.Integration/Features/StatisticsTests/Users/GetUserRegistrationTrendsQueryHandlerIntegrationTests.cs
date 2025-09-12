@@ -1,5 +1,5 @@
 ﻿using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
-using AppTemplate.Core.Infrastructure.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;

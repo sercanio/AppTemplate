@@ -1,4 +1,4 @@
-using AppTemplate.Core.Domain.Abstractions;
+using AppTemplate.Domain;
 
 namespace AppTemplate.Infrastructure.Tests.Unit.RepositoriesTests;
 

@@ -1,8 +1,8 @@
-﻿using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
-using AppTemplate.Core.Application.Abstractions.Authentication;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Caching;
-using AppTemplate.Core.Infrastructure.Clock;
+﻿using AppTemplate.Application.Authentication;
+using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Clock;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Infrastructure;
@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
 
-namespace AppTemplate.Application.Tests.Integration.Features.AccountsTests;
+namespace AppTemplate.Application.Tests.Unit.Features.AccountsTests;
 
 public class UpdateNotificationPreferencesCommandHandlerIntegrationTests
 {

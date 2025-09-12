@@ -1,7 +1,7 @@
-﻿using System.Security.Claims;
-using AppTemplate.Application.Features.Roles.Commands.Create;
-using AppTemplate.Core.Domain.Abstractions;
-using AppTemplate.Core.Infrastructure.Clock;
+﻿using AppTemplate.Application.Features.Roles.Commands.Create;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Clock;
+using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;
@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
+using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Integration.Features.RolesTests.Commands.Create;
 
@@ -47,7 +48,7 @@ public class CreateRoleCommandHanderIntegrationTests
     var usersRepo = new AppUsersRepository(dbContext);
     IUnitOfWork unitOfWork = dbContext;
     var distributedCacheMock = new Mock<IDistributedCache>();
-    var cacheService = new AppTemplate.Core.Infrastructure.Caching.CacheService(distributedCacheMock.Object);
+    var cacheService = new CacheService(distributedCacheMock.Object);
 
     var httpContext = new DefaultHttpContext();
     httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, identityUser.Id) }, "TestAuth"));

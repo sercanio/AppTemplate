@@ -1,4 +1,4 @@
-using AppTemplate.Core.Application.Abstractions.Clock;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
 using Microsoft.EntityFrameworkCore;
 using Moq;
