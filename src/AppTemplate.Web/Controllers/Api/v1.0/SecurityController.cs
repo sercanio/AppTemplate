@@ -22,10 +22,13 @@ public class SecurityController : BaseController
     }
 
     [HttpGet("antiforgery/token")]
-    public IActionResult GetToken()
+  public IActionResult GetToken()
+  {
+    var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+    return new JsonResult(new
     {
-        var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
-        return new JsonResult(new { token = tokens.RequestToken });
-    }
+      token = tokens.RequestToken
+    });
+  }
 }
 
