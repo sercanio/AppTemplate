@@ -30,7 +30,6 @@ public static class DependencyInjection
           this IServiceCollection services,
           IConfiguration configuration)
   {
-    // Single DbContext registration - let Aspire handle the connection string
     services.AddDbContext<ApplicationDbContext>(options =>
         options.UseNpgsql(configuration.GetConnectionString("AppTemplateDb")));
 
@@ -43,7 +42,7 @@ public static class DependencyInjection
     AddConnectionProviders(services);
     AddBackgroundJobs(services, configuration);
     AddApiVersioning(services);
-    AddPersistence(services, configuration); // This method needs to be updated too
+    AddPersistence(services, configuration); 
     AddAuthorization(services);
     AddNotification(services);
     AddSignalR(services);
@@ -85,10 +84,6 @@ public static class DependencyInjection
 
   private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
   {
-    // Remove the duplicate DbContext registration - it's already registered above
-    // services.AddDbContext<ApplicationDbContext>(options =>
-    //      options.UseNpgsql(connectionString)); // REMOVE THIS LINE
-
     services.AddDatabaseDeveloperPageExceptionFilter();
 
     services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>()

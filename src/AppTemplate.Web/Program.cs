@@ -20,7 +20,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .WriteTo.Console();
     
     // Add Seq sink if connection string is available
-    var seqConnectionString = context.Configuration.GetConnectionString("seq-logging");
+    var seqConnectionString = context.Configuration.GetConnectionString("apptemplate-seq");
     if (!string.IsNullOrEmpty(seqConnectionString))
     {
         configuration.WriteTo.Seq(seqConnectionString);
@@ -37,13 +37,9 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 
-// Replace this line:
-// builder.AddRedisDistributedCache("redis-cache");
-
-// With the following, which uses the standard Redis distributed cache registration:
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration.GetConnectionString("redis-cache") ?? "localhost:6379";
+    options.Configuration = builder.Configuration.GetConnectionString("apptemplate-redis") ?? "localhost:6379";
     options.InstanceName = "AppTemplate:";
 });
 

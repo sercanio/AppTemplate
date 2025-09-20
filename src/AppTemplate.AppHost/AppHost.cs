@@ -2,9 +2,9 @@ using Aspire.Hosting;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var db = builder.AddPostgres("apptemplate-postgres")
+var db = builder.AddPostgres("apptemplate-db")
     .WithPgAdmin()
-    .AddDatabase("apptemplate-db");
+    .AddDatabase("AppTemplateDb");
 
 var redis = builder.AddRedis("apptemplate-redis")
     .WaitFor(db)
