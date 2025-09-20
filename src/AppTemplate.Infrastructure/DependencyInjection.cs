@@ -30,6 +30,10 @@ public static class DependencyInjection
           this IServiceCollection services,
           IConfiguration configuration)
   {
+    // Single DbContext registration - let Aspire handle the connection string
+    services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(configuration.GetConnectionString("AppTemplateDb")));
+
     if (configuration == null)
       throw new ArgumentNullException(nameof(configuration), "Configuration cannot be null in AddInfrastructure.");
 
@@ -39,7 +43,7 @@ public static class DependencyInjection
     AddConnectionProviders(services);
     AddBackgroundJobs(services, configuration);
     AddApiVersioning(services);
-    AddPersistence(services, configuration);
+    AddPersistence(services, configuration); // This method needs to be updated too
     AddAuthorization(services);
     AddNotification(services);
     AddSignalR(services);
@@ -48,6 +52,7 @@ public static class DependencyInjection
 
     return services;
   }
+  
   private static void AddConnectionProviders(IServiceCollection services)
   {
     services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
@@ -60,6 +65,7 @@ public static class DependencyInjection
             .AddQuartzHostedService(options => options.WaitForJobsToComplete = true)
             .ConfigureOptions<ProcessOutboxMessagesJobSetup>();
   }
+  
   private static void AddApiVersioning(IServiceCollection services)
   {
     services
@@ -79,13 +85,10 @@ public static class DependencyInjection
 
   private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
   {
-    // Get the connection string for PostgresSQL.
-    var connectionString = configuration.GetConnectionString("Database")
-        ?? throw new InvalidOperationException("Connection string 'Database' not found.");
+    // Remove the duplicate DbContext registration - it's already registered above
+    // services.AddDbContext<ApplicationDbContext>(options =>
+    //      options.UseNpgsql(connectionString)); // REMOVE THIS LINE
 
-    // Use Npgsql (PostgresSQL provider) instead of SQLite.
-    services.AddDbContext<ApplicationDbContext>(options =>
-         options.UseNpgsql(connectionString));
     services.AddDatabaseDeveloperPageExceptionFilter();
 
     services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>()
@@ -103,6 +106,7 @@ public static class DependencyInjection
             .AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>()
             .AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
   }
+  
   private static void AddNotification(IServiceCollection services)
   {
     services.AddTransient<INotificationService, NotificationsService>();

@@ -5,21 +5,28 @@ using System.Data;
 
 namespace AppTemplate.Infrastructure.Data.Dapper;
 
-  public sealed class SqlConnectionFactory : ISqlConnectionFactory
-  {
-      private readonly string _connectionString;
+public sealed class SqlConnectionFactory : ISqlConnectionFactory
+{
+    private readonly IConfiguration _configuration;
 
-      public SqlConnectionFactory(IConfiguration configuration)
-      {
-          _connectionString = configuration.GetConnectionString("Database") ??
-                              throw new ArgumentNullException(nameof(configuration), "Database connection string not found.");
-      }
+    public SqlConnectionFactory(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
 
-      public IDbConnection CreateConnection()
-      {
-          var connection = new NpgsqlConnection(_connectionString);
-          connection.Open();
+    public IDbConnection CreateConnection()
+    {
+        // Use the Aspire-provided connection string
+        var connectionString = _configuration.GetConnectionString("AppTemplateDb");
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("AppTemplateDb connection string not found. Make sure Aspire is properly configured.");
+        }
 
-          return connection;
-      }
-  }
+        var connection = new NpgsqlConnection(connectionString);
+        connection.Open();
+
+        return connection;
+    }
+}

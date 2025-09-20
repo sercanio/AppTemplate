@@ -7,8 +7,27 @@ using AppTemplate.Web.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog before other services
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .WriteTo.Console();
+    
+    // Add Seq sink if connection string is available
+    var seqConnectionString = context.Configuration.GetConnectionString("seq-logging");
+    if (!string.IsNullOrEmpty(seqConnectionString))
+    {
+        configuration.WriteTo.Seq(seqConnectionString);
+    }
+});
+
+builder.AddServiceDefaults();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.SignIn.RequireConfirmedAccount = false)
@@ -18,10 +37,14 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 
+// Replace this line:
+// builder.AddRedisDistributedCache("redis-cache");
+
+// With the following, which uses the standard Redis distributed cache registration:
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-  options.Configuration = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
-  options.InstanceName = "AppTemplate:";
+    options.Configuration = builder.Configuration.GetConnectionString("redis-cache") ?? "localhost:6379";
+    options.InstanceName = "AppTemplate:";
 });
 
 builder.Services.AddApplication();
@@ -46,6 +69,8 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 app.ApplyMigrations();
 app.UseCustomExceptionHandler();

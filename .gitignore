@@ -24,3 +24,4 @@ TestResults/
 
 # Coverage reports
 coverage-report/
+/src/AppTemplate.Web/Logs
