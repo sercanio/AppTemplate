@@ -6,7 +6,9 @@ using AppTemplate.Web.Extensions;
 using AppTemplate.Web.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
+using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,15 +55,23 @@ builder.Services.ConfigureControllers()
                 .ConfigureRateLimiting()
                 .AddValidators();
 
+// Configure OpenAPI and Scalar
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApi(options =>
 {
-  options.SwaggerDoc($"v{ApiVersions.V1}", new OpenApiInfo
-  {
-    Title = "AppTemplate API",
-    Version = $"v{ApiVersions.V1}",
-    Description = "API documentation for the AppTemplate application."
-  });
+    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+    // Set document info using OpenApiOptions properties if available
+    // If you need to set title/description, you may need to use a document transformer:
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info = new Microsoft.OpenApi.Models.OpenApiInfo
+        {
+            Title = "AppTemplate API",
+            Version = $"v{ApiVersions.V1}",
+            Description = "API documentation for the AppTemplate application."
+        };
+        return Task.CompletedTask;
+    });
 });
 
 var app = builder.Build();
@@ -74,25 +84,16 @@ app.UseRequestContextLogging();
 
 if (app.Environment.IsDevelopment())
 {
-  app.UseMigrationsEndPoint();
-  app.UseSwagger();
-  app.UseSwaggerUI(options =>
-  {
-    foreach (var (url, name) in app.DescribeApiVersions()
-                                       .Select(description => ($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant())))
-    {
-      options.SwaggerEndpoint(url, name);
-    }
-  });
+    app.UseMigrationsEndPoint();
 }
 else
 {
-  app.UseHsts();
+    app.UseHsts();
 }
 
 if (!app.Environment.IsDevelopment())
 {
-  app.UseHttpsRedirection();
+    app.UseHttpsRedirection();
 }
 app.UseRouting();
 app.UseCors("CorsPolicy");
@@ -108,5 +109,12 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 app.MapRazorPages().WithStaticAssets();
+
+// Map OpenAPI and Scalar endpoints (only in development)
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
 app.Run();

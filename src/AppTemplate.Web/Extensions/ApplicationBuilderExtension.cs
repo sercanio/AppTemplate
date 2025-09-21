@@ -5,6 +5,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
+using Scalar.AspNetCore;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -242,5 +245,36 @@ internal static class ApplicationBuilderExtensions
       };
     });
     return services;
+  }
+
+  // New extension methods for API documentation
+  public static IServiceCollection ConfigureApiDocumentation(this IServiceCollection services)
+  {
+    services.AddEndpointsApiExplorer();
+    services.AddOpenApi(options =>
+    {
+      options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+      // Set document info using document transformers or other supported means if needed.
+      // The following is a placeholder for setting title/description if your OpenAPI library supports it.
+      // Otherwise, configure this in your OpenAPI UI setup.
+    });
+    
+    return services;
+  }
+
+  public static IEndpointRouteBuilder MapApiDocumentation(this IEndpointRouteBuilder endpoints, IWebHostEnvironment environment)
+  {
+    if (environment.IsDevelopment())
+    {
+      endpoints.MapOpenApi();
+      endpoints.MapScalarApiReference(options =>
+      {
+        options.Title = "AppTemplate API";
+        options.Theme = ScalarTheme.BluePlanet;
+        options.ShowSidebar = true;
+      });
+    }
+    
+    return endpoints;
   }
 }
