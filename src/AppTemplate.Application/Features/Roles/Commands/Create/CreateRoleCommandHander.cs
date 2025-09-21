@@ -52,7 +52,7 @@ public sealed class CreateRoleCommandHander(
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         await _cacheService.RemoveAsync($"roles-{role.Id}", cancellationToken);
 
-        var response = new CreateRoleCommandResponse(role.Id, role.Name.Value);
+        var response = new CreateRoleCommandResponse(role.Id, role.Name.Value, role.DisplayName.Value);
         return Result.Success(response);
     }
 }

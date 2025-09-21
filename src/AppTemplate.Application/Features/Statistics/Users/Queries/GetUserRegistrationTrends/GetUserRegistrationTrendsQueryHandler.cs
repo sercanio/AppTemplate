@@ -5,7 +5,7 @@ using MediatR;
 
 namespace AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 
-public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetUserRegistrationTrendsQuery, Result<GetUserRegistrationTrendsResponse>>
+public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetUserRegistrationTrendsQuery, Result<GetUserRegistrationTrendsQueryResponse>>
 {
     private readonly IAppUsersRepository _userRepository;
 
@@ -14,7 +14,7 @@ public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetU
         _userRepository = userRepository;
     }
 
-    public async Task<Result<GetUserRegistrationTrendsResponse>> Handle(
+    public async Task<Result<GetUserRegistrationTrendsQueryResponse>> Handle(
         GetUserRegistrationTrendsQuery request, 
         CancellationToken cancellationToken)
     {
@@ -41,7 +41,7 @@ public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetU
         var last30Days = GetLast30Days(today);
         var dailyRegistrations = GetDailyRegistrations(allUsers, last30Days);
 
-        var response = new GetUserRegistrationTrendsResponse(
+        var response = new GetUserRegistrationTrendsQueryResponse(
             TotalUsersLastMonth: totalUsersLastMonth,
             TotalUsersThisMonth: totalUsersThisMonth,
             GrowthPercentage: growthPercentage,

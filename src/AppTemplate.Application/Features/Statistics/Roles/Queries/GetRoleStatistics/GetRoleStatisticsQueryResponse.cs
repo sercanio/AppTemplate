@@ -1,6 +1,6 @@
 namespace AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 
-public sealed record GetRoleStatisticsResponse(
+public sealed record GetRoleStatisticsQueryResponse(
     int TotalRoles,
     int TotalPermissions,
     Dictionary<string, int> PermissionsPerRole,

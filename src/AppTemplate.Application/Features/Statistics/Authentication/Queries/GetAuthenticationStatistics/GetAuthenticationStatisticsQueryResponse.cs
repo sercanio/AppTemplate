@@ -1,6 +1,6 @@
 namespace AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
 
-public sealed record GetAuthenticationStatisticsResponse(
+public sealed record GetAuthenticationStatisticsQueryResponse(
     int ActiveSessions,
     int SuccessfulLogins,
     int FailedLogins,

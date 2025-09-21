@@ -4,11 +4,13 @@ public sealed record CreateRoleCommandResponse
 {
   public Guid Id { get; init; }
   public string Name { get; init; } = string.Empty;
+  public string DisplayName { get; init; } = string.Empty;
 
-  public CreateRoleCommandResponse(Guid id, string name)
+  public CreateRoleCommandResponse(Guid id, string name, string displayName)
   {
     Id = id;
     Name = name;
+    DisplayName = displayName;
   }
 
   private CreateRoleCommandResponse() { }

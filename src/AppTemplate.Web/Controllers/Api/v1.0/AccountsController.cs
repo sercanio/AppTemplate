@@ -27,7 +27,7 @@ namespace AppTemplate.Web.Controllers;
 [ApiVersion(ApiVersions.V1)]
 [Route("api/v{version:apiVersion}/[controller]")]
 [EnableRateLimiting("Fixed")]
-public class AccountController : BaseController
+public class AccountsController : BaseController
 {
   private readonly UserManager<IdentityUser> _userManager;
   private readonly SignInManager<IdentityUser> _signInManager;
@@ -35,7 +35,7 @@ public class AccountController : BaseController
   private readonly IUnitOfWork _unitOfWork;
   private readonly IEmailSender _emailSender;
 
-  public AccountController(
+  public AccountsController(
       UserManager<IdentityUser> userManager,
       SignInManager<IdentityUser> signInManager,
       IAppUsersService appUsersService,

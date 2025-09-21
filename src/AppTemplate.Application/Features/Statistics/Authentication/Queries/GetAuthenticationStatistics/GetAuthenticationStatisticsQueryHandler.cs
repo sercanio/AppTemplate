@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
 
-public sealed class GetAuthenticationStatisticsQueryHandler : IRequestHandler<GetAuthenticationStatisticsQuery, Result<GetAuthenticationStatisticsResponse>>
+public sealed class GetAuthenticationStatisticsQueryHandler : IRequestHandler<GetAuthenticationStatisticsQuery, Result<GetAuthenticationStatisticsQueryResponse>>
 {
     private readonly IActiveSessionService _sessionService;
     private readonly UserManager<IdentityUser> _userManager;
@@ -19,7 +19,7 @@ public sealed class GetAuthenticationStatisticsQueryHandler : IRequestHandler<Ge
         _userManager = userManager;
     }
 
-    public async Task<Result<GetAuthenticationStatisticsResponse>> Handle(
+    public async Task<Result<GetAuthenticationStatisticsQueryResponse>> Handle(
         GetAuthenticationStatisticsQuery request,
         CancellationToken cancellationToken)
     {
@@ -46,7 +46,7 @@ public sealed class GetAuthenticationStatisticsQueryHandler : IRequestHandler<Ge
         int successfulLogins = 0; // Replace with actual tracking
         int failedLogins = 0;     // Replace with actual tracking
         
-        var response = new GetAuthenticationStatisticsResponse(
+        var response = new GetAuthenticationStatisticsQueryResponse(
             ActiveSessions: activeSessions,
             SuccessfulLogins: successfulLogins,
             FailedLogins: failedLogins,

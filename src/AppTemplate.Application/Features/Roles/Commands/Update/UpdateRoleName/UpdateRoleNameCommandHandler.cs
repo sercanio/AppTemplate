@@ -53,7 +53,7 @@ public sealed class UpdateRoleNameCommandHandler(
 
         await InvalidateRoleCacheAsync(role.Id, cancellationToken);
 
-        return Result.Success(new UpdateRoleNameCommandResponse(role.Name.Value));
+        return Result.Success(new UpdateRoleNameCommandResponse(role.Id, role.Name.Value, role.DisplayName.Value));
     }
 
     private async Task InvalidateRoleCacheAsync(Guid roleId, CancellationToken cancellationToken)
