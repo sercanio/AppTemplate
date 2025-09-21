@@ -1,5 +1,5 @@
 using AppTemplate.Application.Services.Clock;
-using AppTemplate.Core.Infrastructure.Outbox;
+using AppTemplate.Domain.OutboxMessages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;

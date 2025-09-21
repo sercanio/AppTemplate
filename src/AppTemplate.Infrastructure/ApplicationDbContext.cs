@@ -1,8 +1,8 @@
 using AppTemplate.Application.Services.Clock;
-using AppTemplate.Core.Infrastructure.Outbox;
 using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Notifications;
+using AppTemplate.Domain.OutboxMessages;
 using AppTemplate.Domain.Roles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;

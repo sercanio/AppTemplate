@@ -1,4 +1,4 @@
-namespace AppTemplate.Core.Infrastructure.Outbox;
+namespace AppTemplate.Domain.OutboxMessages;
 
 public sealed class OutboxMessage
 {

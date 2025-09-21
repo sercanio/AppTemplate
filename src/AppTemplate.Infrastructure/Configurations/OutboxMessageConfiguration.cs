@@ -1,4 +1,4 @@
-using AppTemplate.Core.Infrastructure.Outbox;
+using AppTemplate.Domain.OutboxMessages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,7 +13,5 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
 
         builder.Property(outboxMessage => outboxMessage.Content)
                .HasColumnType("jsonb");
-
-        // No seed data here
     }
 }
