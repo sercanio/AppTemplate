@@ -33,9 +33,9 @@ namespace AppTemplate.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: true),
@@ -57,12 +57,12 @@ namespace AppTemplate.Infrastructure.Migrations
                 name: "outbox_messages",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    OccurredOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    Content = table.Column<string>(type: "jsonb", nullable: false),
-                    ProcessedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    Error = table.Column<string>(type: "text", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, comment: "Unique identifier for the outbox message"),
+                    OccurredOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, comment: "When the domain event occurred"),
+                    Type = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false, comment: "Type of the domain event"),
+                    Content = table.Column<string>(type: "jsonb", nullable: false, comment: "Serialized domain event content"),
+                    ProcessedOnUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, comment: "When the message was processed (null if not processed)"),
+                    Error = table.Column<string>(type: "text", nullable: true, comment: "Error details if processing failed")
                 },
                 constraints: table =>
                 {
@@ -335,64 +335,64 @@ namespace AppTemplate.Infrastructure.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
                 columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[] { "b3398ff2-1b43-4af7-812d-eb4347eecbb8", 0, "8a7b2b66-a436-4c57-acda-4a07b33a86e1", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEOi1e+VkZQHzYs4FmanIZGjgxSFTGNWNa4/sDWIg0w5+XBiTC0ckNEZZqnvj3DhiDQ==", null, false, "adc0d89d-fa2e-43fd-8bcd-bc109e2508ec", false, "admin" });
+                values: new object[] { "b3398ff2-1b43-4af7-812d-eb4347eecbb8", 0, "d10a2ff5-6f97-4c51-9b2c-088f9e0889f2", "admin@example.com", true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEE5VgRIfLtRNbVK4RxFERrQHRVF/RQkiKTxZz1kMshz0G4dA7r9sxxYzqfd+5Z1R0w==", null, false, "fixed-security-stamp-for-seeding", false, "admin" });
 
             migrationBuilder.InsertData(
                 table: "Permissions",
                 columns: new[] { "Id", "CreatedOnUtc", "DeletedOnUtc", "feature", "name", "UpdatedOnUtc" },
                 values: new object[,]
                 {
-                    { new Guid("0eeb5f27-10fd-430a-9257-a8457107141a"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1341), null, "permissions", "permissions:read", null },
-                    { new Guid("1ff035a6-5d40-4a2d-aa9c-1d3182b3642e"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1445), null, "titlefollows", "titlefollows:create", null },
-                    { new Guid("22c1dbc9-bad6-4ebf-9c49-5577625f2b5f"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1350), null, "userfollows", "userfollows:update", null },
-                    { new Guid("25bb194c-ea15-4339-9f45-5a895c51b626"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1329), null, "users", "users:update", null },
-                    { new Guid("272c16b9-da69-4065-b849-6fb45c9ff281"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1440), null, "titles", "titles:create", null },
-                    { new Guid("3050d953-5dcf-4eb0-a18d-a3ce62a0dd3c"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1342), null, "auditlogs", "auditlogs:read", null },
-                    { new Guid("30bb7d98-1a11-4152-9481-9a9d5fd39041"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1456), null, "entrybookmarks", "entrybookmarks:create", null },
-                    { new Guid("33261a4a-c423-4876-8f15-e40068aea5ca"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1322), null, "users", "users:read", null },
-                    { new Guid("33ffe115-42c7-457a-8c63-1f8c5179bb5c"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1465), null, "entryreports", "entryreports:delete", null },
-                    { new Guid("346d3cc6-ac81-42b1-8539-cd53f42b6566"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1338), null, "roles", "roles:update", null },
-                    { new Guid("386e40e9-da38-4d2f-8d02-ac4cbaddf760"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1339), null, "roles", "roles:delete", null },
-                    { new Guid("481770d7-09f7-481a-83cd-f6aa808a072e"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1472), null, "featuredentries", "featuredentries:delete", null },
-                    { new Guid("48c15b07-004d-44eb-a348-8ae63327a4b8"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1442), null, "titles", "titles:delete", null },
-                    { new Guid("5341ddd6-5c42-477a-a155-33c51030f76b"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1448), null, "titlefollows", "titlefollows:delete", null },
-                    { new Guid("559dd4ec-4d2e-479d-a0a9-5229ecc04fb4"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1330), null, "users", "users:delete", null },
-                    { new Guid("5bc63b8d-2825-4f0e-aeae-234c7b2d930f"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1455), null, "entrybookmarks", "entrybookmarks:read", null },
-                    { new Guid("5be9a36e-c59c-4a9a-a800-15f4f76ea80b"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1451), null, "entrylikes", "entrylikes:create", null },
-                    { new Guid("5ca7e876-17bb-4b7a-a1d5-42ed0ee6baf3"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1469), null, "featuredentries", "featuredentries:create", null },
-                    { new Guid("6030de9b-595c-474f-99ff-b654ad062e19"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1438), null, "titles", "titles:read", null },
-                    { new Guid("6203c108-2c3d-4ed3-ab3c-b119e7a7491a"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1334), null, "roles", "roles:admin", null },
-                    { new Guid("638a9f7e-7bfe-4748-8947-f605c799d214"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1358), null, "entries", "entries:delete", null },
-                    { new Guid("70a3a380-6e15-4b0e-b8b5-67591dbafcfa"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1471), null, "featuredentries", "featuredentries:update", null },
-                    { new Guid("78f1b087-3b45-48d0-8e16-9f04a760c294"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1349), null, "userfollows", "userfollows:create", null },
-                    { new Guid("7b834e3d-ff31-416f-8b1e-ce1a7e9681e8"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1352), null, "userfollows", "userfollows:delete", null },
-                    { new Guid("8116c67b-7f82-41b5-b9c4-a91e042e9257"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1356), null, "entries", "entries:create", null },
-                    { new Guid("828736bc-1b6a-4b24-a55a-763fb6616970"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1467), null, "featuredentries", "featuredentries:admin", null },
-                    { new Guid("859de6a2-9975-4d49-99fb-0a99cb8b3474"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1460), null, "entryreports", "entryreports:admin", null },
-                    { new Guid("8694cd0d-8987-44b4-b823-3f2e7f023919"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1459), null, "entrybookmarks", "entrybookmarks:delete", null },
-                    { new Guid("8f97aeb9-a9fd-470f-bae9-c9f5f0534d23"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1346), null, "statistics", "statistics:read", null },
-                    { new Guid("9185d676-db9e-4a8e-8286-7f4ea78ab022"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1437), null, "titles", "titles:admin", null },
-                    { new Guid("940c88ad-24fe-4d86-a982-fa5ea224edba"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1336), null, "roles", "roles:create", null },
-                    { new Guid("9f79a54c-0b54-4de5-94b9-8582a5f32e78"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1328), null, "users", "users:create", null },
-                    { new Guid("a03a127b-9a03-46a0-b709-b6919f2598be"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1343), null, "notifications", "notifications:read", null },
-                    { new Guid("a393e161-dc5e-4f0c-9fb9-f3a901b48149"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1464), null, "entryreports", "entryreports:update", null },
-                    { new Guid("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1345), null, "notifications", "notifications:update", null },
-                    { new Guid("ac804e8f-abe7-4516-927f-045477dbe007"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1446), null, "titlefollows", "titlefollows:update", null },
-                    { new Guid("afe7776a-69a6-4134-96ea-a24829c67c9d"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1457), null, "entrybookmarks", "entrybookmarks:update", null },
-                    { new Guid("b11364e1-dc05-422f-982a-6f365c1825a8"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1357), null, "entries", "entries:update", null },
-                    { new Guid("b2fe4d1c-59b9-4161-8eab-04380b45fd5e"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1452), null, "entrylikes", "entrylikes:update", null },
-                    { new Guid("bb5cb9b7-75d0-4a9f-81d9-d02259b6ddf2"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1453), null, "entrylikes", "entrylikes:delete", null },
-                    { new Guid("c42c3f31-f94a-474d-a159-2c826c031e34"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1463), null, "entryreports", "entryreports:create", null },
-                    { new Guid("c8a25b63-74ee-4375-98c8-e64107bb6d76"), new DateTime(2025, 8, 29, 19, 21, 43, 528, DateTimeKind.Utc).AddTicks(9977), null, "users", "users:admin", null },
-                    { new Guid("cd552577-20c8-4e12-9685-a5c24ecd7fa8"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1354), null, "entries", "entries:read", null },
-                    { new Guid("d066e4ee-6af2-4857-bd40-b9b058fa2201"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1335), null, "roles", "roles:read", null },
-                    { new Guid("e033b219-f1c5-4c0c-b1f4-a756facb1819"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1441), null, "titles", "titles:update", null },
-                    { new Guid("e5f82d92-0610-4f63-ba1c-9bad3cbc09dd"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1461), null, "entryreports", "entryreports:read", null },
-                    { new Guid("ec733d3f-cf8b-475c-8af6-5881cdb65dbe"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1444), null, "titlefollows", "titlefollows:read", null },
-                    { new Guid("ee1be42d-4341-4ac5-9390-2ec71eb54239"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1348), null, "userfollows", "userfollows:read", null },
-                    { new Guid("f14a636e-6a91-4b3e-9ea4-d9bbe8c36872"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1353), null, "entries", "entries:admin", null },
-                    { new Guid("fa8626a7-e34f-48c3-8b14-64b6889a36fc"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1468), null, "featuredentries", "featuredentries:read", null },
-                    { new Guid("fbeb18d0-5e5f-4a38-aec7-6bb314408dc7"), new DateTime(2025, 8, 29, 19, 21, 43, 529, DateTimeKind.Utc).AddTicks(1449), null, "entrylikes", "entrylikes:read", null }
+                    { new Guid("0eeb5f27-10fd-430a-9257-a8457107141a"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5231), null, "permissions", "permissions:read", null },
+                    { new Guid("1ff035a6-5d40-4a2d-aa9c-1d3182b3642e"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5390), null, "titlefollows", "titlefollows:create", null },
+                    { new Guid("22c1dbc9-bad6-4ebf-9c49-5577625f2b5f"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5372), null, "userfollows", "userfollows:update", null },
+                    { new Guid("25bb194c-ea15-4339-9f45-5a895c51b626"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5201), null, "users", "users:update", null },
+                    { new Guid("272c16b9-da69-4065-b849-6fb45c9ff281"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5385), null, "titles", "titles:create", null },
+                    { new Guid("3050d953-5dcf-4eb0-a18d-a3ce62a0dd3c"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5232), null, "auditlogs", "auditlogs:read", null },
+                    { new Guid("30bb7d98-1a11-4152-9481-9a9d5fd39041"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5402), null, "entrybookmarks", "entrybookmarks:create", null },
+                    { new Guid("33261a4a-c423-4876-8f15-e40068aea5ca"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5194), null, "users", "users:read", null },
+                    { new Guid("33ffe115-42c7-457a-8c63-1f8c5179bb5c"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5412), null, "entryreports", "entryreports:delete", null },
+                    { new Guid("346d3cc6-ac81-42b1-8539-cd53f42b6566"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5228), null, "roles", "roles:update", null },
+                    { new Guid("386e40e9-da38-4d2f-8d02-ac4cbaddf760"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5230), null, "roles", "roles:delete", null },
+                    { new Guid("481770d7-09f7-481a-83cd-f6aa808a072e"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5419), null, "featuredentries", "featuredentries:delete", null },
+                    { new Guid("48c15b07-004d-44eb-a348-8ae63327a4b8"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5387), null, "titles", "titles:delete", null },
+                    { new Guid("5341ddd6-5c42-477a-a155-33c51030f76b"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5393), null, "titlefollows", "titlefollows:delete", null },
+                    { new Guid("559dd4ec-4d2e-479d-a0a9-5229ecc04fb4"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5202), null, "users", "users:delete", null },
+                    { new Guid("5bc63b8d-2825-4f0e-aeae-234c7b2d930f"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5400), null, "entrybookmarks", "entrybookmarks:read", null },
+                    { new Guid("5be9a36e-c59c-4a9a-a800-15f4f76ea80b"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5396), null, "entrylikes", "entrylikes:create", null },
+                    { new Guid("5ca7e876-17bb-4b7a-a1d5-42ed0ee6baf3"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5416), null, "featuredentries", "featuredentries:create", null },
+                    { new Guid("6030de9b-595c-474f-99ff-b654ad062e19"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5383), null, "titles", "titles:read", null },
+                    { new Guid("6203c108-2c3d-4ed3-ab3c-b119e7a7491a"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5204), null, "roles", "roles:admin", null },
+                    { new Guid("638a9f7e-7bfe-4748-8947-f605c799d214"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5380), null, "entries", "entries:delete", null },
+                    { new Guid("70a3a380-6e15-4b0e-b8b5-67591dbafcfa"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5418), null, "featuredentries", "featuredentries:update", null },
+                    { new Guid("78f1b087-3b45-48d0-8e16-9f04a760c294"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5370), null, "userfollows", "userfollows:create", null },
+                    { new Guid("7b834e3d-ff31-416f-8b1e-ce1a7e9681e8"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5373), null, "userfollows", "userfollows:delete", null },
+                    { new Guid("8116c67b-7f82-41b5-b9c4-a91e042e9257"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5377), null, "entries", "entries:create", null },
+                    { new Guid("828736bc-1b6a-4b24-a55a-763fb6616970"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5413), null, "featuredentries", "featuredentries:admin", null },
+                    { new Guid("859de6a2-9975-4d49-99fb-0a99cb8b3474"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5406), null, "entryreports", "entryreports:admin", null },
+                    { new Guid("8694cd0d-8987-44b4-b823-3f2e7f023919"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5405), null, "entrybookmarks", "entrybookmarks:delete", null },
+                    { new Guid("8f97aeb9-a9fd-470f-bae9-c9f5f0534d23"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5367), null, "statistics", "statistics:read", null },
+                    { new Guid("9185d676-db9e-4a8e-8286-7f4ea78ab022"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5382), null, "titles", "titles:admin", null },
+                    { new Guid("940c88ad-24fe-4d86-a982-fa5ea224edba"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5207), null, "roles", "roles:create", null },
+                    { new Guid("9f79a54c-0b54-4de5-94b9-8582a5f32e78"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5199), null, "users", "users:create", null },
+                    { new Guid("a03a127b-9a03-46a0-b709-b6919f2598be"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5364), null, "notifications", "notifications:read", null },
+                    { new Guid("a393e161-dc5e-4f0c-9fb9-f3a901b48149"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5410), null, "entryreports", "entryreports:update", null },
+                    { new Guid("a5585e9e-ec65-431b-9bb9-9bbc1663ebb8"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5366), null, "notifications", "notifications:update", null },
+                    { new Guid("ac804e8f-abe7-4516-927f-045477dbe007"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5392), null, "titlefollows", "titlefollows:update", null },
+                    { new Guid("afe7776a-69a6-4134-96ea-a24829c67c9d"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5403), null, "entrybookmarks", "entrybookmarks:update", null },
+                    { new Guid("b11364e1-dc05-422f-982a-6f365c1825a8"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5379), null, "entries", "entries:update", null },
+                    { new Guid("b2fe4d1c-59b9-4161-8eab-04380b45fd5e"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5398), null, "entrylikes", "entrylikes:update", null },
+                    { new Guid("bb5cb9b7-75d0-4a9f-81d9-d02259b6ddf2"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5399), null, "entrylikes", "entrylikes:delete", null },
+                    { new Guid("c42c3f31-f94a-474d-a159-2c826c031e34"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5409), null, "entryreports", "entryreports:create", null },
+                    { new Guid("c8a25b63-74ee-4375-98c8-e64107bb6d76"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(3327), null, "users", "users:admin", null },
+                    { new Guid("cd552577-20c8-4e12-9685-a5c24ecd7fa8"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5376), null, "entries", "entries:read", null },
+                    { new Guid("d066e4ee-6af2-4857-bd40-b9b058fa2201"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5205), null, "roles", "roles:read", null },
+                    { new Guid("e033b219-f1c5-4c0c-b1f4-a756facb1819"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5386), null, "titles", "titles:update", null },
+                    { new Guid("e5f82d92-0610-4f63-ba1c-9bad3cbc09dd"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5407), null, "entryreports", "entryreports:read", null },
+                    { new Guid("ec733d3f-cf8b-475c-8af6-5881cdb65dbe"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5389), null, "titlefollows", "titlefollows:read", null },
+                    { new Guid("ee1be42d-4341-4ac5-9390-2ec71eb54239"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5369), null, "userfollows", "userfollows:read", null },
+                    { new Guid("f14a636e-6a91-4b3e-9ea4-d9bbe8c36872"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5374), null, "entries", "entries:admin", null },
+                    { new Guid("fa8626a7-e34f-48c3-8b14-64b6889a36fc"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5415), null, "featuredentries", "featuredentries:read", null },
+                    { new Guid("fbeb18d0-5e5f-4a38-aec7-6bb314408dc7"), new DateTime(2025, 9, 22, 16, 2, 15, 820, DateTimeKind.Utc).AddTicks(5395), null, "entrylikes", "entrylikes:read", null }
                 });
 
             migrationBuilder.InsertData(
@@ -400,14 +400,14 @@ namespace AppTemplate.Infrastructure.Migrations
                 columns: new[] { "Id", "CreatedById", "CreatedOnUtc", "DeletedById", "DeletedOnUtc", "display_name", "is_default", "name", "UpdatedById", "UpdatedOnUtc" },
                 values: new object[,]
                 {
-                    { new Guid("4b606d86-3537-475a-aa20-26aadd8f5cfd"), null, new DateTime(2025, 8, 29, 19, 21, 43, 534, DateTimeKind.Utc).AddTicks(3770), null, null, "yönetici", false, "Admin", null, null },
-                    { new Guid("5dc6ec47-5b7c-4c2b-86cd-3a671834e56e"), null, new DateTime(2025, 8, 29, 19, 21, 43, 534, DateTimeKind.Utc).AddTicks(4460), null, null, "kayıtlı", true, "Registered", null, null }
+                    { new Guid("4b606d86-3537-475a-aa20-26aadd8f5cfd"), null, new DateTime(2025, 9, 22, 16, 2, 15, 826, DateTimeKind.Utc).AddTicks(1255), null, null, "yönetici", false, "Admin", null, null },
+                    { new Guid("5dc6ec47-5b7c-4c2b-86cd-3a671834e56e"), null, new DateTime(2025, 9, 22, 16, 2, 15, 826, DateTimeKind.Utc).AddTicks(1965), null, null, "kayıtlı", true, "Registered", null, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "AppUsers",
                 columns: new[] { "Id", "biography", "created_by_id", "CreatedOnUtc", "deleted_by_id", "DeletedOnUtc", "identity_id", "ProfilePictureUrl", "updated_by_id", "UpdatedOnUtc", "email_notification", "in_app_notification", "push_notification" },
-                values: new object[] { new Guid("55c7f429-0916-4d84-8b76-d45185d89aa7"), null, null, new DateTime(2025, 8, 29, 19, 21, 43, 521, DateTimeKind.Utc).AddTicks(2845), null, null, "b3398ff2-1b43-4af7-812d-eb4347eecbb8", null, null, null, true, true, true });
+                values: new object[] { new Guid("55c7f429-0916-4d84-8b76-d45185d89aa7"), null, null, new DateTime(2025, 9, 22, 16, 2, 15, 809, DateTimeKind.Utc).AddTicks(2759), null, null, "b3398ff2-1b43-4af7-812d-eb4347eecbb8", null, null, null, true, true, true });
 
             migrationBuilder.InsertData(
                 table: "RolePermission",
@@ -553,6 +553,18 @@ namespace AppTemplate.Infrastructure.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_Email",
+                table: "AspNetUsers",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AspNetUsers_UserName",
+                table: "AspNetUsers",
+                column: "UserName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -576,6 +588,17 @@ namespace AppTemplate.Infrastructure.Migrations
                 columns: new[] { "RecipientId", "IsRead" },
                 filter: "\"DeletedOnUtc\" IS NULL")
                 .Annotation("Npgsql:IndexInclude", new[] { "CreatedOnUtc", "Title" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboxMessages_OccurredOnUtc",
+                table: "outbox_messages",
+                column: "OccurredOnUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboxMessages_ProcessedOnUtc",
+                table: "outbox_messages",
+                column: "ProcessedOnUtc",
+                filter: "\"ProcessedOnUtc\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RolePermission_PermissionId",

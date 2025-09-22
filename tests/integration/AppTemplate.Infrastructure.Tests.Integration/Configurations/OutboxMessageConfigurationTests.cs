@@ -1,9 +1,11 @@
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.OutboxMessages;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Xunit;
+using System.Text.Json;
 
 namespace AppTemplate.Infrastructure.Tests.Integration.Configurations;
 
@@ -29,7 +31,14 @@ public class OutboxMessageConfigurationTests : IAsyncLifetime
     var services = new ServiceCollection();
     services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
     services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseNpgsql(_pgContainer.GetConnectionString()));
+    {
+      options.UseNpgsql(_pgContainer.GetConnectionString());
+      // Suppress the pending model changes warning for tests
+      options.ConfigureWarnings(warnings => 
+      {
+        warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
+      });
+    });
 
     _provider = services.BuildServiceProvider();
 
@@ -48,6 +57,7 @@ public class OutboxMessageConfigurationTests : IAsyncLifetime
   [Fact]
   public async Task CanInsertAndRetrieveOutboxMessage_WithJsonContent()
   {
+    // Arrange
     using var scope = _provider.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
@@ -63,29 +73,62 @@ public class OutboxMessageConfigurationTests : IAsyncLifetime
         content
     );
 
+    // Act
     dbContext.OutboxMessages.Add(outboxMessage);
-    await dbContext.SaveChangesAsync();
+    var saveResult = await dbContext.SaveChangesAsync();
 
-    var loaded = await dbContext.OutboxMessages.FirstOrDefaultAsync(m => m.Id == messageId);
+    // Assert
+    Assert.True(saveResult > 0, "SaveChanges should return > 0");
+
+    // Clear change tracker to ensure fresh load
+    dbContext.ChangeTracker.Clear();
+
+    var loaded = await dbContext.OutboxMessages
+        .FirstOrDefaultAsync(m => m.Id == messageId);
+
     Assert.NotNull(loaded);
+    Assert.Equal(messageId, loaded.Id);
     Assert.Equal(type, loaded.Type);
-    Assert.Equal(content, loaded.Content);
+    
+    // Parse and compare JSON content instead of raw strings
+    var expectedJson = JsonDocument.Parse(content);
+    var actualJson = JsonDocument.Parse(loaded.Content);
+    
+    // Compare specific properties
+    Assert.Equal(expectedJson.RootElement.GetProperty("foo").GetString(), 
+                 actualJson.RootElement.GetProperty("foo").GetString());
+    Assert.Equal(expectedJson.RootElement.GetProperty("baz").GetInt32(), 
+                 actualJson.RootElement.GetProperty("baz").GetInt32());
+    
+    Assert.Equal(now.ToString("yyyy-MM-ddTHH:mm:ss"), loaded.OccurredOnUtc.ToString("yyyy-MM-ddTHH:mm:ss"));
+    Assert.Null(loaded.ProcessedOnUtc);
+    Assert.Null(loaded.Error);
   }
 
   [Fact]
   public async Task CanInsertTestOutboxMessage()
   {
+    // Arrange
     using var scope = _provider.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-    // Insert a test outbox message
+    var messageId = Guid.NewGuid();
     var outboxMessage = new OutboxMessage(
-        Guid.NewGuid(),
+        messageId,
         DateTime.UtcNow,
         "TestType",
         "{\"test\":true}"
     );
+
+    // Act & Assert
     dbContext.OutboxMessages.Add(outboxMessage);
-    await dbContext.SaveChangesAsync();
+    var result = await dbContext.SaveChangesAsync();
+
+    Assert.True(result > 0, "Should save successfully");
+
+    // Verify it was actually saved
+    var exists = await dbContext.OutboxMessages
+        .AnyAsync(m => m.Id == messageId);
+    Assert.True(exists, "Message should exist in database");
   }
 }

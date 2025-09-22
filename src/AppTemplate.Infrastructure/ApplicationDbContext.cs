@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Newtonsoft.Json;
 
 namespace AppTemplate.Infrastructure;
@@ -33,11 +32,6 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
       : base(options)
   {
     _dateTimeProvider = dateTimeProvider;
-  }
-
-  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-  {
-    optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
   }
 
   protected override void OnModelCreating(ModelBuilder builder)
@@ -72,7 +66,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
       NormalizedEmail = "ADMIN@EXAMPLE.COM",
       EmailConfirmed = true,
       PasswordHash = hashedPassword,
-      SecurityStamp = Guid.NewGuid().ToString("D")
+      SecurityStamp = "fixed-security-stamp-for-seeding" // <-- Use a fixed value instead of Guid.NewGuid()
     });
 
     builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

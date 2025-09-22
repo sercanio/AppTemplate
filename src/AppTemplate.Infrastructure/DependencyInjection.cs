@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
@@ -31,7 +32,15 @@ public static class DependencyInjection
           IConfiguration configuration)
   {
     services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseNpgsql(configuration.GetConnectionString("AppTemplateDb")));
+    {
+        options.UseNpgsql(configuration.GetConnectionString("AppTemplateDb"));
+        
+        // Configure warnings to ignore the pending model changes warning
+        options.ConfigureWarnings(warnings => 
+        {
+          warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
+        });
+    });
 
     if (configuration == null)
       throw new ArgumentNullException(nameof(configuration), "Configuration cannot be null in AddInfrastructure.");

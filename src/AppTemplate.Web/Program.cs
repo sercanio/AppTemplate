@@ -82,7 +82,8 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
-app.ApplyMigrations();
+// Remove or comment out this line since migrations will be handled by the migration service
+// app.ApplyMigrations();
 app.UseCustomExceptionHandler();
 app.UseRequestContextLogging();
 

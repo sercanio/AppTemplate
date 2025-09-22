@@ -106,7 +106,7 @@ internal sealed class ProcessOutboxMessagesJob : IJob
         Exception? exception)
     {
         const string sql = @"
-            UPDATE outbox_messages
+            UPDATE ""outbox_messages""
             SET ""ProcessedOnUtc"" = @ProcessedOnUtc,
                 ""Error"" = @Error
             WHERE ""Id"" = @Id";

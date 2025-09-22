@@ -16,12 +16,7 @@ namespace AppTemplate.Web.Extensions;
 
 internal static class ApplicationBuilderExtensions
 {
-  public static void ApplyMigrations(this IApplicationBuilder app)
-  {
-    using var scope = app.ApplicationServices.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
-  }
+  // Removed the ApplyMigrations method as migrations are handled by the migration service
 
   public static void UseCustomExceptionHandler(this IApplicationBuilder app)
   {
