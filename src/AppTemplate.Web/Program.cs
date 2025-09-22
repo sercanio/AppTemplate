@@ -7,7 +7,6 @@ using AppTemplate.Web.Middlewares;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
-using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -19,8 +18,13 @@ builder.Host.UseSerilog((context, services, configuration) =>
     configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
-        .WriteTo.Console();
-    
+        .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
+        .WriteTo.OpenTelemetry(options =>
+        {
+            options.Endpoint = "http://localhost:4317";
+            options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+        });
+
     // Add Seq sink if connection string is available
     var seqConnectionString = context.Configuration.GetConnectionString("apptemplate-seq");
     if (!string.IsNullOrEmpty(seqConnectionString))
