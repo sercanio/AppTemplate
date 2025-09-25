@@ -1,5 +1,7 @@
 using AppTemplate.Application;
+using AppTemplate.Application.Authentication.Jwt;
 using AppTemplate.Infrastructure;
+using AppTemplate.Infrastructure.Authentication;
 using AppTemplate.Web;
 using AppTemplate.Web.Controllers.Api;
 using AppTemplate.Web.Extensions;
@@ -55,7 +57,7 @@ builder.Services.AddWebApi(builder.Configuration);
 
 builder.Services.ConfigureControllers()
                 .ConfigureCors(builder.Configuration)
-                .ConfigureAuthenticationAndAntiforgery(builder.Environment)
+                .ConfigureAuthenticationAndAntiforgery(builder.Environment, builder.Configuration)
                 .ConfigureRateLimiting()
                 .AddValidators();
 
@@ -76,6 +78,12 @@ builder.Services.AddOpenApi(options =>
         };
         return Task.CompletedTask;
     });
+});
+
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "AppTemplate.AuthCookie";
 });
 
 var app = builder.Build();

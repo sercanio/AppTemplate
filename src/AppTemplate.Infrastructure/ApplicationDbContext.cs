@@ -1,3 +1,4 @@
+using AppTemplate.Application.Authentication.Models;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
+using System.Reflection.Emit;
 
 namespace AppTemplate.Infrastructure;
 
@@ -25,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
   public DbSet<Role> Roles { get; set; }
   public DbSet<Permission> Permissions { get; set; }
   public DbSet<Notification> Notifications { get; set; }
+  public DbSet<RefreshToken> RefreshTokens { get; set; }
 
   public ApplicationDbContext(
       DbContextOptions<ApplicationDbContext> options,
@@ -67,6 +70,16 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
       EmailConfirmed = true,
       PasswordHash = hashedPassword,
       SecurityStamp = "fixed-security-stamp-for-seeding" // <-- Use a fixed value instead of Guid.NewGuid()
+    });
+
+    builder.Entity<RefreshToken>(entity =>
+    {
+      entity.HasKey(e => e.Token);
+      entity.Property(e => e.Token).HasMaxLength(200);
+      entity.Property(e => e.UserId).HasMaxLength(450);
+      entity.HasIndex(e => e.UserId);
+      entity.HasIndex(e => e.ExpiresAt);
+      entity.HasIndex(e => e.IsRevoked);
     });
 
     builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

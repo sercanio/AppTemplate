@@ -1,6 +1,7 @@
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.AppUsers;
+using Ardalis.Result;
 using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.AppUsers;
@@ -75,5 +76,23 @@ public class AppUsersService(IAppUsersRepository userRepository) : IAppUsersServ
     public async Task<int> GetUsersCountAsync(bool includeSoftDeleted = false, CancellationToken cancellationToken = default)
     {
         return await _userRepository.GetUsersCountAsync(includeSoftDeleted, cancellationToken);
+    }
+
+    public async Task<Result<AppUser>> GetByIdentityIdAsync(string identityId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrEmpty(identityId))
+        {
+            return Result.Error(AppUserErrors.IdentityIdNotFound.Name);
+        }
+
+        var user = await _userRepository.GetAsync(
+            predicate: u => u.IdentityId == identityId,
+            includeSoftDeleted: false,
+            asNoTracking: false,
+            cancellationToken: cancellationToken);
+
+        return user != null 
+            ? Result.Success(user) 
+            : Result.Error(AppUserErrors.NotFound.Name);
     }
 }

@@ -2,12 +2,17 @@ using AppTemplate.Application.Features.Roles.Commands.Create;
 using AppTemplate.Infrastructure;
 using AppTemplate.Web.Middlewares;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -73,122 +78,161 @@ internal static class ApplicationBuilderExtensions
     return services;
   }
 
-  public static IServiceCollection ConfigureAuthenticationAndAntiforgery(this IServiceCollection services, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
+  public static IServiceCollection ConfigureAuthenticationAndAntiforgery(this IServiceCollection services, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, IConfiguration configuration)
   {
-    if (env.IsDevelopment())
+    // Configure multiple authentication schemes
+    services.AddAuthentication()
+    .AddPolicyScheme("Smart", "Authorization Bearer or Cookie", options =>
     {
-      services.ConfigureApplicationCookie(options =>
+      options.ForwardDefaultSelector = context =>
       {
-        options.Cookie.Name = "AppTemplateAuthCookie";
+        string authorization = context.Request.Headers.Authorization.FirstOrDefault();
+        if (!string.IsNullOrEmpty(authorization) && authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+          return JwtBearerDefaults.AuthenticationScheme;
+        
+        return CookieAuthenticationDefaults.AuthenticationScheme;
+      };
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+      var jwtSettings = configuration.GetSection("Jwt");
+      var key = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
+      
+      options.TokenValidationParameters = new TokenValidationParameters
+      {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ClockSkew = TimeSpan.Zero,
+        RequireExpirationTime = true
+      };
+
+      options.Events = new JwtBearerEvents
+      {
+        OnChallenge = context =>
+        {
+          context.HandleResponse();
+          context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+          context.Response.ContentType = "application/json";
+          
+          var problem = new ProblemDetails
+          {
+            Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
+            Title = "Unauthorized",
+            Status = StatusCodes.Status401Unauthorized,
+            Detail = "You must provide a valid JWT token to access this API.",
+            Instance = context.Request.Path
+          };
+          problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
+          
+          return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+        },
+        OnForbidden = context =>
+        {
+          context.Response.StatusCode = StatusCodes.Status403Forbidden;
+          context.Response.ContentType = "application/json";
+          
+          var problem = new ProblemDetails
+          {
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
+            Title = "Forbidden",
+            Status = StatusCodes.Status403Forbidden,
+            Detail = "You do not have permission to access this resource.",
+            Instance = context.Request.Path
+          };
+          problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
+          
+          return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+        },
+        OnAuthenticationFailed = context =>
+        {
+          if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+          {
+            context.Response.Headers.Add("Token-Expired", "true");
+          }
+          return Task.CompletedTask;
+        }
+      };
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+      options.Cookie.Name = "AppTemplate.AuthCookie";
+      
+      if (env.IsDevelopment())
+      {
         options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
         options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
-        options.Events.OnRedirectToLogin = context =>
-        {
-          if (context.Request.Path.StartsWithSegments("/api"))
-          {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-            var problem = new ProblemDetails
-            {
-              Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
-              Title = "Unauthorized",
-              Status = StatusCodes.Status401Unauthorized,
-              Detail = "You must be logged in to access this API.",
-              Instance = context.Request.Path
-            };
-            problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-            return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-          }
-          context.Response.Redirect(context.RedirectUri);
-          return Task.CompletedTask;
-        };
-        options.Events.OnRedirectToAccessDenied = context =>
-        {
-          if (context.Request.Path.StartsWithSegments("/api"))
-          {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            context.Response.ContentType = "application/json";
-            var problem = new ProblemDetails
-            {
-              Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-              Title = "Forbidden",
-              Status = StatusCodes.Status403Forbidden,
-              Detail = "You do not have permission to access this resource.",
-              Instance = context.Request.Path
-            };
-            problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-            return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-          }
-          context.Response.Redirect(context.RedirectUri);
-          return Task.CompletedTask;
-        };
-      });
-
-      services.AddAntiforgery(options =>
+      }
+      else
       {
-        options.Cookie.Name = "AppTemplate.AntiForgery";
+        options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+      }
+
+      options.Events.OnRedirectToLogin = context =>
+      {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+          context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+          context.Response.ContentType = "application/json";
+          var problem = new ProblemDetails
+          {
+            Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
+            Title = "Unauthorized",
+            Status = StatusCodes.Status401Unauthorized,
+            Detail = "You must be logged in to access this API.",
+            Instance = context.Request.Path
+          };
+          problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
+          return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+      };
+      
+      options.Events.OnRedirectToAccessDenied = context =>
+      {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+          context.Response.StatusCode = StatusCodes.Status403Forbidden;
+          context.Response.ContentType = "application/json";
+          var problem = new ProblemDetails
+          {
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
+            Title = "Forbidden",
+            Status = StatusCodes.Status403Forbidden,
+            Detail = "You do not have permission to access this resource.",
+            Instance = context.Request.Path
+          };
+          problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
+          return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+      };
+    });
+
+    // Configure antiforgery
+    services.AddAntiforgery(options =>
+    {
+      options.Cookie.Name = "AppTemplate.AntiForgery";
+      options.HeaderName = "X-XSRF-TOKEN";
+      
+      if (env.IsDevelopment())
+      {
         options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
         options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
-        options.HeaderName = "X-XSRF-TOKEN";
-      });
-    }
-    else
-    {
-      services.ConfigureApplicationCookie(options =>
+      }
+      else
       {
-        options.Cookie.Name = "AppTemplateAuthCookie";
         options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
         options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
-        options.Events.OnRedirectToLogin = context =>
-        {
-          if (context.Request.Path.StartsWithSegments("/api"))
-          {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.ContentType = "application/json";
-            var problem = new ProblemDetails
-            {
-              Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
-              Title = "Unauthorized",
-              Status = StatusCodes.Status401Unauthorized,
-              Detail = "You must be logged in to access this API.",
-              Instance = context.Request.Path
-            };
-            problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-            return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-          }
-          context.Response.Redirect(context.RedirectUri);
-          return Task.CompletedTask;
-        };
-        options.Events.OnRedirectToAccessDenied = context =>
-        {
-          if (context.Request.Path.StartsWithSegments("/api"))
-          {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            context.Response.ContentType = "application/json";
-            var problem = new ProblemDetails
-            {
-              Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-              Title = "Forbidden",
-              Status = StatusCodes.Status403Forbidden,
-              Detail = "You do not have permission to access this resource.",
-              Instance = context.Request.Path
-            };
-            problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-            return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-          }
-          context.Response.Redirect(context.RedirectUri);
-          return Task.CompletedTask;
-        };
-      });
-
-      services.AddAntiforgery(options =>
-      {
-        options.Cookie.Name = "AppTemplate.AntiForgery";
-        options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
-        options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
-        options.HeaderName = "X-XSRF-TOKEN";
-      });
-    }
+      }
+    });
 
     return services;
   }

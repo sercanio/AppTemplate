@@ -1,5 +1,6 @@
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Domain.AppUsers;
+using Ardalis.Result;
 using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.AppUsers;
@@ -32,4 +33,6 @@ public interface IAppUsersService
     void Delete(AppUser user);
 
     Task<int> GetUsersCountAsync(bool includeSoftDeleted = false, CancellationToken cancellationToken = default);
+
+    Task<Result<AppUser>> GetByIdentityIdAsync(string identityId, CancellationToken cancellationToken = default);
 }
