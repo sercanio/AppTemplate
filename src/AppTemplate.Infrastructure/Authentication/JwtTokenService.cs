@@ -1,5 +1,7 @@
 ﻿using AppTemplate.Application.Authentication.Jwt;
 using AppTemplate.Application.Authentication.Models;
+using AppTemplate.Application.Services.AppUsers;
+using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain.AppUsers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,18 +22,25 @@ public sealed class JwtTokenService : IJwtTokenService
     private readonly ApplicationDbContext _context;
     private readonly ILogger<JwtTokenService> _logger;
     private readonly TokenValidationParameters _tokenValidationParameters;
+    private readonly IAppUsersService _appUsersService;
+    private readonly IRolesService _rolesService;
 
     public JwtTokenService(
         UserManager<IdentityUser> userManager,
         IConfiguration configuration,
         ApplicationDbContext context,
-        ILogger<JwtTokenService> logger)
+        ILogger<JwtTokenService> logger,
+        IAppUsersService appUsersService,
+        IRolesService rolesService
+    )
     {
         _userManager = userManager;
         _configuration = configuration;
         _context = context;
         _logger = logger;
-        
+        _appUsersService = appUsersService;
+        _rolesService = rolesService;
+
         _tokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
@@ -56,7 +65,7 @@ public sealed class JwtTokenService : IJwtTokenService
         {
             Token = refreshToken,
             UserId = user.Id,
-            ExpiresAt = DateTime.UtcNow.AddDays(7) // 7 days for refresh token
+            ExpiresAt = DateTime.UtcNow.AddDays(7)
         };
         
         _context.RefreshTokens.Add(refreshTokenEntity);
@@ -155,12 +164,19 @@ public sealed class JwtTokenService : IJwtTokenService
             new("app_user_id", appUser.Id.ToString())
         };
 
-        // Add roles
-        var roles = await _userManager.GetRolesAsync(user);
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        // Get domain roles for the user
+        var appUserWithRoles = await _context.AppUsers
+            .Include(u => u.Roles)
+            .FirstOrDefaultAsync(u => u.IdentityId == user.Id);
 
-        // Add custom claims from AppUser if needed
-        // claims.AddRange(appUser.GetCustomClaims());
+        if (appUserWithRoles != null)
+        {
+            foreach (var role in appUserWithRoles.Roles)
+            {
+                // Add role claim (use domain role name)
+                claims.Add(new Claim("roles", role.Name.Value));
+            }
+        }
 
         var expiresAt = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:ExpiryInMinutes"] ?? "15"));
         
