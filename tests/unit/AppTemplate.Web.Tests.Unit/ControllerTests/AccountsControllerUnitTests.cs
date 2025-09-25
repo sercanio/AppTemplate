@@ -1,3 +1,4 @@
+using AppTemplate.Application.Authentication.Jwt;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Services.AppUsers;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Moq;
 using System.Collections.ObjectModel;
 using System.Security.Claims;
@@ -34,6 +36,7 @@ public class AccountsControllerUnitTests
   private readonly Mock<AzureEmailSender> _mockEmailSender;
   private readonly Mock<ISender> _mockSender;
   private readonly Mock<IErrorHandlingService> _mockErrorHandlingService;
+  private readonly Mock<IJwtTokenService> _mockJwtTokenService;
   private readonly AccountsController _controller;
 
   public AccountsControllerUnitTests()
@@ -45,6 +48,7 @@ public class AccountsControllerUnitTests
     _mockEmailSender = CreateMockAzureEmailSender();
     _mockSender = new Mock<ISender>();
     _mockErrorHandlingService = new Mock<IErrorHandlingService>();
+    _mockJwtTokenService = new Mock<IJwtTokenService>();
 
     _controller = new AccountsController(
         _mockUserManager.Object,
@@ -52,6 +56,7 @@ public class AccountsControllerUnitTests
         _mockAppUsersService.Object,
         _mockUnitOfWork.Object,
         _mockEmailSender.Object,
+        _mockJwtTokenService.Object,
         _mockSender.Object,
         _mockErrorHandlingService.Object);
 
@@ -567,5 +572,199 @@ public class AccountsControllerUnitTests
     var mockTemplateService = new Mock<EmailTemplateService>(mockConfiguration.Object);
     
     return new Mock<AzureEmailSender>(mockConfiguration.Object, mockTemplateService.Object);
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithValidCredentials_ReturnsTokens()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+        LoginIdentifier = "test@example.com",
+        Password = "ValidPassword123!"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var mockJwtTokenService = new Mock<IJwtTokenService>();
+    var tokens = new JwtTokenResult(
+    "access-token",
+    "refresh-token",
+    DateTime.UtcNow.AddHours(1),
+    "Bearer"
+);
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(user, appUser)).ReturnsAsync(tokens);
+
+    // Replace controller's _jwtTokenService with mock
+    typeof(AccountsController)
+        .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+        .SetValue(_controller, mockJwtTokenService.Object);
+
+    // Act
+    var result = await _controller.LoginWithJwt(request);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.Equal(tokens, okResult.Value);
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithInvalidCredentials_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+        LoginIdentifier = "test@example.com",
+        Password = "WrongPassword"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Failed);
+
+    // Act
+    var result = await _controller.LoginWithJwt(request);
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+  }
+
+  [Fact]
+  public async Task RefreshJwtToken_WithValidToken_ReturnsTokens()
+  {
+    // Arrange
+    var request = new RefreshTokenRequest { RefreshToken = "valid-refresh-token" };
+    var mockJwtTokenService = new Mock<IJwtTokenService>();
+    
+    // Fix: Provide all required parameters for JwtTokenResult constructor
+    var tokens = new JwtTokenResult(
+        "new-access-token",
+        "new-refresh-token", 
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    mockJwtTokenService.Setup(x => x.RefreshTokensAsync(request.RefreshToken)).ReturnsAsync(tokens);
+
+    typeof(AccountsController)
+        .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+        .SetValue(_controller, mockJwtTokenService.Object);
+
+    // Act
+    var result = await _controller.RefreshJwtToken(request);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.Equal(tokens, okResult.Value);
+  }
+
+  [Fact]
+  public async Task RefreshJwtToken_WithInvalidToken_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new RefreshTokenRequest { RefreshToken = "invalid-refresh-token" };
+    var mockJwtTokenService = new Mock<IJwtTokenService>();
+    mockJwtTokenService.Setup(x => x.RefreshTokensAsync(request.RefreshToken))
+        .ThrowsAsync(new SecurityTokenValidationException("Invalid token"));
+
+    typeof(AccountsController)
+        .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+        .SetValue(_controller, mockJwtTokenService.Object);
+
+    // Act
+    var result = await _controller.RefreshJwtToken(request);
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+  }
+
+  [Fact]
+  public async Task LogoutJwt_WithValidToken_ReturnsOk()
+  {
+    // Arrange
+    var request = new LogoutRequest { RefreshToken = "refresh-token" };
+    var mockJwtTokenService = new Mock<IJwtTokenService>();
+    mockJwtTokenService.Setup(x => x.RevokeRefreshTokenAsync(request.RefreshToken)).Returns(Task.CompletedTask);
+
+    typeof(AccountsController)
+        .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+        .SetValue(_controller, mockJwtTokenService.Object);
+
+    // Act
+    var result = await _controller.LogoutJwt(request);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task RevokeAllJwtTokens_WithAuthenticatedUser_ReturnsOk()
+  {
+    // Arrange
+    var userId = "user-id";
+    var mockJwtTokenService = new Mock<IJwtTokenService>();
+    mockJwtTokenService.Setup(x => x.RevokeAllUserRefreshTokensAsync(userId)).Returns(Task.CompletedTask);
+
+    typeof(AccountsController)
+        .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+        .SetValue(_controller, mockJwtTokenService.Object);
+
+    // Set up user identity
+    var httpContext = new DefaultHttpContext();
+    httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+    {
+        new Claim("sub", userId),
+        new Claim(ClaimTypes.NameIdentifier, userId)
+    }, "mock"));
+    _controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
+
+    // Act
+    var result = await _controller.RevokeAllJwtTokens();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task GetCurrentUser_WithValidUser_ReturnsOkResult_Jwt()
+  {
+    // Arrange
+    var notificationPreference = new NotificationPreference(true, true, false);
+    var roles = new Collection<LoggedInUserRolesDto>
+        {
+            new(Guid.NewGuid(), "Admin", "Administrator")
+        };
+
+    var userResponse = new UserResponse(
+        "test@example.com",
+        "testuser",
+        roles,
+        notificationPreference,
+        true);
+
+    var result = Result.Success(userResponse);
+
+    _mockSender.Setup(x => x.Send(It.IsAny<GetLoggedInUserQuery>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(result);
+
+    // Act
+    var actionResult = await _controller.GetCurrentUser(null);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(actionResult);
+    Assert.NotNull(okResult.Value);
+    _mockSender.Verify(x => x.Send(It.IsAny<GetLoggedInUserQuery>(), It.IsAny<CancellationToken>()), Times.Once);
   }
 }

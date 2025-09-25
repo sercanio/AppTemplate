@@ -1,3 +1,5 @@
+using AppTemplate.Application.Authentication;
+using AppTemplate.Application.Authentication.Jwt;
 using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
@@ -11,13 +13,13 @@ using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
 using Ardalis.Result;
 using MediatR;
-using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
@@ -34,14 +36,16 @@ public class AccountsController : BaseController
   private readonly IAppUsersService _appUsersService;
   private readonly IUnitOfWork _unitOfWork;
   private readonly IEmailSender _emailSender;
-
+  private readonly IJwtTokenService _jwtTokenService;
   public AccountsController(
       UserManager<IdentityUser> userManager,
       SignInManager<IdentityUser> signInManager,
       IAppUsersService appUsersService,
       IUnitOfWork unitOfWork,
       IEmailSender emailSender,
-      ISender sender, IErrorHandlingService errorHandlingService
+      IJwtTokenService jwtTokenService,
+      ISender sender, 
+      IErrorHandlingService errorHandlingService
       ) : base(sender, errorHandlingService)
   {
     _userManager = userManager;
@@ -49,6 +53,7 @@ public class AccountsController : BaseController
     _emailSender = emailSender;
     _appUsersService = appUsersService;
     _unitOfWork = unitOfWork;
+    _jwtTokenService = jwtTokenService; 
   }
 
   private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
@@ -65,7 +70,6 @@ public class AccountsController : BaseController
     return Result.Error(errors.Count > 0 ? errorList : new Ardalis.Result.ErrorList(new[] { defaultErrorMessage }));
   }
 
-  // GET: /api/v1.0/account/confirmemail?userId=...&code=...
   [HttpGet("confirmemail")]
   public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string code)
   {
@@ -125,7 +129,6 @@ public class AccountsController : BaseController
     return Ok(new { message = "Confirmation link to change email sent. Please check your email." });
   }
 
-  // POST: /api/v1.0/account/sendverificationemail
   [HttpPost("sendverificationemail")]
   public async Task<IActionResult> SendVerificationEmail()
   {
@@ -154,7 +157,6 @@ public class AccountsController : BaseController
     return Ok(new { message = "Verification email sent. Please check your email." });
   }
 
-  //[EnableRateLimiting("ResendEmailConfirmationLimiter")]
   [HttpPost("resendemailconfirmation")]
   public async Task<IActionResult> ResendEmailConfirmation([FromBody] ResendEmailConfirmationRequest request)
   {
@@ -183,7 +185,6 @@ public class AccountsController : BaseController
     return Ok(new { message = "Verification email sent. Please check your email." });
   }
 
-  // GET: /api/v1.0/account/confirmemailchange?userId=...&email=...&code=...
   [HttpGet("confirmemailchange")]
   public async Task<IActionResult> ConfirmEmailChange([FromQuery] string userId, [FromQuery] string email, [FromQuery] string code)
   {
@@ -231,7 +232,6 @@ public class AccountsController : BaseController
         : _errorHandlingService.HandleErrorResponse(result);
   }
 
-  // POST: /api/v1.0/account/forgotpassword
   [HttpPost("forgotpassword")]
   public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
   {
@@ -291,7 +291,87 @@ public class AccountsController : BaseController
     return BadRequest(new { error = "Invalid password." });
   }
 
-  // GET: /api/v1.0/account/2fa/status
+  [HttpPost("login/jwt")]
+  [IgnoreAntiforgeryToken]
+  public async Task<IActionResult> LoginWithJwt([FromBody] JwtLoginRequest request)
+  {
+    if (!ModelState.IsValid)
+      return BadRequest(ModelState);
+
+    var user = await _userManager.FindByEmailAsync(request.LoginIdentifier)
+               ?? await _userManager.FindByNameAsync(request.LoginIdentifier);
+
+    if (user == null)
+      return BadRequest(new { error = "Invalid credentials" });
+
+    var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
+
+    if (result.Succeeded)
+    {
+      if (!await _userManager.IsEmailConfirmedAsync(user))
+        return BadRequest(new { error = "Email not confirmed" });
+
+      var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
+      if (appUser == null)
+        return BadRequest(new { error = "App user not found" });
+
+      // Check if 2FA is required
+      if (await _userManager.GetTwoFactorEnabledAsync(user))
+      {
+        return Ok(new
+        {
+          requiresTwoFactor = true,
+          userId = user.Id
+        });
+      }
+
+      var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value);
+      return Ok(tokens);
+    }
+
+    if (result.RequiresTwoFactor)
+      return Ok(new { requiresTwoFactor = true, userId = user.Id });
+
+    if (result.IsLockedOut)
+      return BadRequest(new { error = "Account locked" });
+
+    return BadRequest(new { error = "Invalid credentials" });
+  }
+
+  [HttpPost("jwt/refresh")]
+  [IgnoreAntiforgeryToken]
+  public async Task<IActionResult> RefreshJwtToken([FromBody] RefreshTokenRequest request)
+  {
+    try
+    {
+      var tokens = await _jwtTokenService.RefreshTokensAsync(request.RefreshToken);
+      return Ok(tokens);
+    }
+    catch (SecurityTokenValidationException ex)
+    {
+      return BadRequest(new { error = ex.Message });
+    }
+  }
+
+  [HttpPost("jwt/logout")]
+  [Authorize(AuthenticationSchemes = "Bearer")]
+  [IgnoreAntiforgeryToken]
+  public async Task<IActionResult> LogoutJwt([FromBody] LogoutRequest request)
+  {
+    await _jwtTokenService.RevokeRefreshTokenAsync(request.RefreshToken);
+    return Ok(new { message = "Logged out successfully" });
+  }
+
+  [HttpPost("jwt/revoke-all")]
+  [Authorize(AuthenticationSchemes = "Bearer")]
+  [IgnoreAntiforgeryToken]
+  public async Task<IActionResult> RevokeAllJwtTokens()
+  {
+    var userId = User.GetIdentityId();
+    await _jwtTokenService.RevokeAllUserRefreshTokensAsync(userId);
+    return Ok(new { message = "All tokens revoked successfully" });
+  }
+
   [HttpGet("2fa/status")]
   [Authorize]
   public async Task<IActionResult> GetTwoFactorStatus()
@@ -316,7 +396,6 @@ public class AccountsController : BaseController
     });
   }
 
-  // POST: /api/v1.0/account/2fa/disable
   [HttpPost("2fa/disable")]
   [Authorize]
   public async Task<IActionResult> Disable2fa()
@@ -342,7 +421,6 @@ public class AccountsController : BaseController
     return Ok(new { message = "Two-factor authentication has been disabled." });
   }
 
-  // POST: /api/v1.0/account/2fa/forget-browser
   [HttpPost("2fa/forget-browser")]
   [Authorize]
   public async Task<IActionResult> ForgetBrowser()
@@ -357,7 +435,6 @@ public class AccountsController : BaseController
     return Ok(new { message = "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2FA code." });
   }
 
-  // GET: /api/v1.0/account/2fa/authenticator
   [HttpGet("2fa/authenticator")]
   [Authorize]
   public async Task<IActionResult> GetAuthenticatorInfo()
@@ -387,7 +464,6 @@ public class AccountsController : BaseController
     });
   }
 
-  // POST: /api/v1.0/account/2fa/authenticator
   [HttpPost("2fa/authenticator")]
   [Authorize]
   public async Task<IActionResult> EnableAuthenticator([FromBody] EnableAuthenticatorRequest request)
@@ -426,7 +502,6 @@ public class AccountsController : BaseController
     });
   }
 
-  // POST: /api/v1.0/account/2fa/authenticator/reset
   [HttpPost("2fa/authenticator/reset")]
   [Authorize]
   public async Task<IActionResult> ResetAuthenticator()
@@ -444,7 +519,6 @@ public class AccountsController : BaseController
     return Ok(new { message = "Your authenticator app key has been reset." });
   }
 
-  // POST: /api/v1.0/account/2fa/recovery-codes/generate
   [HttpPost("2fa/recovery-codes/generate")]
   [Authorize]
   public async Task<IActionResult> GenerateRecoveryCodes()
@@ -470,7 +544,6 @@ public class AccountsController : BaseController
     });
   }
 
-  // POST: /api/v1.0/account/2fa/login
   [HttpPost("2fa/login")]
   public async Task<IActionResult> LoginWith2fa([FromBody] LoginWith2faRequest request)
   {
@@ -494,7 +567,6 @@ public class AccountsController : BaseController
     return BadRequest(new { error = "Invalid authenticator code." });
   }
 
-  // POST: /api/v1.0/account/2fa/login-recovery
   [HttpPost("2fa/login-recovery")]
   public async Task<IActionResult> LoginWithRecoveryCode([FromBody] LoginWithRecoveryCodeRequest request)
   {
@@ -518,15 +590,6 @@ public class AccountsController : BaseController
     return BadRequest(new { error = "Invalid recovery code." });
   }
 
-  //[IgnoreAntiforgeryToken]
-  //[HttpPost("logout")]
-  //[Authorize]
-  //public async Task<IActionResult> Logout()
-  //{
-  //    await _signInManager.SignOutAsync();
-  //    return Ok(new { message = "User logged out." });
-  //}
-
   [IgnoreAntiforgeryToken]
   [HttpPost("logout")]
   [Authorize]
@@ -536,7 +599,6 @@ public class AccountsController : BaseController
     return Ok(new { message = "User logged out." });
   }
 
-  // POST: /api/v1.0/account/register
   [HttpPost("register")]
   public async Task<IActionResult> Register([FromBody] RegisterRequest request)
   {
@@ -568,7 +630,6 @@ public class AccountsController : BaseController
     return BadRequest(new { error = "Registration failed.", details = result.Errors });
   }
 
-  // POST: /api/v1.0/account/resetpassword
   [HttpPost("resetpassword")]
   public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
   {
@@ -747,3 +808,23 @@ public sealed record UpdateUserNotificationsRequest(
     bool InAppNotification,
     bool EmailNotification,
     bool PushNotification);
+
+public class JwtLoginRequest
+{
+  [Required]
+  public string LoginIdentifier { get; set; }
+  [Required]
+  public string Password { get; set; }
+}
+
+public class RefreshTokenRequest
+{
+  [Required]
+  public string RefreshToken { get; set; }
+}
+
+public class LogoutRequest
+{
+  [Required]
+  public string RefreshToken { get; set; }
+}
