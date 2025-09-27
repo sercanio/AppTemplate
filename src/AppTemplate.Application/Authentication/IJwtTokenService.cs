@@ -2,7 +2,7 @@ using AppTemplate.Domain.AppUsers;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
-namespace AppTemplate.Application.Authentication.Jwt;
+namespace AppTemplate.Application.Authentication;
 
 public interface IJwtTokenService
 {

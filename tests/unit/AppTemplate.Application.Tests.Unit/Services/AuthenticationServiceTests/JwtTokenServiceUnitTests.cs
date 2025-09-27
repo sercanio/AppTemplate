@@ -1,6 +1,6 @@
-﻿using AppTemplate.Application.Authentication.Jwt;
+﻿using AppTemplate.Application.Authentication;
 
-namespace AppTemplate.Application.Tests.Unit.Services.AuthenticationServiceTests.jwt;
+namespace AppTemplate.Application.Tests.Unit.Services.AuthenticationServiceTests;
 
 public class JwtTokenServiceUnitTests
 {

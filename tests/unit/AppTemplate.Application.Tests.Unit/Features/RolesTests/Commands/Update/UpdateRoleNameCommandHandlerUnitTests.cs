@@ -104,7 +104,7 @@ public class UpdateRoleNameCommandHandlerUnitTests
         .Setup(r => r.GetRoleByIdWithPermissionsAsync(command.RoleId, It.IsAny<CancellationToken>()))
         .ReturnsAsync(Result.Success(role));
 
-    _rolesRepositoryMock.Setup(r => r.Update(role));
+    _rolesRepositoryMock.Setup(r => r.Update(role, It.IsAny<CancellationToken>()));
     _unitOfWorkMock.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     _cacheServiceMock.Setup(c => c.RemoveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 

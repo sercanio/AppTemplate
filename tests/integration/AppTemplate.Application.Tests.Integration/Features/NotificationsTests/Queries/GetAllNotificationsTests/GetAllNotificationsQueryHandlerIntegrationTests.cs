@@ -1,6 +1,7 @@
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Clock;
+using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;
@@ -52,7 +53,8 @@ public class GetAllNotificationsQueryHandlerIntegrationTests
     await dbContext.SaveChangesAsync();
 
     var notificationsRepo = new NotificationsRepository(dbContext);
-    var usersService = new AppUsersService(new AppUsersRepository(dbContext));
+    var rolesService = new RolesService(new RolesRepository(dbContext));
+    var usersService = new AppUsersService(new AppUsersRepository(dbContext), rolesService);
     var httpContext = new DefaultHttpContext();
     httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, identityUser.Id) }, "TestAuth"));
     var httpContextAccessor = new HttpContextAccessor { HttpContext = httpContext };

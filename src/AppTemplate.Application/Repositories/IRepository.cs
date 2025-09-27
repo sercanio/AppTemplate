@@ -44,7 +44,7 @@ public interface IRepository<TEntity, TKey>
         bool includeSoftDeleted = false,
         CancellationToken cancellationToken = default);
 
-    Task AddAsync(TEntity entity);
-    void Update(TEntity entity);
-    void Delete(TEntity entity, bool isSoftDelete = true);
+    Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
+    void Update(TEntity entity, CancellationToken cancellationToken = default);
+    void Delete(TEntity entity, bool isSoftDelete = true, CancellationToken cancellationToken = default);
 }

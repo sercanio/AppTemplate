@@ -135,4 +135,19 @@ public sealed class AppUsersRepository
   {
     return await CountAsync(null, includeSoftDeleted, cancellationToken);
   }
+
+  public async Task AddAsync(AppUser entity, CancellationToken cancellationToken = default)
+  {
+    await base.AddAsync(entity, cancellationToken);
+  }
+
+  public void Update(AppUser entity, CancellationToken cancellationToken = default)
+  {
+    base.Update(entity);
+  }
+
+  public void Delete(AppUser entity, bool isSoftDelete = true, CancellationToken cancellationToken = default)
+  {
+    base.Delete(entity, isSoftDelete);
+  }
 }

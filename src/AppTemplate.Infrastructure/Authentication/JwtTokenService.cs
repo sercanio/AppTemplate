@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Authentication.Jwt;
+﻿using AppTemplate.Application.Authentication;
 using AppTemplate.Application.Authentication.Models;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Roles;

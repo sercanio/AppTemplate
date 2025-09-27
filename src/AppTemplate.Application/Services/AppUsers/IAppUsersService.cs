@@ -26,11 +26,11 @@ public interface IAppUsersService
         Func<IQueryable<AppUser>, IQueryable<AppUser>>? include = null,
         CancellationToken cancellationToken = default);
 
-    Task AddAsync(AppUser user);
+    Task AddAsync(AppUser user, CancellationToken cancellationToken = default);
 
-    void Update(AppUser user);
+    void Update(AppUser user, CancellationToken cancellationToken = default);
 
-    void Delete(AppUser user);
+    void Delete(AppUser user, CancellationToken cancellationToken = default);
 
     Task<int> GetUsersCountAsync(bool includeSoftDeleted = false, CancellationToken cancellationToken = default);
 

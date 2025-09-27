@@ -119,7 +119,7 @@ public class CreateRoleCommandHanderUnitTests
         .ReturnsAsync(Result.Success(appUser));
 
     _rolesRepositoryMock
-        .Setup(r => r.AddAsync(It.IsAny<Role>()))
+        .Setup(r => r.AddAsync(It.IsAny<Role>(), It.IsAny<CancellationToken>()))
         .Returns(Task.CompletedTask);
 
     _unitOfWorkMock

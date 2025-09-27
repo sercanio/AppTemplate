@@ -49,7 +49,7 @@ public class NotificationServiceUnitTests
   {
     var notification = new Notification(Guid.NewGuid(), "title", "msg", NotificationTypeEnum.System);
     await _service.AddAsync(notification);
-    _notificationsRepositoryMock.Verify(r => r.AddAsync(notification), Times.Once);
+    _notificationsRepositoryMock.Verify(r => r.AddAsync(notification, It.IsAny<CancellationToken>()), Times.Once);
   }
 
   [Fact]
@@ -57,7 +57,7 @@ public class NotificationServiceUnitTests
   {
     var notification = new Notification(Guid.NewGuid(), "title", "msg", NotificationTypeEnum.System);
     _service.Delete(notification);
-    _notificationsRepositoryMock.Verify(r => r.Delete(notification, true), Times.Once);
+    _notificationsRepositoryMock.Verify(r => r.Delete(notification, true, It.IsAny<CancellationToken>()), Times.Once);
   }
 
   [Fact]
@@ -65,7 +65,7 @@ public class NotificationServiceUnitTests
   {
     var notification = new Notification(Guid.NewGuid(), "title", "msg", NotificationTypeEnum.System);
     _service.Update(notification);
-    _notificationsRepositoryMock.Verify(r => r.Update(notification), Times.Once);
+    _notificationsRepositoryMock.Verify(r => r.Update(notification, It.IsAny<CancellationToken>()), Times.Once);
   }
 
   [Fact]
@@ -191,7 +191,7 @@ public class NotificationServiceUnitTests
   public async Task SendNotificationAsync_AddsAndSavesNotification()
   {
     _notificationsRepositoryMock
-      .Setup(r => r.AddAsync(It.IsAny<Notification>()))
+      .Setup(r => r.AddAsync(It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
       .Returns(Task.CompletedTask)
       .Verifiable();
     _unitOfWorkMock
@@ -201,7 +201,7 @@ public class NotificationServiceUnitTests
 
     await _service.SendNotificationAsync("title", "msg");
 
-    _notificationsRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Notification>()), Times.Once);
+    _notificationsRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Notification>(), It.IsAny<CancellationToken>()), Times.Once);
     _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
   }
 
@@ -227,7 +227,7 @@ public class NotificationServiceUnitTests
       .ReturnsAsync(user);
 
     _notificationsRepositoryMock
-      .Setup(r => r.AddAsync(It.IsAny<Notification>()))
+      .Setup(r => r.AddAsync(It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
       .Returns(Task.CompletedTask)
       .Verifiable();
     _unitOfWorkMock
@@ -237,7 +237,7 @@ public class NotificationServiceUnitTests
 
     await _service.SendNotificationToUserAsync("title", "msg", NotificationTypeEnum.System, userId);
 
-    _notificationsRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Notification>()), Times.Once);
+    _notificationsRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Notification>(), It.IsAny<CancellationToken>()), Times.Once);
     _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
   }
 
@@ -263,7 +263,7 @@ public class NotificationServiceUnitTests
       .ReturnsAsync(user);
 
     _notificationsRepositoryMock
-      .Setup(r => r.AddAsync(It.IsAny<Notification>()))
+      .Setup(r => r.AddAsync(It.IsAny<Notification>(), It.IsAny<CancellationToken>()))
       .Returns(Task.CompletedTask)
       .Verifiable();
     _unitOfWorkMock
@@ -273,7 +273,7 @@ public class NotificationServiceUnitTests
 
     await _service.SaveNotificationAsync("title", "msg", NotificationTypeEnum.System, userId);
 
-    _notificationsRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Notification>()), Times.Once);
+    _notificationsRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Notification>(), It.IsAny<CancellationToken>()), Times.Once);
     _unitOfWorkMock.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
   }
 }

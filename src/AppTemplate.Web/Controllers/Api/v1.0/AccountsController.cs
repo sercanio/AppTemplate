@@ -1,15 +1,12 @@
 using AppTemplate.Application.Authentication;
-using AppTemplate.Application.Authentication.Jwt;
 using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
-using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
-using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
 using Ardalis.Result;
 using MediatR;
@@ -37,6 +34,7 @@ public class AccountsController : BaseController
   private readonly IUnitOfWork _unitOfWork;
   private readonly IEmailSender _emailSender;
   private readonly IJwtTokenService _jwtTokenService;
+
   public AccountsController(
       UserManager<IdentityUser> userManager,
       SignInManager<IdentityUser> signInManager,
@@ -44,7 +42,7 @@ public class AccountsController : BaseController
       IUnitOfWork unitOfWork,
       IEmailSender emailSender,
       IJwtTokenService jwtTokenService,
-      ISender sender, 
+      ISender sender,
       IErrorHandlingService errorHandlingService
       ) : base(sender, errorHandlingService)
   {
@@ -53,7 +51,7 @@ public class AccountsController : BaseController
     _emailSender = emailSender;
     _appUsersService = appUsersService;
     _unitOfWork = unitOfWork;
-    _jwtTokenService = jwtTokenService; 
+    _jwtTokenService = jwtTokenService;
   }
 
   private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
@@ -64,13 +62,11 @@ public class AccountsController : BaseController
     }
 
     var errors = identityResult.Errors.Select(e => e.Description).ToList();
-    // Fix for CS1503: Convert List<string> to ErrorList using the appropriate constructor or method
     var errorList = new Ardalis.Result.ErrorList(errors);
-    // Fix for CA1860: Use Count == 0 instead of Any()
     return Result.Error(errors.Count > 0 ? errorList : new Ardalis.Result.ErrorList(new[] { defaultErrorMessage }));
   }
 
-  [HttpGet("confirmemail")]
+  [HttpGet("confirm-email")]
   public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string code)
   {
     if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(code))
@@ -95,6 +91,7 @@ public class AccountsController : BaseController
   }
 
   [HttpPost("changeemail")]
+  [Authorize]
   public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest request)
   {
     var user = await _userManager.GetUserAsync(User);
@@ -125,11 +122,11 @@ public class AccountsController : BaseController
         code,
         user.UserName);
 
-
     return Ok(new { message = "Confirmation link to change email sent. Please check your email." });
   }
 
   [HttpPost("sendverificationemail")]
+  [Authorize]
   public async Task<IActionResult> SendVerificationEmail()
   {
     var user = await _userManager.GetUserAsync(User);
@@ -206,11 +203,11 @@ public class AccountsController : BaseController
       return BadRequest(new { error = "Error changing email.", details = changeResult.Errors });
     }
 
-    await _signInManager.RefreshSignInAsync(user);
     return Ok(new { message = "Email change confirmed." });
   }
 
   [HttpPost("changepassword")]
+  [Authorize]
   public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
   {
     var user = await _userManager.GetUserAsync(User);
@@ -221,11 +218,6 @@ public class AccountsController : BaseController
 
     var identityResult = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
     var result = ConvertIdentityResult(identityResult, "Your password has been changed successfully.", "Password change failed.");
-
-    if (result.IsSuccess)
-    {
-      await _signInManager.RefreshSignInAsync(user);
-    }
 
     return result.IsSuccess
         ? Ok(new { message = result.Value })
@@ -251,48 +243,15 @@ public class AccountsController : BaseController
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
     await ((AzureEmailSender)_emailSender).SendPasswordResetAsync(
-    request.Email,
-    code,
-    user.UserName);
+        request.Email,
+        code,
+        user.UserName);
 
     return Ok(new { message = "Verification email sent. Please check your email." });
   }
 
   // POST: /api/v1.0/account/login
   [HttpPost("login")]
-  public async Task<IActionResult> Login([FromBody] LoginRequest request)
-  {
-    if (!ModelState.IsValid)
-    {
-      return BadRequest(ModelState);
-    }
-
-    IdentityUser user = await _userManager.FindByEmailAsync(request.LoginIdentifier)
-                          ?? await _userManager.FindByNameAsync(request.LoginIdentifier);
-
-    if (user == null)
-    {
-      return BadRequest(new { error = "User not found." });
-    }
-
-    var result = await _signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, lockoutOnFailure: false);
-    if (result.Succeeded)
-    {
-      return Ok(new { message = "Login successful." });
-    }
-    if (result.RequiresTwoFactor)
-    {
-      return Ok(new { message = "Two-factor authentication required." });
-    }
-    if (result.IsLockedOut)
-    {
-      return BadRequest(new { error = "User account locked out." });
-    }
-    return BadRequest(new { error = "Invalid password." });
-  }
-
-  [HttpPost("login/jwt")]
-  [IgnoreAntiforgeryToken]
   public async Task<IActionResult> LoginWithJwt([FromBody] JwtLoginRequest request)
   {
     if (!ModelState.IsValid)
@@ -305,6 +264,8 @@ public class AccountsController : BaseController
       return BadRequest(new { error = "Invalid credentials" });
 
     var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
+    if (!await _userManager.CheckPasswordAsync(user, request.Password))
+      return BadRequest(new { error = "Invalid credentials" });
 
     if (result.Succeeded)
     {
@@ -338,8 +299,7 @@ public class AccountsController : BaseController
     return BadRequest(new { error = "Invalid credentials" });
   }
 
-  [HttpPost("jwt/refresh")]
-  [IgnoreAntiforgeryToken]
+  [HttpPost("refresh-token")]
   public async Task<IActionResult> RefreshJwtToken([FromBody] RefreshTokenRequest request)
   {
     try
@@ -353,18 +313,16 @@ public class AccountsController : BaseController
     }
   }
 
-  [HttpPost("jwt/logout")]
+  [HttpPost("logout")]
   [Authorize(AuthenticationSchemes = "Bearer")]
-  [IgnoreAntiforgeryToken]
   public async Task<IActionResult> LogoutJwt([FromBody] LogoutRequest request)
   {
     await _jwtTokenService.RevokeRefreshTokenAsync(request.RefreshToken);
     return Ok(new { message = "Logged out successfully" });
   }
 
-  [HttpPost("jwt/revoke-all")]
+  [HttpPost("revoke-all")]
   [Authorize(AuthenticationSchemes = "Bearer")]
-  [IgnoreAntiforgeryToken]
   public async Task<IActionResult> RevokeAllJwtTokens()
   {
     var userId = User.GetIdentityId();
@@ -372,309 +330,12 @@ public class AccountsController : BaseController
     return Ok(new { message = "All tokens revoked successfully" });
   }
 
-  [HttpGet("2fa/status")]
-  [Authorize]
-  public async Task<IActionResult> GetTwoFactorStatus()
-  {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
-    }
-
-    var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
-    var hasAuthenticator = await _userManager.GetAuthenticatorKeyAsync(user) != null;
-    var recoveryCodesLeft = await _userManager.CountRecoveryCodesAsync(user);
-    var isMachineRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user);
-
-    return Ok(new
-    {
-      is2faEnabled = isTwoFactorEnabled,
-      hasAuthenticator = hasAuthenticator,
-      recoveryCodesLeft = recoveryCodesLeft,
-      isMachineRemembered = isMachineRemembered
-    });
-  }
-
-  [HttpPost("2fa/disable")]
-  [Authorize]
-  public async Task<IActionResult> Disable2fa()
-  {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
-    }
-
-    var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
-    if (!isTwoFactorEnabled)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Two-factor authentication is not currently enabled.")));
-    }
-
-    var result = await _userManager.SetTwoFactorEnabledAsync(user, false);
-    if (!result.Succeeded)
-    {
-      return _errorHandlingService.HandleErrorResponse(ConvertIdentityResult<string>(result, defaultErrorMessage: "Error disabling 2FA."));
-    }
-
-    return Ok(new { message = "Two-factor authentication has been disabled." });
-  }
-
-  [HttpPost("2fa/forget-browser")]
-  [Authorize]
-  public async Task<IActionResult> ForgetBrowser()
-  {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
-    }
-
-    await _signInManager.ForgetTwoFactorClientAsync();
-    return Ok(new { message = "The current browser has been forgotten. When you login again from this browser you will be prompted for your 2FA code." });
-  }
-
-  [HttpGet("2fa/authenticator")]
-  [Authorize]
-  public async Task<IActionResult> GetAuthenticatorInfo()
-  {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
-    }
-
-    // Load the authenticator key & QR code URI
-    var unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
-    if (string.IsNullOrEmpty(unformattedKey))
-    {
-      await _userManager.ResetAuthenticatorKeyAsync(user);
-      unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
-    }
-
-    var sharedKey = FormatKey(unformattedKey);
-    var email = await _userManager.GetEmailAsync(user);
-    var authenticatorUri = GenerateQrCodeUri(email, unformattedKey);
-
-    return Ok(new
-    {
-      sharedKey,
-      authenticatorUri
-    });
-  }
-
-  [HttpPost("2fa/authenticator")]
-  [Authorize]
-  public async Task<IActionResult> EnableAuthenticator([FromBody] EnableAuthenticatorRequest request)
-  {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
-    }
-
-    // Strip spaces and hyphens
-    var verificationCode = request.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
-
-    var is2faTokenValid = await _userManager.VerifyTwoFactorTokenAsync(
-        user, _userManager.Options.Tokens.AuthenticatorTokenProvider, verificationCode);
-
-    if (!is2faTokenValid)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Verification code is invalid.")));
-    }
-
-    await _userManager.SetTwoFactorEnabledAsync(user, true);
-    var userId = await _userManager.GetUserIdAsync(user);
-
-    var recoveryCodes = new List<string>();
-    if (await _userManager.CountRecoveryCodesAsync(user) == 0)
-    {
-      var newRecoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-      recoveryCodes.AddRange(newRecoveryCodes);
-    }
-
-    return Ok(new
-    {
-      message = "Your authenticator app has been verified.",
-      recoveryCodes = recoveryCodes.Count > 0 ? recoveryCodes : null
-    });
-  }
-
-  [HttpPost("2fa/authenticator/reset")]
-  [Authorize]
-  public async Task<IActionResult> ResetAuthenticator()
-  {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
-    }
-
-    await _userManager.SetTwoFactorEnabledAsync(user, false);
-    await _userManager.ResetAuthenticatorKeyAsync(user);
-    await _signInManager.RefreshSignInAsync(user);
-
-    return Ok(new { message = "Your authenticator app key has been reset." });
-  }
-
-  [HttpPost("2fa/recovery-codes/generate")]
-  [Authorize]
-  public async Task<IActionResult> GenerateRecoveryCodes()
-  {
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.NotFound("Unable to load user."));
-    }
-
-    var isTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
-    if (!isTwoFactorEnabled)
-    {
-      return _errorHandlingService.HandleErrorResponse(Result.Invalid(new ValidationError("Cannot generate recovery codes for user because they do not have 2FA enabled.")));
-    }
-
-    var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-
-    return Ok(new
-    {
-      recoveryCodes = recoveryCodes.ToArray(),
-      message = "You have generated new recovery codes."
-    });
-  }
-
-  [HttpPost("2fa/login")]
-  public async Task<IActionResult> LoginWith2fa([FromBody] LoginWith2faRequest request)
-  {
-    var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-    if (user == null)
-    {
-      return BadRequest(new { error = "Unable to load two-factor authentication user." });
-    }
-
-    var code = request.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
-    var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(code, request.RememberMe, request.RememberMachine);
-
-    if (result.Succeeded)
-    {
-      return Ok(new { message = "Two-factor authentication login successful." });
-    }
-    if (result.IsLockedOut)
-    {
-      return BadRequest(new { error = "User account locked out." });
-    }
-    return BadRequest(new { error = "Invalid authenticator code." });
-  }
-
-  [HttpPost("2fa/login-recovery")]
-  public async Task<IActionResult> LoginWithRecoveryCode([FromBody] LoginWithRecoveryCodeRequest request)
-  {
-    var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-    if (user == null)
-    {
-      return BadRequest(new { error = "Unable to load two-factor authentication user." });
-    }
-
-    var recoveryCode = request.RecoveryCode.Replace(" ", string.Empty);
-    var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
-
-    if (result.Succeeded)
-    {
-      return Ok(new { message = "Logged in with recovery code." });
-    }
-    if (result.IsLockedOut)
-    {
-      return BadRequest(new { error = "User account locked out." });
-    }
-    return BadRequest(new { error = "Invalid recovery code." });
-  }
-
-  [IgnoreAntiforgeryToken]
-  [HttpPost("logout")]
-  [Authorize]
-  public async Task<IActionResult> Logout()
-  {
-    await _signInManager.SignOutAsync();
-    return Ok(new { message = "User logged out." });
-  }
-
-  [HttpPost("register")]
-  public async Task<IActionResult> Register([FromBody] RegisterRequest request)
-  {
-    var identityUser = new IdentityUser { UserName = request.Username, Email = request.Email };
-    var result = await _userManager.CreateAsync(identityUser, request.Password);
-
-    if (result.Succeeded)
-    {
-      var identityId = await _userManager.GetUserIdAsync(identityUser);
-      var code = await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
-
-      AppUser user = AppUser.Create();
-      user.SetIdentityId(identityId);
-
-      await _appUsersService.AddAsync(user);
-      await _unitOfWork.SaveChangesAsync();
-
-      code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-      var userId = identityId;
-
-      await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
-          request.Email,
-          userId,
-          code,
-          request.Username);
-
-      return Ok(new { message = "User registered successfully. Please confirm your email." });
-    }
-    return BadRequest(new { error = "Registration failed.", details = result.Errors });
-  }
-
-  [HttpPost("resetpassword")]
-  public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
-  {
-
-    var user = await _userManager.FindByEmailAsync(request.Email);
-    if (user == null)
-    {
-      // Do not reveal that the user does not exist.
-      return Ok(new { message = "Password reset successful. Please check your email for further instructions." });
-    }
-
-    string decodedCode;
-    try
-    {
-      decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Code));
-    }
-    catch
-    {
-      decodedCode = request.Code;
-    }
-
-    var result = await _userManager.ResetPasswordAsync(user, decodedCode, request.Password);
-    return result.Succeeded
-        ? Ok(new { message = "Password reset successful." })
-        : BadRequest(new { error = "Password reset failed.", details = result.Errors });
-  }
-
-  [IgnoreAntiforgeryToken]
-  [HttpGet("me")]
-  public async Task<IActionResult> GetCurrentUser([FromQuery] Guid? id)
-  {
-    var query = new GetLoggedInUserQuery();
-    var result = await _sender.Send(query);
-    if (result.IsSuccess)
-    {
-      return Ok(result.Value);
-    }
-    return _errorHandlingService.HandleErrorResponse(result);
-  }
-
   [HttpPatch("me/notifications")]
-  [HasPermission(Permissions.NotificationsUpdate)]
+  [Authorize]
+  [HasPermission("notifications.update")]
   public async Task<IActionResult> UpdateNotifications(
-  UpdateUserNotificationsRequest request,
-  CancellationToken cancellationToken)
+    UpdateUserNotificationsRequest request,
+    CancellationToken cancellationToken)
   {
     NotificationPreference notificationPreference = new(
         request.InAppNotification,
@@ -714,6 +375,40 @@ public class AccountsController : BaseController
         System.Web.HttpUtility.UrlEncode("AppTemplate"),
         System.Web.HttpUtility.UrlEncode(email),
         unformattedKey);
+  }
+
+  [HttpPost("register")]
+  public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+  {
+    if (!ModelState.IsValid)
+      return BadRequest(ModelState);
+
+    var identityUser = new IdentityUser { UserName = request.Username, Email = request.Email };
+    var identityResult = await _userManager.CreateAsync(identityUser, request.Password);
+
+    if (!identityResult.Succeeded)
+    {
+      var errors = identityResult.Errors.Select(e => e.Description).ToList();
+      return BadRequest(new { error = "Registration failed.", details = errors });
+    }
+
+    var identityId = await _userManager.GetUserIdAsync(identityUser);
+    var code = await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
+
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(identityId);
+
+    await _appUsersService.AddAsync(appUser);
+    await _unitOfWork.SaveChangesAsync();
+
+    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+    await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+        request.Email,
+        identityId,
+        code,
+        request.Username);
+
+    return Ok(new { message = "User registered successfully. Please confirm your email." });
   }
 }
 
@@ -767,6 +462,8 @@ public class LoginRequest
 public class LoginWith2faRequest
 {
   [Required]
+  public string UserId { get; set; }
+  [Required]
   public string TwoFactorCode { get; set; }
   public bool RememberMe { get; set; }
   public bool RememberMachine { get; set; }
@@ -774,6 +471,8 @@ public class LoginWith2faRequest
 
 public class LoginWithRecoveryCodeRequest
 {
+  [Required]
+  public string UserId { get; set; }
   [Required]
   public string RecoveryCode { get; set; }
 }

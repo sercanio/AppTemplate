@@ -1,13 +1,11 @@
 using AppTemplate.Application;
-using AppTemplate.Application.Authentication.Jwt;
+using AppTemplate.Application.Authentication;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Authentication;
 using AppTemplate.Web;
 using AppTemplate.Web.Controllers.Api;
 using AppTemplate.Web.Extensions;
-using AppTemplate.Web.Middlewares;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using Serilog;
@@ -17,38 +15,39 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Serilog before other services
 builder.Host.UseSerilog((context, services, configuration) =>
 {
-    configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
-        .WriteTo.OpenTelemetry(options =>
-        {
-            options.Endpoint = "http://localhost:4317";
-            options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
-        });
+  configuration
+      .ReadFrom.Configuration(context.Configuration)
+      .ReadFrom.Services(services)
+      .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
+      .WriteTo.OpenTelemetry(options =>
+      {
+        options.Endpoint = "http://localhost:4317";
+        options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+      });
 
-    // Add Seq sink if connection string is available
-    var seqConnectionString = context.Configuration.GetConnectionString("apptemplate-seq");
-    if (!string.IsNullOrEmpty(seqConnectionString))
-    {
-        configuration.WriteTo.Seq(seqConnectionString);
-    }
+  // Add Seq sink if connection string is available
+  var seqConnectionString = context.Configuration.GetConnectionString("apptemplate-seq");
+  if (!string.IsNullOrEmpty(seqConnectionString))
+  {
+    configuration.WriteTo.Seq(seqConnectionString);
+  }
 });
 
 builder.AddServiceDefaults();
 
+// Configure Identity for user management only (no UI components)
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddControllersWithViews(options =>
-    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+// Only add API controllers
+builder.Services.AddControllers();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
-    options.Configuration = builder.Configuration.GetConnectionString("apptemplate-redis") ?? "localhost:6379";
-    options.InstanceName = "AppTemplate:";
+  options.Configuration = builder.Configuration.GetConnectionString("apptemplate-redis") ?? "localhost:6379";
+  options.InstanceName = "AppTemplate:";
 });
 
 builder.Services.AddApplication();
@@ -57,7 +56,7 @@ builder.Services.AddWebApi(builder.Configuration);
 
 builder.Services.ConfigureControllers()
                 .ConfigureCors(builder.Configuration)
-                .ConfigureAuthenticationAndAntiforgery(builder.Environment, builder.Configuration)
+                .ConfigureJwtAuthentication(builder.Environment, builder.Configuration)
                 .ConfigureRateLimiting()
                 .AddValidators();
 
@@ -65,69 +64,82 @@ builder.Services.ConfigureControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {
-    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
-    // Set document info using OpenApiOptions properties if available
-    // If you need to set title/description, you may need to use a document transformer:
-    options.AddDocumentTransformer((document, context, cancellationToken) =>
+  options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+  options.AddDocumentTransformer((document, context, cancellationToken) =>
+  {
+    document.Info = new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        document.Info = new Microsoft.OpenApi.Models.OpenApiInfo
-        {
-            Title = "AppTemplate API",
-            Version = $"v{ApiVersions.V1}",
-            Description = "API documentation for the AppTemplate application."
-        };
-        return Task.CompletedTask;
-    });
+      Title = "AppTemplate API",
+      Version = $"v{ApiVersions.V1}",
+      Description = "API documentation for the AppTemplate application."
+    };
+    return Task.CompletedTask;
+  });
 });
 
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Cookie.Name = "AppTemplate.AuthCookie";
-});
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
-
-// Remove or comment out this line since migrations will be handled by the migration service
-// app.ApplyMigrations();
 app.UseCustomExceptionHandler();
 app.UseRequestContextLogging();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseMigrationsEndPoint();
+  app.UseMigrationsEndPoint();
+  app.UseDeveloperExceptionPage();
 }
 else
 {
-    app.UseHsts();
+  app.UseHsts();
 }
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseHttpsRedirection();
+  app.UseHttpsRedirection();
 }
 app.UseRouting();
 app.UseCors("CorsPolicy");
-app.UseSessionTracking();
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseCustomForbiddenRequestHandler();
 app.UseRateLimiter();
 app.UseRateLimitExceededHandler();
 
-app.MapStaticAssets();
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-app.MapRazorPages().WithStaticAssets();
+app.MapControllers();
 
-// Map OpenAPI and Scalar endpoints (only in development)
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference();
+  app.MapOpenApi();
+  app.MapScalarApiReference();
+
+  // Configure startup URL to open Scalar API documentation
+  app.Urls.Clear();
+  app.Urls.Add("https://localhost:7294");
+  app.Urls.Add("http://localhost:5000");
+
+  var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+  lifetime.ApplicationStarted.Register(() =>
+  {
+    var urls = app.Urls;
+    if (urls.Any())
+    {
+      var url = urls.First().Replace("*", "localhost") + "/scalar";
+      try
+      {
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+          FileName = url,
+          UseShellExecute = true
+        });
+      }
+      catch
+      {
+        // Silently ignore if browser cannot be opened
+      }
+    }
+  });
 }
 
 app.Run();

@@ -1,5 +1,6 @@
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Domain.Roles;
+using Ardalis.Result;
 using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.Roles;
@@ -25,4 +26,5 @@ public interface IRolesService
   Task AddAsync(Role role);
   void Update(Role role);
   void Delete(Role role);
+  Task<Result<Role>> GetDefaultRole(CancellationToken cancellationToken = default);
 }

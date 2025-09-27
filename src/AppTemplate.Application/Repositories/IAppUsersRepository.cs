@@ -31,4 +31,7 @@ public interface IAppUsersRepository : IRepository<AppUser, Guid>
   Task<Result<AppUser>> GetUserWithRolesAndIdentityByIdAsync(Guid userId, CancellationToken cancellationToken = default);
   Task<Result<AppUser>> GetUserWithRolesAndIdentityByIdentityIdAsync(string identityId, CancellationToken cancellationToken = default);
   Task<int> GetUsersCountAsync(bool includeSoftDeleted = false, CancellationToken cancellationToken = default);
+  Task AddAsync(AppUser entity, CancellationToken cancellationToken = default);
+  void Update(AppUser entity, CancellationToken cancellationToken = default);
+  void Delete(AppUser entity, bool isSoftDelete = true, CancellationToken cancellationToken = default);
 }

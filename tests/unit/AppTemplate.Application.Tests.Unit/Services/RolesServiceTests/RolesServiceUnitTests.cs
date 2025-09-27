@@ -24,7 +24,7 @@ public class RolesServiceUnitTests
     {
         var role = Role.Create("TestRole", "TestDisplayName", Guid.NewGuid());
         await _service.AddAsync(role);
-        _rolesRepositoryMock.Verify(r => r.AddAsync(role), Times.Once);
+        _rolesRepositoryMock.Verify(r => r.AddAsync(role, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class RolesServiceUnitTests
     {
         var role = Role.Create("TestRole", "TestDisplayName", Guid.NewGuid());
         _service.Delete(role);
-        _rolesRepositoryMock.Verify(r => r.Delete(role, true), Times.Once);
+        _rolesRepositoryMock.Verify(r => r.Delete(role, true, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class RolesServiceUnitTests
     {
         var role = Role.Create("TestRole", "TestDisplayName", Guid.NewGuid());
         _service.Update(role);
-        _rolesRepositoryMock.Verify(r => r.Update(role), Times.Once);
+        _rolesRepositoryMock.Verify(r => r.Update(role, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

@@ -1,7 +1,6 @@
 using AppTemplate.Application.Authentication;
 using AppTemplate.Application.Services.Authorization;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
 using System.Security.Claims;
@@ -33,16 +32,11 @@ public sealed class CustomClaimsTransformation : IClaimsTransformation
 
     string identityId;
 
-    // Detect JWT identity by presence of 'exp' claim and not being a cookie identity
+    // For JWT-only authentication, extract from JWT claims
     var jwtIdentity = principal.Identities.FirstOrDefault(i =>
         i.IsAuthenticated &&
-        i.AuthenticationType != CookieAuthenticationDefaults.AuthenticationScheme &&
+        i.AuthenticationType == JwtBearerDefaults.AuthenticationScheme &&
         i.HasClaim(c => c.Type == "exp")
-    );
-
-    var cookieIdentity = principal.Identities.FirstOrDefault(i =>
-        i.IsAuthenticated &&
-        i.AuthenticationType == CookieAuthenticationDefaults.AuthenticationScheme
     );
 
     if (jwtIdentity != null)
@@ -52,10 +46,6 @@ public sealed class CustomClaimsTransformation : IClaimsTransformation
           ?? principal.FindFirstValue("nameid")
           ?? principal.FindFirstValue(JwtRegisteredClaimNames.Sub)
           ?? principal.GetIdentityId();
-    }
-    else if (cookieIdentity != null)
-    {
-      identityId = principal.GetIdentityId();
     }
     else
     {
@@ -76,12 +66,9 @@ public sealed class CustomClaimsTransformation : IClaimsTransformation
       var rolesResponse = await _authorizationService.GetRolesForUserAsync(identityId);
       var permissions = await _authorizationService.GetPermissionsForUserAsync(identityId);
 
-      // Create new identity with the same authentication type
-      var authType = principal.Identity.AuthenticationType ??
-                    (jwtIdentity != null ? JwtBearerDefaults.AuthenticationScheme : CookieAuthenticationDefaults.AuthenticationScheme);
-
+      // Create new identity with JWT Bearer authentication type
       var ci = new ClaimsIdentity(
-          authType,
+          JwtBearerDefaults.AuthenticationScheme,
           ClaimTypes.Name,
           ClaimTypes.Role
       );
