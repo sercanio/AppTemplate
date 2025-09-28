@@ -332,79 +332,6 @@ public class AccountsControllerUnitTests
     Assert.NotNull(okResult.Value);
   }
 
-  //[Fact]
-  //public async Task Register_WithValidRequest_ReturnsOkResult()
-  //{
-  //  var request = new RegisterRequest
-  //  {
-  //    Username = "testuser",
-  //    Email = "test@example.com",
-  //    Password = "ValidPassword123!"
-  //  };
-
-  //  var identityUser = new IdentityUser { UserName = request.Username, Email = request.Email };
-  //  var appUser = AppUser.Create();
-
-  //  _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>(), request.Password))
-  //      .ReturnsAsync(IdentityResult.Success);
-  //  _mockUserManager.Setup(x => x.GetUserIdAsync(It.IsAny<IdentityUser>()))
-  //      .ReturnsAsync("new-user-id");
-  //  _mockUserManager.Setup(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()))
-  //      .ReturnsAsync("confirmation-token");
-
-  //  _mockAppUsersService.Setup(x => x.AddAsync(It.IsAny<AppUser>()))
-  //      .Returns(Task.CompletedTask);
-  //  _mockUnitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-  //      .ReturnsAsync(1);
-
-  //  try
-  //  {
-  //    var result = await _controller.Register(request);
-
-  //    // If no exception, verify it's an OK result
-  //    var okResult = Assert.IsType<OkObjectResult>(result);
-  //    Assert.NotNull(okResult.Value);
-  //  }
-  //  catch (FormatException)
-  //  {
-  //    // This is expected due to the mock email configuration
-  //    // The important part is that the business logic executed correctly
-  //  }
-
-  //  _mockUserManager.Verify(x => x.CreateAsync(It.IsAny<IdentityUser>(), request.Password), Times.Once);
-  //  _mockUserManager.Verify(x => x.GetUserIdAsync(It.IsAny<IdentityUser>()), Times.Once);
-  //  _mockUserManager.Verify(x => x.GenerateEmailConfirmationTokenAsync(It.IsAny<IdentityUser>()), Times.Once);
-  //  _mockAppUsersService.Verify(x => x.AddAsync(It.IsAny<AppUser>()), Times.Once);
-  //  _mockUnitOfWork.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
-  //}
-
-  //[Fact]
-  //public async Task Register_WithFailedIdentityResult_ReturnsBadRequest()
-  //{
-  //  // Arrange
-  //  var request = new RegisterRequest
-  //  {
-  //    Username = "testuser",
-  //    Email = "test@example.com",
-  //    Password = "WeakPassword"
-  //  };
-
-  //  var identityErrors = new[]
-  //  {
-  //          new IdentityError { Code = "PasswordTooWeak", Description = "Password is too weak" }
-  //      };
-
-  //  _mockUserManager.Setup(x => x.CreateAsync(It.IsAny<IdentityUser>(), request.Password))
-  //      .ReturnsAsync(IdentityResult.Failed(identityErrors));
-
-  //  // Act
-  //  var result = await _controller.Register(request);
-
-  //  // Assert
-  //  var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-  //  Assert.NotNull(badRequestResult.Value);
-  //}
-
   [Fact]
   public async Task ChangePassword_WithValidRequest_ReturnsOkResult()
   {
@@ -429,7 +356,6 @@ public class AccountsControllerUnitTests
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
     Assert.NotNull(okResult.Value);
-    // Remove the RefreshSignInAsync verification since the controller doesn't call it
     _mockUserManager.Verify(x => x.ChangePasswordAsync(user, request.OldPassword, request.NewPassword), Times.Once);
   }
 
@@ -547,6 +473,369 @@ public class AccountsControllerUnitTests
     // Assert
     Assert.IsType<BadRequestObjectResult>(actionResult);
     _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.Is<Result<UpdateNotificationPreferencesCommandResponse>>(r => !r.IsSuccess)), Times.Once);
+  }
+
+  // 2FA Tests
+  [Fact]
+  public async Task GetTwoFactorStatus_WithValidUser_ReturnsOkResult()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user))
+        .ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.GetAuthenticatorKeyAsync(user))
+        .ReturnsAsync("ABCD1234");
+    _mockUserManager.Setup(x => x.CountRecoveryCodesAsync(user))
+        .ReturnsAsync(8);
+    _mockSignInManager.Setup(x => x.IsTwoFactorClientRememberedAsync(user))
+        .ReturnsAsync(false);
+
+    // Act
+    var result = await _controller.GetTwoFactorStatus();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task Disable2fa_WithEnabledUser_ReturnsOkResult()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user))
+        .ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.SetTwoFactorEnabledAsync(user, false))
+        .ReturnsAsync(IdentityResult.Success);
+
+    // Act
+    var result = await _controller.Disable2fa();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task Disable2fa_WithDisabledUser_ReturnsErrorResponse()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user))
+        .ReturnsAsync(false);
+
+    var errorResult = new BadRequestObjectResult("2FA not enabled");
+    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
+        .Returns(errorResult);
+
+    // Act
+    var result = await _controller.Disable2fa();
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
+  }
+
+  [Fact]
+  public async Task ForgetBrowser_WithValidUser_ReturnsOkResult()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockSignInManager.Setup(x => x.ForgetTwoFactorClientAsync())
+        .Returns(Task.CompletedTask);
+
+    // Act
+    var result = await _controller.ForgetBrowser();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task GetAuthenticatorInfo_WithValidUser_ReturnsOkResult()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.GetAuthenticatorKeyAsync(user))
+        .ReturnsAsync("ABCD1234EFGH5678");
+    _mockUserManager.Setup(x => x.GetEmailAsync(user))
+        .ReturnsAsync(user.Email);
+
+    // Act
+    var result = await _controller.GetAuthenticatorInfo();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task EnableAuthenticator_WithValidCode_ReturnsOkResult()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+    var request = new EnableAuthenticatorRequest { Code = "123456" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user, 
+        It.IsAny<string>(), request.Code))
+        .ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.SetTwoFactorEnabledAsync(user, true))
+        .ReturnsAsync(IdentityResult.Success);
+    _mockUserManager.Setup(x => x.GetUserIdAsync(user))
+        .ReturnsAsync(user.Id);
+    _mockUserManager.Setup(x => x.CountRecoveryCodesAsync(user))
+        .ReturnsAsync(0);
+    _mockUserManager.Setup(x => x.GenerateNewTwoFactorRecoveryCodesAsync(user, 10))
+        .ReturnsAsync(new[] { "code1", "code2", "code3" });
+
+    // Act
+    var result = await _controller.EnableAuthenticator(request);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task EnableAuthenticator_WithInvalidCode_ReturnsErrorResponse()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+    var request = new EnableAuthenticatorRequest { Code = "invalid" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user, 
+        It.IsAny<string>(), request.Code))
+        .ReturnsAsync(false);
+
+    var errorResult = new BadRequestObjectResult("Invalid code");
+    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
+        .Returns(errorResult);
+
+    // Act
+    var result = await _controller.EnableAuthenticator(request);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
+  }
+
+  [Fact]
+  public async Task ResetAuthenticator_WithValidUser_ReturnsOkResult()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.SetTwoFactorEnabledAsync(user, false))
+        .ReturnsAsync(IdentityResult.Success);
+    _mockUserManager.Setup(x => x.ResetAuthenticatorKeyAsync(user))
+        .ReturnsAsync(IdentityResult.Success);
+
+    // Act
+    var result = await _controller.ResetAuthenticator();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task GenerateRecoveryCodes_WithEnabledUser_ReturnsOkResult()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user))
+        .ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.GenerateNewTwoFactorRecoveryCodesAsync(user, 10))
+        .ReturnsAsync(new[] { "code1", "code2", "code3" });
+
+    // Act
+    var result = await _controller.GenerateRecoveryCodes();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task GenerateRecoveryCodes_WithDisabledUser_ReturnsErrorResponse()
+  {
+    // Arrange
+    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user))
+        .ReturnsAsync(false);
+
+    var errorResult = new BadRequestObjectResult("2FA not enabled");
+    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
+        .Returns(errorResult);
+
+    // Act
+    var result = await _controller.GenerateRecoveryCodes();
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
+  }
+
+  [Fact]
+  public async Task LoginWith2fa_WithValidCode_ReturnsTokens()
+  {
+    // Arrange
+    var request = new LoginWith2faRequest
+    {
+      UserId = "user-id",
+      TwoFactorCode = "123456"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var mockJwtTokenService = new Mock<IJwtTokenService>();
+    var tokens = new JwtTokenResult(
+      "access-token",
+      "refresh-token",
+      DateTime.UtcNow.AddHours(1),
+      "Bearer"
+    );
+
+    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user, 
+        It.IsAny<string>(), request.TwoFactorCode))
+        .ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
+        .ReturnsAsync(Result.Success(appUser));
+    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(user, appUser))
+        .ReturnsAsync(tokens);
+
+    typeof(AccountsController)
+        .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+        .SetValue(_controller, mockJwtTokenService.Object);
+
+    // Act
+    var result = await _controller.LoginWith2fa(request);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.Equal(tokens, okResult.Value);
+  }
+
+  [Fact]
+  public async Task LoginWith2fa_WithInvalidCode_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new LoginWith2faRequest
+    {
+      UserId = "user-id",
+      TwoFactorCode = "invalid"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user, 
+        It.IsAny<string>(), request.TwoFactorCode))
+        .ReturnsAsync(false);
+
+    // Act
+    var result = await _controller.LoginWith2fa(request);
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+  }
+
+  [Fact]
+  public async Task LoginWithRecoveryCode_WithValidCode_ReturnsTokens()
+  {
+    // Arrange
+    var request = new LoginWithRecoveryCodeRequest
+    {
+      UserId = "user-id",
+      RecoveryCode = "recovery123"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var mockJwtTokenService = new Mock<IJwtTokenService>();
+    var tokens = new JwtTokenResult(
+      "access-token",
+      "refresh-token",
+      DateTime.UtcNow.AddHours(1),
+      "Bearer"
+    );
+
+    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode))
+        .ReturnsAsync(IdentityResult.Success);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
+        .ReturnsAsync(Result.Success(appUser));
+    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(user, appUser))
+        .ReturnsAsync(tokens);
+
+    typeof(AccountsController)
+        .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+        .SetValue(_controller, mockJwtTokenService.Object);
+
+    // Act
+    var result = await _controller.LoginWithRecoveryCode(request);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.Equal(tokens, okResult.Value);
+  }
+
+  [Fact]
+  public async Task LoginWithRecoveryCode_WithInvalidCode_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new LoginWithRecoveryCodeRequest
+    {
+      UserId = "user-id",
+      RecoveryCode = "invalid"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
+
+    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode))
+        .ReturnsAsync(IdentityResult.Failed());
+
+    // Act
+    var result = await _controller.LoginWithRecoveryCode(request);
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
   }
 
   private static Mock<AzureEmailSender> CreateMockAzureEmailSender()

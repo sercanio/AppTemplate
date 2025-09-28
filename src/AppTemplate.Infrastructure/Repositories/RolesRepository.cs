@@ -15,7 +15,7 @@ public sealed class RolesRepository : Repository<Role, Guid>, IRolesRepository
         var role = await GetAsync(
             predicate: r => r.Id == roleId,
             include: query => query.Include(r => r.Permissions),
-            asNoTracking: true,
+            asNoTracking: false,
             cancellationToken: cancellationToken);
 
         if (role is null)

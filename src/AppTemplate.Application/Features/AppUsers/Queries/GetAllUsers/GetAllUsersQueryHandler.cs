@@ -28,6 +28,7 @@ public sealed class GetAllUsersQueryHandler(IAppUsersRepository userRepository) 
             user.Id,
             userName: user.IdentityUser?.UserName ?? string.Empty,
             emailConfirmed: user.IdentityUser?.EmailConfirmed ?? false,
+            joinDate: user.CreatedOnUtc,
             roles: new Collection<LoggedInUserRolesDto>(
                 user.Roles?
                 .Where(
