@@ -113,33 +113,6 @@ if (app.Environment.IsDevelopment())
 {
   app.MapOpenApi();
   app.MapScalarApiReference();
-
-  // Configure startup URL to open Scalar API documentation
-  app.Urls.Clear();
-  app.Urls.Add("https://localhost:7294");
-  app.Urls.Add("http://localhost:5000");
-
-  var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
-  lifetime.ApplicationStarted.Register(() =>
-  {
-    var urls = app.Urls;
-    if (urls.Any())
-    {
-      var url = urls.First().Replace("*", "localhost") + "/scalar";
-      try
-      {
-        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-        {
-          FileName = url,
-          UseShellExecute = true
-        });
-      }
-      catch
-      {
-        // Silently ignore if browser cannot be opened
-      }
-    }
-  });
 }
 
 app.Run();
