@@ -70,51 +70,5 @@ public class StatisticsController : BaseController
             ? Ok(result.Value)
             : _errorHandlingService.HandleErrorResponse(result);
     }
-
-    [HttpGet("notifications")]
-    [HasPermission(Permissions.StatisticsRead)]
-    public async Task<IActionResult> GetNotificationStatistics(CancellationToken cancellationToken = default)
-    {
-        var query = new GetNotificationStatisticsQuery();
-        var result = await _sender.Send(query, cancellationToken) as Result<NotificationStatisticsResponse>;
-
-        if (result == null)
-        {
-            return _errorHandlingService.HandleErrorResponse(Result<NotificationStatisticsResponse>.Error("Failed to retrieve notification statistics."));
-        }
-
-        return result.IsSuccess ? Ok(result.Value) : _errorHandlingService.HandleErrorResponse(result);
-    }
-
-    [HttpGet("system")]
-    [HasPermission(Permissions.StatisticsRead)]
-    public async Task<IActionResult> GetSystemStatistics(CancellationToken cancellationToken = default)
-    {
-        var query = new GetSystemStatisticsQuery();
-        var result = await _sender.Send(query, cancellationToken) as Result<SystemStatisticsResponse>;
-
-        if (result == null)
-        {
-            return _errorHandlingService.HandleErrorResponse(Result<SystemStatisticsResponse>.Error("Failed to retrieve system statistics."));
-        }
-
-        return result.IsSuccess ? Ok(result.Value) : _errorHandlingService.HandleErrorResponse(result);
-    }
-
-    public record GetNotificationStatisticsQuery();
-    public record NotificationStatisticsResponse(
-        int TotalNotifications,
-        int UnreadNotifications,
-        int NotificationsToday,
-        Dictionary<string, int> NotificationsByType,
-        Dictionary<string, int> NotificationsByChannel);
-
-    public record GetSystemStatisticsQuery();
-    public record SystemStatisticsResponse(
-        int TotalApiRequests,
-        int RateLimitedRequests,
-        double AverageResponseTime,
-        Dictionary<string, int> RequestsByEndpoint,
-        int TotalErrors);
 }
 
