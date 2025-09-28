@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\tests\AppTemplate.TestCoverageWorker\AppTemplate.TestCoverageWorker.csproj" />
     <ProjectReference Include="..\AppTemplate.MigrationService\AppTemplate.MigrationService.csproj" />
     <ProjectReference Include="..\AppTemplate.Web\AppTemplate.Web.csproj" />
   </ItemGroup>

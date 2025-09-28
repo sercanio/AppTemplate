@@ -21,6 +21,9 @@ var builder = DistributedApplication.CreateBuilder(args);
 // Add the migration service
 var migrations = builder.AddProject<Projects.AppTemplate_MigrationService>("migration-worker");
 
+// Add the test coverage worker
+var testCoverageWorker = builder.AddProject<Projects.AppTemplate_TestCoverageWorker>("test-coverage-worker");
+
 // Update the web project to wait for migrations
 builder.AddProject<Projects.AppTemplate_Web>("apptemplate-web")
     .WaitFor(migrations)

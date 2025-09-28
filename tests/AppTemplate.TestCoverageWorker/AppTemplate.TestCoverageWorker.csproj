@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>dotnet-AppTemplate.TestCoverageWorker-d1c2e3f4-5a6b-7c8d-9e0f-1a2b3c4d5e6f</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AppTemplate.ServiceDefaults\AppTemplate.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>
