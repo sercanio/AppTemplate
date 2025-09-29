@@ -1,4 +1,5 @@
 using AppTemplate.Application.Authentication;
+using AppTemplate.Application.Authentication.Models;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.EmailSenders;
@@ -195,7 +196,10 @@ public class AccountsControllerUnitTests
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
     _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
     _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
-    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(user, appUser)).ReturnsAsync(tokens);
+    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+            It.Is<IdentityUser>(u => u == user),
+            It.Is<AppUser>(a => a == appUser),
+            It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
     // Replace controller's _jwtTokenService with mock
     typeof(AccountsController)
@@ -248,7 +252,9 @@ public class AccountsControllerUnitTests
         "Bearer"
     );
 
-    mockJwtTokenService.Setup(x => x.RefreshTokensAsync(request.RefreshToken)).ReturnsAsync(tokens);
+    mockJwtTokenService.Setup(x => x.RefreshTokensAsync(
+            It.Is<string>(token => token == request.RefreshToken),
+            It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
     typeof(AccountsController)
         .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
@@ -268,8 +274,11 @@ public class AccountsControllerUnitTests
     // Arrange
     var request = new RefreshTokenRequest { RefreshToken = "invalid-refresh-token" };
     var mockJwtTokenService = new Mock<IJwtTokenService>();
-    mockJwtTokenService.Setup(x => x.RefreshTokensAsync(request.RefreshToken))
-        .ThrowsAsync(new SecurityTokenValidationException("Invalid token"));
+    mockJwtTokenService.Setup(x => x.RefreshTokensAsync(
+       It.Is<string>(token => token == request.RefreshToken),
+       It.IsAny<DeviceInfo>()))
+       .ThrowsAsync(new SecurityTokenValidationException("Invalid token"));
+
 
     typeof(AccountsController)
         .GetField("_jwtTokenService", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
@@ -732,7 +741,10 @@ public class AccountsControllerUnitTests
         .ReturnsAsync(true);
     _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
         .ReturnsAsync(Result.Success(appUser));
-    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(user, appUser))
+    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>()))
         .ReturnsAsync(tokens);
 
     typeof(AccountsController)
@@ -799,7 +811,10 @@ public class AccountsControllerUnitTests
         .ReturnsAsync(IdentityResult.Success);
     _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
         .ReturnsAsync(Result.Success(appUser));
-    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(user, appUser))
+    mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>()))
         .ReturnsAsync(tokens);
 
     typeof(AccountsController)

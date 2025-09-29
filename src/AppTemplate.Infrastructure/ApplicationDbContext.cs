@@ -77,9 +77,15 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
       entity.HasKey(e => e.Token);
       entity.Property(e => e.Token).HasMaxLength(200);
       entity.Property(e => e.UserId).HasMaxLength(450);
+      entity.Property(e => e.DeviceName).HasMaxLength(200);
+      entity.Property(e => e.UserAgent).HasMaxLength(500);
+      entity.Property(e => e.IpAddress).HasMaxLength(50);
+      entity.Property(e => e.Platform).HasMaxLength(50);
+      entity.Property(e => e.Browser).HasMaxLength(50);
       entity.HasIndex(e => e.UserId);
       entity.HasIndex(e => e.ExpiresAt);
       entity.HasIndex(e => e.IsRevoked);
+      entity.HasIndex(e => new { e.UserId, e.IsRevoked });
     });
 
     builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

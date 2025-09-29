@@ -1,4 +1,5 @@
 using AppTemplate.Application.Authentication;
+using AppTemplate.Application.Authentication.Models;
 using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Services.AppUsers;
@@ -16,9 +17,11 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using UAParser; // Add this using statement
 
 namespace AppTemplate.Web.Controllers;
 
@@ -286,7 +289,8 @@ public class AccountsController : BaseController
         });
       }
 
-      var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value);
+      var deviceInfo = GetDeviceInfoFromRequest();
+      var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo); // Pass deviceInfo
       return Ok(tokens);
     }
 
@@ -304,7 +308,8 @@ public class AccountsController : BaseController
   {
     try
     {
-      var tokens = await _jwtTokenService.RefreshTokensAsync(request.RefreshToken);
+      var deviceInfo = GetDeviceInfoFromRequest(); // Add this line
+      var tokens = await _jwtTokenService.RefreshTokensAsync(request.RefreshToken, deviceInfo); // Pass deviceInfo
       return Ok(tokens);
     }
     catch (SecurityTokenValidationException ex)
@@ -502,6 +507,40 @@ public class AccountsController : BaseController
     });
   }
 
+  [HttpGet("devices")]
+  [Authorize(AuthenticationSchemes = "Bearer")]
+  public async Task<IActionResult> GetDeviceSessions()
+  {
+    var userId = User.GetIdentityId();
+    
+    // Get the JTI from current access token
+    var currentJti = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+    
+    var deviceSessions = await _jwtTokenService.GetUserDeviceSessionsAsync(userId, currentJti);
+
+    return Ok(new { devices = deviceSessions });
+  }
+
+  [HttpPost("devices/revoke")]
+  [Authorize(AuthenticationSchemes = "Bearer")]
+  public async Task<IActionResult> RevokeDeviceSession([FromBody] RevokeDeviceRequest request)
+  {
+    if (string.IsNullOrEmpty(request.RefreshToken))
+    {
+      return BadRequest(new { error = "RefreshToken is required." });
+    }
+
+    var userId = User.GetIdentityId();
+    var success = await _jwtTokenService.RevokeDeviceSessionAsync(request.RefreshToken, userId);
+
+    if (!success)
+    {
+      return BadRequest(new { error = "Device session not found or already revoked." });
+    }
+
+    return Ok(new { message = "Device session revoked successfully." });
+  }
+
   [HttpPost("2fa/login")]
   public async Task<IActionResult> LoginWith2fa([FromBody] LoginWith2faRequest request)
   {
@@ -529,7 +568,8 @@ public class AccountsController : BaseController
     if (appUser == null)
       return BadRequest(new { error = "App user not found" });
 
-    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value);
+    var deviceInfo = GetDeviceInfoFromRequest(); // Add this line
+    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo); // Pass deviceInfo
     return Ok(tokens);
   }
 
@@ -559,7 +599,8 @@ public class AccountsController : BaseController
     if (appUser == null)
       return BadRequest(new { error = "App user not found" });
 
-    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value);
+    var deviceInfo = GetDeviceInfoFromRequest(); // Add this line
+    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo); // Pass deviceInfo
     return Ok(tokens);
   }
 
@@ -642,6 +683,117 @@ public class AccountsController : BaseController
         System.Web.HttpUtility.UrlEncode("AppTemplate"),
         System.Web.HttpUtility.UrlEncode(email),
         unformattedKey);
+  }
+
+  private DeviceInfo GetDeviceInfoFromRequest()
+  {
+    var userAgent = Request.Headers.UserAgent.ToString();
+    var ipAddress = GetClientIpAddress();
+    var (platform, browser, deviceName) = ParseUserAgent(userAgent);
+
+    return new DeviceInfo(
+        UserAgent: userAgent,
+        IpAddress: ipAddress,
+        DeviceName: deviceName,
+        Platform: platform,
+        Browser: browser);
+  }
+
+  private string GetClientIpAddress()
+  {
+    var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+    if (!string.IsNullOrEmpty(forwardedFor))
+    {
+      return forwardedFor.Split(',')[0].Trim();
+    }
+
+    var realIp = Request.Headers["X-Real-IP"].FirstOrDefault();
+    if (!string.IsNullOrEmpty(realIp))
+    {
+      return realIp;
+    }
+
+    return Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+  }
+
+  private (string platform, string browser, string deviceName) ParseUserAgent(string userAgent)
+  {
+    if (string.IsNullOrEmpty(userAgent))
+    {
+      return ("Unknown", "Unknown", "Unknown Device");
+    }
+
+    var parser = Parser.GetDefault();
+    var clientInfo = parser.Parse(userAgent);
+    
+    var platform = clientInfo.OS.Family ?? "Unknown";
+    var browser = clientInfo.Browser.Family ?? "Unknown";
+    
+    // Check for custom browser info header first (for Brave detection)
+    var customBrowserInfo = Request.Headers["X-Browser-Info"].FirstOrDefault();
+    if (!string.IsNullOrEmpty(customBrowserInfo) && customBrowserInfo.Equals("Brave", StringComparison.OrdinalIgnoreCase))
+    {
+      browser = "Brave";
+    }
+    else
+    {
+      // Enhanced browser detection - order matters!
+      var userAgentLower = userAgent.ToLowerInvariant();
+      
+      // Check for specific Chromium-based browsers first (before checking for Chrome)
+      if (userAgentLower.Contains("samsungbrowser"))
+      {
+        browser = "Samsung Browser";
+      }
+      else if (userAgentLower.Contains("vivaldi"))
+      {
+        browser = "Vivaldi";
+      }
+      else if (userAgentLower.Contains("edg/") || userAgentLower.Contains("edge/"))
+      {
+        browser = "Edge";
+      }
+      else if (userAgentLower.Contains("opr/") || userAgentLower.Contains("opera"))
+      {
+        browser = "Opera";
+      }
+      else if (userAgentLower.Contains("yabrowser") || userAgentLower.Contains("yandex"))
+      {
+        browser = "Yandex";
+      }
+      else if (userAgentLower.Contains("brave"))
+      {
+        browser = "Brave";
+      }
+      else if (browser.Contains("Chrome"))
+      {
+        browser = "Chrome";
+      }
+      else if (browser.Contains("Firefox"))
+      {
+        browser = "Firefox";
+      }
+      else if (browser.Contains("Safari") && !browser.Contains("Chrome"))
+      {
+        browser = "Safari";
+      }
+    }
+    
+    // Clean up platform names
+    if (platform.Contains("Windows"))
+      platform = "Windows";
+    else if (platform.Contains("Mac") || platform.Contains("macOS"))
+      platform = "macOS";
+    else if (platform.Contains("Linux"))
+      platform = "Linux";
+    else if (platform.Contains("Android"))
+      platform = "Android";
+    else if (platform.Contains("iOS"))
+      platform = "iOS";
+    
+    var deviceName = $"{platform} - {browser}";
+
+    return (platform, browser, deviceName);
   }
 }
 
@@ -756,6 +908,12 @@ public class RefreshTokenRequest
 }
 
 public class LogoutRequest
+{
+  [Required]
+  public string RefreshToken { get; set; }
+}
+
+public class RevokeDeviceRequest
 {
   [Required]
   public string RefreshToken { get; set; }
