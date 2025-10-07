@@ -38,7 +38,6 @@ builder.AddServiceDefaults();
 // Configure Identity for user management only (no UI components)
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     options.SignIn.RequireConfirmedAccount = false)
-    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // Only add API controllers

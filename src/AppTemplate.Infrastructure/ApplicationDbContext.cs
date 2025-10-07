@@ -14,7 +14,7 @@ using System.Reflection.Emit;
 
 namespace AppTemplate.Infrastructure;
 
-public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
+public class ApplicationDbContext : IdentityUserContext<IdentityUser>, IUnitOfWork
 {
   private readonly IDateTimeProvider _dateTimeProvider;
   private static readonly JsonSerializerSettings JsonSerializerSettings = new()
@@ -40,6 +40,10 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
   protected override void OnModelCreating(ModelBuilder builder)
   {
     base.OnModelCreating(builder);
+
+    // Since we're using IdentityUserContext, we only need to ignore user claims
+    // as roles are not included by default
+    builder.Ignore<IdentityUserClaim<string>>();
 
     builder.Entity<IdentityUser>(b =>
     {
@@ -69,7 +73,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
       NormalizedEmail = "ADMIN@EXAMPLE.COM",
       EmailConfirmed = true,
       PasswordHash = hashedPassword,
-      SecurityStamp = "fixed-security-stamp-for-seeding" // <-- Use a fixed value instead of Guid.NewGuid()
+      SecurityStamp = "fixed-security-stamp-for-seeding"
     });
 
     builder.Entity<RefreshToken>(entity =>
