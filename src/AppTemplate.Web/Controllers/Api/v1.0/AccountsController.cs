@@ -21,7 +21,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using UAParser; // Add this using statement
+using UAParser;
 
 namespace AppTemplate.Web.Controllers;
 
@@ -35,7 +35,7 @@ public class AccountsController : BaseController
   private readonly SignInManager<IdentityUser> _signInManager;
   private readonly IAppUsersService _appUsersService;
   private readonly IUnitOfWork _unitOfWork;
-  private readonly IEmailSender _emailSender;
+  private readonly IAccountEmailService _accountEmailService; // Changed from IEmailSender
   private readonly IJwtTokenService _jwtTokenService;
 
   public AccountsController(
@@ -43,7 +43,7 @@ public class AccountsController : BaseController
       SignInManager<IdentityUser> signInManager,
       IAppUsersService appUsersService,
       IUnitOfWork unitOfWork,
-      IEmailSender emailSender,
+      IAccountEmailService accountEmailService, // Changed parameter
       IJwtTokenService jwtTokenService,
       ISender sender,
       IErrorHandlingService errorHandlingService
@@ -51,7 +51,7 @@ public class AccountsController : BaseController
   {
     _userManager = userManager;
     _signInManager = signInManager;
-    _emailSender = emailSender;
+    _accountEmailService = accountEmailService; // Updated assignment
     _appUsersService = appUsersService;
     _unitOfWork = unitOfWork;
     _jwtTokenService = jwtTokenService;
@@ -119,7 +119,8 @@ public class AccountsController : BaseController
     var code = await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-    await ((AzureEmailSender)_emailSender).SendEmailChangeConfirmationAsync(
+    // No more casting needed!
+    await _accountEmailService.SendEmailChangeConfirmationAsync(
         request.NewEmail,
         userId,
         code,
@@ -148,7 +149,7 @@ public class AccountsController : BaseController
     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-    await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+    await _accountEmailService.SendConfirmationEmailAsync(
         email,
         userId,
         code,
@@ -176,7 +177,7 @@ public class AccountsController : BaseController
     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-    await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+    await _accountEmailService.SendConfirmationEmailAsync(
         request.Email,
         userId,
         code,
@@ -245,7 +246,7 @@ public class AccountsController : BaseController
     var code = await _userManager.GeneratePasswordResetTokenAsync(user);
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-    await ((AzureEmailSender)_emailSender).SendPasswordResetAsync(
+    await _accountEmailService.SendPasswordResetAsync(
         request.Email,
         code,
         user.UserName);
@@ -276,7 +277,7 @@ public class AccountsController : BaseController
         return BadRequest(new { error = "Email not confirmed" });
 
       var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
-      if (appUser == null)
+      if (!appUser.IsSuccess) // Changed from appUser == null
         return BadRequest(new { error = "App user not found" });
 
       // Check if 2FA is required
@@ -308,13 +309,22 @@ public class AccountsController : BaseController
   {
     try
     {
-      var deviceInfo = GetDeviceInfoFromRequest(); // Add this line
-      var tokens = await _jwtTokenService.RefreshTokensAsync(request.RefreshToken, deviceInfo); // Pass deviceInfo
+      var deviceInfo = GetDeviceInfoFromRequest();
+      var tokens = await _jwtTokenService.RefreshTokensAsync(request.RefreshToken, deviceInfo);
       return Ok(tokens);
     }
     catch (SecurityTokenValidationException ex)
     {
       return BadRequest(new { error = ex.Message });
+    }
+    catch (InvalidOperationException ex)
+    {
+      return BadRequest(new { error = ex.Message });
+    }
+    catch (Exception ex)
+    {
+      // Log the exception here if you have a logger
+      return BadRequest(new { error = "An error occurred while refreshing the token." });
     }
   }
 
@@ -512,10 +522,10 @@ public class AccountsController : BaseController
   public async Task<IActionResult> GetDeviceSessions()
   {
     var userId = User.GetIdentityId();
-    
+
     // Get the JTI from current access token
     var currentJti = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
-    
+
     var deviceSessions = await _jwtTokenService.GetUserDeviceSessionsAsync(userId, currentJti);
 
     return Ok(new { devices = deviceSessions });
@@ -565,11 +575,11 @@ public class AccountsController : BaseController
     }
 
     var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
-    if (appUser == null)
+    if (!appUser.IsSuccess) // Changed from appUser == null
       return BadRequest(new { error = "App user not found" });
 
-    var deviceInfo = GetDeviceInfoFromRequest(); // Add this line
-    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo); // Pass deviceInfo
+    var deviceInfo = GetDeviceInfoFromRequest();
+    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
     return Ok(tokens);
   }
 
@@ -596,11 +606,11 @@ public class AccountsController : BaseController
     }
 
     var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
-    if (appUser == null)
+    if (!appUser.IsSuccess) // Changed from appUser == null
       return BadRequest(new { error = "App user not found" });
 
-    var deviceInfo = GetDeviceInfoFromRequest(); // Add this line
-    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo); // Pass deviceInfo
+    var deviceInfo = GetDeviceInfoFromRequest();
+    var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
     return Ok(tokens);
   }
 
@@ -647,7 +657,7 @@ public class AccountsController : BaseController
     await _unitOfWork.SaveChangesAsync();
 
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-    await ((AzureEmailSender)_emailSender).SendConfirmationEmailAsync(
+    await _accountEmailService.SendConfirmationEmailAsync(
         request.Email,
         identityId,
         code,
@@ -725,10 +735,10 @@ public class AccountsController : BaseController
 
     var parser = Parser.GetDefault();
     var clientInfo = parser.Parse(userAgent);
-    
+
     var platform = clientInfo.OS.Family ?? "Unknown";
     var browser = clientInfo.Browser.Family ?? "Unknown";
-    
+
     // Check for custom browser info header first (for Brave detection)
     var customBrowserInfo = Request.Headers["X-Browser-Info"].FirstOrDefault();
     if (!string.IsNullOrEmpty(customBrowserInfo) && customBrowserInfo.Equals("Brave", StringComparison.OrdinalIgnoreCase))
@@ -739,7 +749,7 @@ public class AccountsController : BaseController
     {
       // Enhanced browser detection - order matters!
       var userAgentLower = userAgent.ToLowerInvariant();
-      
+
       // Check for specific Chromium-based browsers first (before checking for Chrome)
       if (userAgentLower.Contains("samsungbrowser"))
       {
@@ -778,7 +788,7 @@ public class AccountsController : BaseController
         browser = "Safari";
       }
     }
-    
+
     // Clean up platform names
     if (platform.Contains("Windows"))
       platform = "Windows";
@@ -790,7 +800,7 @@ public class AccountsController : BaseController
       platform = "Android";
     else if (platform.Contains("iOS"))
       platform = "iOS";
-    
+
     var deviceName = $"{platform} - {browser}";
 
     return (platform, browser, deviceName);

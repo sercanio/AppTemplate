@@ -1,6 +1,7 @@
 using AppTemplate.Application.Behaviors;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Application.Services.Roles;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,9 +24,7 @@ public static class DependencyInjection
             configuration.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
 
             configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
-
             configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
-
             configuration.AddOpenBehavior(typeof(QueryCachingBehavior<,>));
         });
     }
@@ -34,6 +33,9 @@ public static class DependencyInjection
     {
         services.AddScoped<IRolesService, RolesService>();
         services.AddScoped<IAppUsersService, AppUsersService>();
+        
+        // Add the account email service
+        services.AddScoped<IAccountEmailService, AccountEmailService>();
     }
 
     private static void AddCache(IServiceCollection services)
