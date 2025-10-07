@@ -5,4 +5,4 @@ namespace AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions
 
 public sealed record GetAllPermissionsQuery(
     int PageIndex,
-    int PageSize) : IQuery<IPaginatedList<GetAllPermissionsQueryResponse>>;
+    int PageSize) : IQuery<PaginatedList<GetAllPermissionsQueryResponse>>;

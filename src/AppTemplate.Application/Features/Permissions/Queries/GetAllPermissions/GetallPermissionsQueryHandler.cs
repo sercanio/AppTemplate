@@ -6,11 +6,11 @@ using Ardalis.Result;
 namespace AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 
 public class GetallPermissionsQueryHandler(IPermissionsRepository permissionRepository)
-    : IQueryHandler<GetAllPermissionsQuery, IPaginatedList<GetAllPermissionsQueryResponse>>
+    : IQueryHandler<GetAllPermissionsQuery, PaginatedList<GetAllPermissionsQueryResponse>>
 {
     private readonly IPermissionsRepository _permissionRepository = permissionRepository;
 
-    public async Task<Result<IPaginatedList<GetAllPermissionsQueryResponse>>> Handle(
+    public async Task<Result<PaginatedList<GetAllPermissionsQueryResponse>>> Handle(
         GetAllPermissionsQuery request,
         CancellationToken cancellationToken)
     {
@@ -36,6 +36,6 @@ public class GetallPermissionsQueryHandler(IPermissionsRepository permissionRepo
             request.PageSize
         );
 
-        return Result.Success<IPaginatedList<GetAllPermissionsQueryResponse>>(paginatedList);
+        return Result.Success<PaginatedList<GetAllPermissionsQueryResponse>>(paginatedList);
     }
 }

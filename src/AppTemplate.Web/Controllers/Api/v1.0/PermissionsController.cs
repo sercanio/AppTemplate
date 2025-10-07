@@ -30,7 +30,7 @@ public class PermissionsController : BaseController
         CancellationToken cancellationToken = default)
     {
         var query = new GetAllPermissionsQuery(pageIndex, pageSize);
-        Result<IPaginatedList<GetAllPermissionsQueryResponse>> result = await _sender.Send(query, cancellationToken);
+        Result<PaginatedList<GetAllPermissionsQueryResponse>> result = await _sender.Send(query, cancellationToken);
         if (!result.IsSuccess)
         {
             return _errorHandlingService.HandleErrorResponse(result);
