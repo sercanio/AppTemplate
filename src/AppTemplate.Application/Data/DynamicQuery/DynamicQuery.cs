@@ -1,6 +1,6 @@
 namespace AppTemplate.Application.Data.DynamicQuery;
 
-public class DynamicQuery
+public sealed record DynamicQuery
 {
     public IEnumerable<Sort>? Sort { get; set; }
     public Filter? Filter { get; set; }

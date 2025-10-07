@@ -1,6 +1,6 @@
 namespace AppTemplate.Application.Data.DynamicQuery;
 
-public class Sort
+public sealed record Sort
 {
     public string Field { get; set; }
     public string Dir { get; set; }

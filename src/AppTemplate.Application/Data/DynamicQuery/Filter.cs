@@ -1,6 +1,6 @@
 namespace AppTemplate.Application.Data.DynamicQuery;
 
-public class Filter
+public sealed record Filter
 {
     public string Field { get; set; }
     public string Operator { get; set; }
