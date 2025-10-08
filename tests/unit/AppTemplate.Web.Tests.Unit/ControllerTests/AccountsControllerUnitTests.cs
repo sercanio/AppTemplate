@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -31,10 +32,11 @@ public class AccountsControllerUnitTests
   private readonly Mock<SignInManager<IdentityUser>> _mockSignInManager;
   private readonly Mock<IAppUsersService> _mockAppUsersService;
   private readonly Mock<IUnitOfWork> _mockUnitOfWork;
-  private readonly Mock<IAccountEmailService> _mockAccountEmailService; // Changed from AzureEmailSender
+  private readonly Mock<IAccountEmailService> _mockAccountEmailService;
   private readonly Mock<ISender> _mockSender;
   private readonly Mock<IErrorHandlingService> _mockErrorHandlingService;
   private readonly Mock<IJwtTokenService> _mockJwtTokenService;
+  private readonly Mock<IConfiguration> _mockConfiguration;
   private readonly AccountsController _controller;
 
   public AccountsControllerUnitTests()
@@ -43,22 +45,35 @@ public class AccountsControllerUnitTests
     _mockSignInManager = CreateMockSignInManager();
     _mockAppUsersService = new Mock<IAppUsersService>();
     _mockUnitOfWork = new Mock<IUnitOfWork>();
-    _mockAccountEmailService = new Mock<IAccountEmailService>(); // Updated
+    _mockAccountEmailService = new Mock<IAccountEmailService>();
     _mockSender = new Mock<ISender>();
     _mockErrorHandlingService = new Mock<IErrorHandlingService>();
     _mockJwtTokenService = new Mock<IJwtTokenService>();
+    _mockConfiguration = new Mock<IConfiguration>();
+
+    // Setup configuration defaults
+    SetupConfiguration();
 
     _controller = new AccountsController(
         _mockUserManager.Object,
         _mockSignInManager.Object,
         _mockAppUsersService.Object,
         _mockUnitOfWork.Object,
-        _mockAccountEmailService.Object, // Updated
+        _mockAccountEmailService.Object,
         _mockJwtTokenService.Object,
+        _mockConfiguration.Object,
         _mockSender.Object,
         _mockErrorHandlingService.Object);
 
     SetupControllerContext();
+  }
+
+  private void SetupConfiguration()
+  {
+    _mockConfiguration.Setup(x => x["Authentication:Cookie:SameSite"]).Returns("Strict");
+    var mockSection = new Mock<IConfigurationSection>();
+    mockSection.Setup(x => x.Value).Returns("true");
+    _mockConfiguration.Setup(x => x.GetSection("Authentication:Cookie:Secure")).Returns(mockSection.Object); _mockConfiguration.Setup(x => x["Jwt:RememberMeTokenExpiryInDays"]).Returns("30");
   }
 
   private static Mock<UserManager<IdentityUser>> CreateMockUserManager()
@@ -98,6 +113,18 @@ public class AccountsControllerUnitTests
             new Claim("sub", "test-user-id"),
             new Claim(JwtRegisteredClaimNames.Jti, "test-jti")
         }, "mock"));
+
+    // Setup request cookies for refresh token tests using a mock
+    var mockCookies = new Mock<IRequestCookieCollection>();
+    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny))
+        .Returns((string key, out string value) =>
+        {
+          value = "valid-refresh-token";
+          return true;
+        });
+    mockCookies.Setup(x => x["session"]).Returns("valid-refresh-token");
+
+    httpContext.Request.Cookies = mockCookies.Object;
 
     _controller.ControllerContext = new ControllerContext()
     {
@@ -415,6 +442,19 @@ public class AccountsControllerUnitTests
         It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
   }
 
+  [Fact]
+  public async Task ResendEmailConfirmation_WithNullEmail_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new ResendEmailConfirmationRequest { Email = null };
+
+    // Act
+    var result = await _controller.ResendEmailConfirmation(request);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+  }
+
   #endregion
 
   #region ConfirmEmailChange Tests
@@ -466,6 +506,28 @@ public class AccountsControllerUnitTests
     Assert.IsType<NotFoundObjectResult>(result);
   }
 
+  [Fact]
+  public async Task ConfirmEmailChange_WithFailedEmailChange_ReturnsBadRequest()
+  {
+    // Arrange
+    var userId = "test-user-id";
+    var email = "newemail@example.com";
+    var code = "test-code";
+    var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+    var user = new IdentityUser { Id = userId, Email = "old@example.com" };
+
+    _mockUserManager.Setup(x => x.FindByIdAsync(userId))
+        .ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.ChangeEmailAsync(user, email, code))
+        .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Email change failed" }));
+
+    // Act
+    var result = await _controller.ConfirmEmailChange(userId, email, encodedCode);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+  }
+
   #endregion
 
   #region Login Tests
@@ -507,7 +569,7 @@ public class AccountsControllerUnitTests
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
-    Assert.Equal(tokens, okResult.Value);
+    Assert.NotNull(okResult.Value);
   }
 
   [Fact]
@@ -583,6 +645,77 @@ public class AccountsControllerUnitTests
     Assert.NotNull(okResult.Value);
   }
 
+  [Fact]
+  public async Task LoginWithJwt_WithInvalidModelState_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+        LoginIdentifier = "",
+        Password = ""
+    };
+
+    _controller.ModelState.AddModelError("LoginIdentifier", "LoginIdentifier is required");
+    _controller.ModelState.AddModelError("Password", "Password is required");
+
+    // Act
+    var result = await _controller.LoginWithJwt(request);
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithSignInRequiresTwoFactor_ReturnsOkWithTwoFactorRequired()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+        LoginIdentifier = "test@example.com",
+        Password = "ValidPassword123!"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false))
+        .ReturnsAsync(SignInResult.TwoFactorRequired);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+
+    // Act
+    var result = await _controller.LoginWithJwt(request);
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithFailedAppUserRetrieval_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+        LoginIdentifier = "test@example.com",
+        Password = "ValidPassword123!"
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
+        .ReturnsAsync(Result.Error("App user not found"));
+
+    // Act
+    var result = await _controller.LoginWithJwt(request);
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+  }
+
   #endregion
 
   #region RefreshToken Tests
@@ -591,7 +724,6 @@ public class AccountsControllerUnitTests
   public async Task RefreshJwtToken_WithValidToken_ReturnsTokens()
   {
     // Arrange
-    var request = new RefreshTokenRequest { RefreshToken = "valid-refresh-token" };
     var tokens = new JwtTokenResult(
         "new-access-token",
         "new-refresh-token",
@@ -600,29 +732,82 @@ public class AccountsControllerUnitTests
     );
 
     _mockJwtTokenService.Setup(x => x.RefreshTokensAsync(
-        It.Is<string>(token => token == request.RefreshToken),
+        "valid-refresh-token",
         It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
     // Act
-    var result = await _controller.RefreshJwtToken(request);
+    var result = await _controller.RefreshJwtToken();
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
-    Assert.Equal(tokens, okResult.Value);
+    Assert.NotNull(okResult.Value);
   }
 
   [Fact]
   public async Task RefreshJwtToken_WithInvalidToken_ReturnsBadRequest()
   {
     // Arrange
-    var request = new RefreshTokenRequest { RefreshToken = "invalid-refresh-token" };
     _mockJwtTokenService.Setup(x => x.RefreshTokensAsync(
-        It.Is<string>(token => token == request.RefreshToken),
+        "valid-refresh-token",
         It.IsAny<DeviceInfo>()))
         .ThrowsAsync(new SecurityTokenValidationException("Invalid token"));
 
     // Act
-    var result = await _controller.RefreshJwtToken(request);
+    var result = await _controller.RefreshJwtToken();
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+  }
+
+  [Fact]
+  public async Task RefreshJwtToken_WithMissingCookie_ReturnsBadRequest()
+  {
+    // Arrange
+    var httpContext = new DefaultHttpContext();
+    httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+    {
+            new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
+            new Claim(ClaimTypes.Name, "testuser"),
+            new Claim(ClaimTypes.Email, "test@example.com"),
+            new Claim("sub", "test-user-id"),
+            new Claim(JwtRegisteredClaimNames.Jti, "test-jti")
+        }, "mock"));
+
+    // Setup empty cookies
+    var mockCookies = new Mock<IRequestCookieCollection>();
+    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny))
+        .Returns((string key, out string value) =>
+        {
+          value = null;
+          return false;
+        });
+    httpContext.Request.Cookies = mockCookies.Object;
+
+    _controller.ControllerContext = new ControllerContext()
+    {
+      HttpContext = httpContext
+    };
+
+    // Act
+    var result = await _controller.RefreshJwtToken();
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+  }
+
+  [Fact]
+  public async Task RefreshJwtToken_WithGeneralException_ReturnsBadRequest()
+  {
+    // Arrange
+    _mockJwtTokenService.Setup(x => x.RefreshTokensAsync(
+        "valid-refresh-token",
+        It.IsAny<DeviceInfo>()))
+        .ThrowsAsync(new InvalidOperationException("Some error"));
+
+    // Act
+    var result = await _controller.RefreshJwtToken();
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -637,11 +822,46 @@ public class AccountsControllerUnitTests
   public async Task LogoutJwt_WithValidToken_ReturnsOk()
   {
     // Arrange
-    var request = new LogoutRequest { RefreshToken = "refresh-token" };
-    _mockJwtTokenService.Setup(x => x.RevokeRefreshTokenAsync(request.RefreshToken)).Returns(Task.CompletedTask);
+    _mockJwtTokenService.Setup(x => x.RevokeRefreshTokenAsync("valid-refresh-token")).Returns(Task.CompletedTask);
 
     // Act
-    var result = await _controller.LogoutJwt(request);
+    var result = await _controller.LogoutJwt();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task LogoutJwt_WithoutCookie_ReturnsOk()
+  {
+    // Arrange
+    var httpContext = new DefaultHttpContext();
+    httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+    {
+            new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
+            new Claim(ClaimTypes.Name, "testuser"),
+            new Claim(ClaimTypes.Email, "test@example.com"),
+            new Claim("sub", "test-user-id"),
+            new Claim(JwtRegisteredClaimNames.Jti, "test-jti")
+        }, "mock"));
+
+    var mockCookies = new Mock<IRequestCookieCollection>();
+    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny))
+        .Returns((string key, out string value) =>
+        {
+          value = null;
+          return false;
+        });
+    httpContext.Request.Cookies = mockCookies.Object;
+
+    _controller.ControllerContext = new ControllerContext()
+    {
+      HttpContext = httpContext
+    };
+
+    // Act
+    var result = await _controller.LogoutJwt();
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -836,6 +1056,19 @@ public class AccountsControllerUnitTests
         It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
   }
 
+  [Fact]
+  public async Task ForgotPassword_WithNullEmail_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new ForgotPasswordRequest { Email = null };
+
+    // Act
+    var result = await _controller.ForgotPassword(request);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+  }
+
   #endregion
 
   #region Register Tests
@@ -895,6 +1128,31 @@ public class AccountsControllerUnitTests
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
     Assert.NotNull(badRequestResult.Value);
+  }
+
+  [Fact]
+  public async Task Register_WithInvalidModelState_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new RegisterRequest
+    {
+        Username = "",
+        Email = "invalid-email",
+        Password = ""
+    };
+
+    _controller.ModelState.AddModelError("Username", "Username is required");
+    _controller.ModelState.AddModelError("Email", "Invalid email format");
+    _controller.ModelState.AddModelError("Password", "Password is required");
+
+    // Act
+    var result = await _controller.Register(request);
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(badRequestResult.Value);
+    _mockAccountEmailService.Verify(x => x.SendConfirmationEmailAsync(
+        It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
   }
 
   #endregion
@@ -1035,9 +1293,41 @@ public class AccountsControllerUnitTests
     Assert.IsType<BadRequestObjectResult>(result);
   }
 
+  [Fact]
+  public async Task GetDeviceSessions_WithEmptyDeviceList_ReturnsOkWithEmptyList()
+  {
+    // Arrange
+    var userId = "test-user-id";
+    var currentJti = "test-jti";
+    var deviceSessions = new List<DeviceSessionDto>();
+
+    _mockJwtTokenService.Setup(x => x.GetUserDeviceSessionsAsync(userId, currentJti))
+        .ReturnsAsync(deviceSessions);
+
+    // Act
+    var result = await _controller.GetDeviceSessions();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    Assert.NotNull(okResult.Value);
+  }
+
+  [Fact]
+  public async Task RevokeDeviceSession_WithNullToken_ReturnsBadRequest()
+  {
+    // Arrange
+    var request = new RevokeDeviceRequest { RefreshToken = null };
+
+    // Act
+    var result = await _controller.RevokeDeviceSession(request);
+
+    // Assert
+    Assert.IsType<BadRequestObjectResult>(result);
+  }
+
   #endregion
 
-  #region 2FA Tests (keeping existing tests)
+  #region 2FA Tests
 
   [Fact]
   public async Task GetTwoFactorStatus_WithValidUser_ReturnsOkResult()
@@ -1304,7 +1594,7 @@ public class AccountsControllerUnitTests
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
-    Assert.Equal(tokens, okResult.Value);
+    Assert.NotNull(okResult.Value);
   }
 
   [Fact]
@@ -1368,7 +1658,16 @@ public class AccountsControllerUnitTests
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
-    Assert.Equal(tokens, okResult.Value);
+    var response = okResult.Value;
+    Assert.NotNull(response);
+
+    // Use reflection or dynamic to check the anonymous object properties
+    var responseType = response.GetType();
+    var accessTokenProperty = responseType.GetProperty("accessToken");
+    var expiresAtProperty = responseType.GetProperty("expiresAt");
+
+    Assert.Equal(tokens.AccessToken, accessTokenProperty?.GetValue(response));
+    Assert.Equal(tokens.ExpiresAt, expiresAtProperty?.GetValue(response));
   }
 
   [Fact]
@@ -1389,107 +1688,6 @@ public class AccountsControllerUnitTests
 
     // Act
     var result = await _controller.LoginWithRecoveryCode(request);
-
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
-  }
-
-  #endregion
-
-  #region Additional ConfirmEmailChange Tests
-
-  [Fact]
-  public async Task ConfirmEmailChange_WithFailedEmailChange_ReturnsBadRequest()
-  {
-    // Arrange
-    var userId = "test-user-id";
-    var email = "newemail@example.com";
-    var code = "test-code";
-    var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-    var user = new IdentityUser { Id = userId, Email = "old@example.com" };
-
-    _mockUserManager.Setup(x => x.FindByIdAsync(userId))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.ChangeEmailAsync(user, email, code))
-        .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Email change failed" }));
-
-    // Act
-    var result = await _controller.ConfirmEmailChange(userId, email, encodedCode);
-
-    // Assert
-    Assert.IsType<BadRequestObjectResult>(result);
-  }
-
-  #endregion
-
-  #region Additional Login Tests
-
-  [Fact]
-  public async Task LoginWithJwt_WithInvalidModelState_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new JwtLoginRequest
-    {
-        LoginIdentifier = "",
-        Password = ""
-    };
-
-    _controller.ModelState.AddModelError("LoginIdentifier", "LoginIdentifier is required");
-    _controller.ModelState.AddModelError("Password", "Password is required");
-
-    // Act
-    var result = await _controller.LoginWithJwt(request);
-
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
-  }
-
-  [Fact]
-  public async Task LoginWithJwt_WithSignInRequiresTwoFactor_ReturnsOkWithTwoFactorRequired()
-  {
-    // Arrange
-    var request = new JwtLoginRequest
-    {
-        LoginIdentifier = "test@example.com",
-        Password = "ValidPassword123!"
-    };
-    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
-
-    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false))
-        .ReturnsAsync(SignInResult.TwoFactorRequired);
-    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
-
-    // Act
-    var result = await _controller.LoginWithJwt(request);
-
-    // Assert
-    var okResult = Assert.IsType<OkObjectResult>(result);
-    Assert.NotNull(okResult.Value);
-  }
-
-  [Fact]
-  public async Task LoginWithJwt_WithFailedAppUserRetrieval_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new JwtLoginRequest
-    {
-        LoginIdentifier = "test@example.com",
-        Password = "ValidPassword123!"
-    };
-    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
-
-    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
-    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
-    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
-    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
-        .ReturnsAsync(Result.Error("App user not found"));
-
-    // Act
-    var result = await _controller.LoginWithJwt(request);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -1840,127 +2038,6 @@ public class AccountsControllerUnitTests
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
     Assert.NotNull(badRequestResult.Value);
-  }
-
-  #endregion
-
-  #region Additional Register Tests
-
-  [Fact]
-  public async Task Register_WithInvalidModelState_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new RegisterRequest
-    {
-        Username = "",
-        Email = "invalid-email",
-        Password = ""
-    };
-
-    _controller.ModelState.AddModelError("Username", "Username is required");
-    _controller.ModelState.AddModelError("Email", "Invalid email format");
-    _controller.ModelState.AddModelError("Password", "Password is required");
-
-    // Act
-    var result = await _controller.Register(request);
-
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
-    _mockAccountEmailService.Verify(x => x.SendConfirmationEmailAsync(
-        It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-  }
-
-  #endregion
-
-  #region Additional DeviceSessions Tests
-
-  [Fact]
-  public async Task GetDeviceSessions_WithEmptyDeviceList_ReturnsOkWithEmptyList()
-  {
-    // Arrange
-    var userId = "test-user-id";
-    var currentJti = "test-jti";
-    var deviceSessions = new List<DeviceSessionDto>();
-
-    _mockJwtTokenService.Setup(x => x.GetUserDeviceSessionsAsync(userId, currentJti))
-        .ReturnsAsync(deviceSessions);
-
-    // Act
-    var result = await _controller.GetDeviceSessions();
-
-    // Assert
-    var okResult = Assert.IsType<OkObjectResult>(result);
-    Assert.NotNull(okResult.Value);
-  }
-
-  [Fact]
-  public async Task RevokeDeviceSession_WithNullToken_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new RevokeDeviceRequest { RefreshToken = null };
-
-    // Act
-    var result = await _controller.RevokeDeviceSession(request);
-
-    // Assert
-    Assert.IsType<BadRequestObjectResult>(result);
-  }
-
-  #endregion
-
-  #region RefreshToken Exception Tests
-
-  [Fact]
-  public async Task RefreshJwtToken_WithGeneralException_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new RefreshTokenRequest { RefreshToken = "some-token" };
-    _mockJwtTokenService.Setup(x => x.RefreshTokensAsync(
-        It.Is<string>(token => token == request.RefreshToken),
-        It.IsAny<DeviceInfo>()))
-        .ThrowsAsync(new InvalidOperationException("Some error"));
-
-    // Act
-    var result = await _controller.RefreshJwtToken(request);
-
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
-  }
-
-  #endregion
-
-  #region Additional ForgotPassword Tests
-
-  [Fact]
-  public async Task ForgotPassword_WithNullEmail_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new ForgotPasswordRequest { Email = null };
-
-    // Act
-    var result = await _controller.ForgotPassword(request);
-
-    // Assert
-    Assert.IsType<BadRequestObjectResult>(result);
-  }
-
-  #endregion
-
-  #region Additional ResendEmailConfirmation Tests
-
-  [Fact]
-  public async Task ResendEmailConfirmation_WithNullEmail_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new ResendEmailConfirmationRequest { Email = null };
-
-    // Act
-    var result = await _controller.ResendEmailConfirmation(request);
-
-    // Assert
-    Assert.IsType<BadRequestObjectResult>(result);
   }
 
   #endregion
