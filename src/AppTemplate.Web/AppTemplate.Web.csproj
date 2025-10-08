@@ -53,8 +53,4 @@
     <ProjectReference Include="..\AppTemplate.ServiceDefaults\AppTemplate.ServiceDefaults.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\lib\" />
-  </ItemGroup>
-
 </Project>
