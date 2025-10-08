@@ -35,26 +35,29 @@ public class AccountsController : BaseController
   private readonly SignInManager<IdentityUser> _signInManager;
   private readonly IAppUsersService _appUsersService;
   private readonly IUnitOfWork _unitOfWork;
-  private readonly IAccountEmailService _accountEmailService; // Changed from IEmailSender
+  private readonly IAccountEmailService _accountEmailService;
   private readonly IJwtTokenService _jwtTokenService;
+  private readonly IConfiguration _configuration;
 
   public AccountsController(
       UserManager<IdentityUser> userManager,
       SignInManager<IdentityUser> signInManager,
       IAppUsersService appUsersService,
       IUnitOfWork unitOfWork,
-      IAccountEmailService accountEmailService, // Changed parameter
+      IAccountEmailService accountEmailService,
       IJwtTokenService jwtTokenService,
+      IConfiguration configuration, 
       ISender sender,
       IErrorHandlingService errorHandlingService
       ) : base(sender, errorHandlingService)
   {
     _userManager = userManager;
     _signInManager = signInManager;
-    _accountEmailService = accountEmailService; // Updated assignment
+    _accountEmailService = accountEmailService;
     _appUsersService = appUsersService;
     _unitOfWork = unitOfWork;
     _jwtTokenService = jwtTokenService;
+    _configuration = configuration; 
   }
 
   private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
@@ -277,7 +280,7 @@ public class AccountsController : BaseController
         return BadRequest(new { error = "Email not confirmed" });
 
       var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
-      if (!appUser.IsSuccess) // Changed from appUser == null
+      if (!appUser.IsSuccess)
         return BadRequest(new { error = "App user not found" });
 
       // Check if 2FA is required
@@ -291,8 +294,17 @@ public class AccountsController : BaseController
       }
 
       var deviceInfo = GetDeviceInfoFromRequest();
-      var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo); // Pass deviceInfo
-      return Ok(tokens);
+      var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
+
+      // Set refresh token as HTTP-only cookie with RememberMe consideration
+      SetRefreshTokenCookie(tokens.RefreshToken, request.RememberMe);
+
+      // Return only access token in response body
+      return Ok(new
+      {
+        accessToken = tokens.AccessToken,
+        expiresAt = tokens.ExpiresAt
+      });
     }
 
     if (result.RequiresTwoFactor)
@@ -305,34 +317,60 @@ public class AccountsController : BaseController
   }
 
   [HttpPost("refresh-token")]
-  public async Task<IActionResult> RefreshJwtToken([FromBody] RefreshTokenRequest request)
+  public async Task<IActionResult> RefreshJwtToken()
   {
     try
     {
+      // Get refresh token from "session" cookie instead of "refreshToken"
+      if (!Request.Cookies.TryGetValue("session", out var refreshToken) || 
+          string.IsNullOrEmpty(refreshToken))
+      {
+        return BadRequest(new { error = "Refresh token not found" });
+      }
+
       var deviceInfo = GetDeviceInfoFromRequest();
-      var tokens = await _jwtTokenService.RefreshTokensAsync(request.RefreshToken, deviceInfo);
-      return Ok(tokens);
+      var tokens = await _jwtTokenService.RefreshTokensAsync(refreshToken, deviceInfo);
+      
+      // Set new refresh token in cookie
+      SetRefreshTokenCookie(tokens.RefreshToken);
+      
+      // Return only access token
+      return Ok(new
+      {
+        accessToken = tokens.AccessToken,
+        expiresAt = tokens.ExpiresAt
+      });
     }
     catch (SecurityTokenValidationException ex)
     {
-      return BadRequest(new { error = ex.Message });
-    }
-    catch (InvalidOperationException ex)
-    {
+      // Clear the invalid cookie - use "session"
+      Response.Cookies.Delete("session");
       return BadRequest(new { error = ex.Message });
     }
     catch (Exception ex)
     {
-      // Log the exception here if you have a logger
       return BadRequest(new { error = "An error occurred while refreshing the token." });
     }
   }
 
   [HttpPost("logout")]
   [Authorize(AuthenticationSchemes = "Bearer")]
-  public async Task<IActionResult> LogoutJwt([FromBody] LogoutRequest request)
+  public async Task<IActionResult> LogoutJwt()
   {
-    await _jwtTokenService.RevokeRefreshTokenAsync(request.RefreshToken);
+    if (Request.Cookies.TryGetValue("session", out var refreshToken) && 
+        !string.IsNullOrEmpty(refreshToken))
+    {
+      await _jwtTokenService.RevokeRefreshTokenAsync(refreshToken);
+    }
+    
+    // Clear the refresh token cookie - use consistent name "session"
+    Response.Cookies.Delete("session", new CookieOptions
+    {
+      Path = "/", // Match the actual endpoint path
+      Secure = true,
+      SameSite = SameSiteMode.None // Use None for development cross-origin
+    });
+    
     return Ok(new { message = "Logged out successfully" });
   }
 
@@ -575,12 +613,21 @@ public class AccountsController : BaseController
     }
 
     var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
-    if (!appUser.IsSuccess) // Changed from appUser == null
+    if (!appUser.IsSuccess)
       return BadRequest(new { error = "App user not found" });
 
     var deviceInfo = GetDeviceInfoFromRequest();
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
-    return Ok(tokens);
+    
+    // Set refresh token as HTTP-only cookie with RememberMe consideration
+    SetRefreshTokenCookie(tokens.RefreshToken, request.RememberMe);
+    
+    // Return only access token in response body
+    return Ok(new
+    {
+      accessToken = tokens.AccessToken,
+      expiresAt = tokens.ExpiresAt
+    });
   }
 
   [HttpPost("2fa/login-recovery")]
@@ -606,12 +653,21 @@ public class AccountsController : BaseController
     }
 
     var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
-    if (!appUser.IsSuccess) // Changed from appUser == null
+    if (!appUser.IsSuccess)
       return BadRequest(new { error = "App user not found" });
 
     var deviceInfo = GetDeviceInfoFromRequest();
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
-    return Ok(tokens);
+    
+    // Set refresh token as HTTP-only cookie
+    SetRefreshTokenCookie(tokens.RefreshToken);
+    
+    // Return only access token in response body
+    return Ok(new
+    {
+      accessToken = tokens.AccessToken,
+      expiresAt = tokens.ExpiresAt
+    });
   }
 
   [HttpPatch("me/notifications")]
@@ -805,6 +861,30 @@ public class AccountsController : BaseController
 
     return (platform, browser, deviceName);
   }
+
+  private void SetRefreshTokenCookie(string refreshToken, bool rememberMe = false)
+  {
+    var sameSiteMode = Enum.Parse<SameSiteMode>(
+      _configuration["Authentication:Cookie:SameSite"] ?? "Strict"
+    );
+    
+    var cookieOptions = new CookieOptions
+    {
+      HttpOnly = true,
+      Secure = _configuration.GetValue<bool>("Authentication:Cookie:Secure", true),
+      SameSite = sameSiteMode,
+      Path = "/"
+    };
+    
+    if (rememberMe)
+    {
+      // Set expiry for RememberMe
+      var expiryDays = int.Parse(_configuration["Jwt:RememberMeTokenExpiryInDays"] ?? "30");
+      cookieOptions.Expires = DateTime.UtcNow.AddDays(expiryDays);
+    }
+    
+    Response.Cookies.Append("session", refreshToken, cookieOptions);
+  }
 }
 
 // Request DTOs
@@ -909,6 +989,7 @@ public class JwtLoginRequest
   public string LoginIdentifier { get; set; }
   [Required]
   public string Password { get; set; }
+  public bool RememberMe { get; set; }
 }
 
 public class RefreshTokenRequest
