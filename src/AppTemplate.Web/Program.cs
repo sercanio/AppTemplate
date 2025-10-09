@@ -2,6 +2,7 @@ using AppTemplate.Application;
 using AppTemplate.Application.Authentication;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Authentication;
+using AppTemplate.TestCoverageWorker;
 using AppTemplate.Web;
 using AppTemplate.Web.Controllers.Api;
 using AppTemplate.Web.Extensions;
@@ -112,6 +113,9 @@ if (app.Environment.IsDevelopment())
 {
   app.MapOpenApi();
   app.MapScalarApiReference();
+  
+  // Serve test coverage reports
+  app.MapTestCoverageEndpoints();
 }
 
 app.Run();

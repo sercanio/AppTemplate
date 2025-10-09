@@ -70,9 +70,8 @@ public sealed class AppUser : Entity<Guid>, IAggregateRoot
     {
       _roles.Add(role);
       RaiseDomainEvent(new AppUserRoleAddedDomainEvent(Id, role.Id));
+      MarkUpdated();
     }
-
-    MarkUpdated();
   }
 
   public void RemoveRole(Role role)
@@ -80,9 +79,8 @@ public sealed class AppUser : Entity<Guid>, IAggregateRoot
     if (_roles.Remove(role))
     {
       RaiseDomainEvent(new AppUserRoleRemovedDomainEvent(Id, role.Id));
+      MarkUpdated();
     }
-
-    MarkUpdated();
   }
 
   public void SetIdentityId(string identityId)
@@ -103,5 +101,10 @@ public sealed class AppUser : Entity<Guid>, IAggregateRoot
   public void SetNotificationPreference(NotificationPreference preference)
   {
     NotificationPreference = preference;
+  }
+  public void SetBiography(string? biography)
+  {
+    Biography = biography;
+    MarkUpdated();
   }
 }

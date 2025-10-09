@@ -49,6 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\tests\AppTemplate.TestCoverageWorker\AppTemplate.TestCoverageWorker.csproj" />
     <ProjectReference Include="..\AppTemplate.Infrastructure\AppTemplate.Infrastructure.csproj" />
     <ProjectReference Include="..\AppTemplate.ServiceDefaults\AppTemplate.ServiceDefaults.csproj" />
   </ItemGroup>

@@ -27,3 +27,4 @@ coverage-report/
 /src/AppTemplate.Web/Logs
 /coverage-reports
 /tests/coverage-reports
+/tests/tests/coverage-reports

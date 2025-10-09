@@ -22,7 +22,8 @@ var builder = DistributedApplication.CreateBuilder(args);
 var migrations = builder.AddProject<Projects.AppTemplate_MigrationService>("migration-worker");
 
 // Add the test coverage worker
-var testCoverageWorker = builder.AddProject<Projects.AppTemplate_TestCoverageWorker>("test-coverage-worker");
+builder.AddProject<Projects.AppTemplate_TestCoverageWorker>("test-coverage-worker")
+  .WithUrl("https://localhost:7294/test-coverage");
 
 // Update the web project to wait for migrations
 builder.AddProject<Projects.AppTemplate_Web>("apptemplate-web")
