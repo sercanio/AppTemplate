@@ -906,7 +906,7 @@ public class AccountsController : BaseController
 }
 
 // Request DTOs
-public class ChangePasswordRequest
+public sealed record ChangePasswordRequest
 {
   [Required]
   [DataType(DataType.Password)]
@@ -922,14 +922,14 @@ public class ChangePasswordRequest
   public string ConfirmPassword { get; set; }
 }
 
-public class ChangeEmailRequest
+public sealed record ChangeEmailRequest
 {
   [Required]
   [EmailAddress]
   public string NewEmail { get; set; }
 }
 
-public class EnableAuthenticatorRequest
+public sealed record EnableAuthenticatorRequest
 {
   [Required]
   [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
@@ -937,13 +937,13 @@ public class EnableAuthenticatorRequest
   public string Code { get; set; }
 }
 
-public class ForgotPasswordRequest
+public sealed record ForgotPasswordRequest
 {
   [Required, EmailAddress]
   public string Email { get; set; }
 }
 
-public class LoginRequest
+public sealed record LoginRequest
 {
   [Required]
   public string LoginIdentifier { get; set; }
@@ -952,7 +952,7 @@ public class LoginRequest
   public bool RememberMe { get; set; }
 }
 
-public class LoginWith2faRequest
+public sealed record LoginWith2faRequest
 {
   [Required]
   public string UserId { get; set; }
@@ -962,7 +962,7 @@ public class LoginWith2faRequest
   public bool RememberMachine { get; set; }
 }
 
-public class LoginWithRecoveryCodeRequest
+public sealed record LoginWithRecoveryCodeRequest
 {
   [Required]
   public string UserId { get; set; }
@@ -970,7 +970,7 @@ public class LoginWithRecoveryCodeRequest
   public string RecoveryCode { get; set; }
 }
 
-public class RegisterRequest
+public sealed record RegisterRequest
 {
   [Required]
   public string Username { get; set; }
@@ -980,13 +980,13 @@ public class RegisterRequest
   public string Password { get; set; }
 }
 
-public class ResendEmailConfirmationRequest
+public sealed record ResendEmailConfirmationRequest
 {
   [Required, EmailAddress]
   public string Email { get; set; }
 }
 
-public class ResetPasswordRequest
+public sealed record ResetPasswordRequest
 {
   [Required, EmailAddress]
   public string Email { get; set; }
@@ -1001,7 +1001,7 @@ public sealed record UpdateUserNotificationsRequest(
     bool EmailNotification,
     bool PushNotification);
 
-public class JwtLoginRequest
+public sealed record JwtLoginRequest
 {
   [Required]
   public string LoginIdentifier { get; set; }
@@ -1010,19 +1010,19 @@ public class JwtLoginRequest
   public bool RememberMe { get; set; }
 }
 
-public class RefreshTokenRequest
+public sealed record RefreshTokenRequest
 {
   [Required]
   public string RefreshToken { get; set; }
 }
 
-public class LogoutRequest
+public sealed record LogoutRequest
 {
   [Required]
   public string RefreshToken { get; set; }
 }
 
-public class RevokeDeviceRequest
+public sealed record RevokeDeviceRequest
 {
   [Required]
   public string RefreshToken { get; set; }
