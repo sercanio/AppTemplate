@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 
-namespace AppTemplate.Web.Tests.Unit.Extensions;
+namespace AppTemplate.Web.Tests.Unit.ExtensionsTests;
 
 [Trait("Category", "Unit")]
 public class ApplicationBuilderExtensionUnitTests

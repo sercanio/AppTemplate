@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Security.Claims;
 
-namespace AppTemplate.Web.Tests.Unit.Services;
+namespace AppTemplate.Web.Tests.Unit.ServicesTests;
 
 [Trait("Category", "Unit")]
 public class AuthenticationEventsServiceUnitTests

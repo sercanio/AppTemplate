@@ -1,6 +1,6 @@
 ﻿using AppTemplate.Models;
 
-namespace AppTemplate.Web.Tests.Unit.Models;
+namespace AppTemplate.Web.Tests.Unit.ModelsTests;
 
 [Trait("Category", "Unit")]
 public class ErrorViewModelUnitTests

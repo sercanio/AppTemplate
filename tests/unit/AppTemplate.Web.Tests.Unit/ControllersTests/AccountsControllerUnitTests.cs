@@ -24,7 +24,7 @@ using System.Security.Claims;
 using System.Text;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
-namespace AppTemplate.Web.Tests.Unit.ControllerTests;
+namespace AppTemplate.Web.Tests.Unit.ControllersTests;
 
 public class AccountsControllerUnitTests
 {

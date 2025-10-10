@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System.Security.Claims;
 
-namespace AppTemplate.Web.Tests.Unit.ControllerTests;
+namespace AppTemplate.Web.Tests.Unit.ControllersTests;
 
 public class PermissionsControllerUnitTests
 {

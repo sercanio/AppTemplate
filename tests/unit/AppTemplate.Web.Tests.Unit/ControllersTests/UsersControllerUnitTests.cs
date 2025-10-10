@@ -18,7 +18,7 @@ using Moq;
 using System.Collections.ObjectModel;
 using System.Security.Claims;
 
-namespace AppTemplate.Web.Tests.Unit.ControllerTests;
+namespace AppTemplate.Web.Tests.Unit.ControllersTests;
 
 public class UsersControllerUnitTests
 {

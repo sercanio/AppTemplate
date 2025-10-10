@@ -12,7 +12,7 @@ using Moq;
 using System.Security.Claims;
 using static AppTemplate.Web.Controllers.Api.StatisticsController;
 
-namespace AppTemplate.Web.Tests.Unit.ControllerTests;
+namespace AppTemplate.Web.Tests.Unit.ControllersTests;
 
 public class StatisticsControllerUnitTests
 {
