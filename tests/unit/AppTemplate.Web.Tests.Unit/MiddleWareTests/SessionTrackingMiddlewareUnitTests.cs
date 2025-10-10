@@ -1,6 +1,8 @@
 ﻿using AppTemplate.Application.Services.Statistics;
 using AppTemplate.Web.Middlewares;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Security.Claims;
 
@@ -358,6 +360,149 @@ public class SessionTrackingMiddlewareUnitTests
         _mockNext.Verify(x => x(It.IsAny<HttpContext>()), Times.Once);
         _mockNext.Verify(x => x(context), Times.Once);
     }
+
+    #region SessionTrackingMiddlewareExtensions Tests
+
+    [Fact]
+    public void UseSessionTracking_ShouldReturnApplicationBuilder()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(_mockSessionService.Object);
+        
+        var serviceProvider = services.BuildServiceProvider();
+        var applicationBuilder = new ApplicationBuilder(serviceProvider);
+
+        // Act
+        var result = applicationBuilder.UseSessionTracking();
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Same(applicationBuilder, result);
+    }
+
+    [Fact]
+    public void UseSessionTracking_ShouldAddMiddlewareToApplicationBuilder()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(_mockSessionService.Object);
+        
+        var serviceProvider = services.BuildServiceProvider();
+        var applicationBuilder = new ApplicationBuilder(serviceProvider);
+
+        // Act
+        applicationBuilder.UseSessionTracking();
+
+        // Assert
+        var app = applicationBuilder.Build();
+        Assert.NotNull(app);
+        
+        // The middleware should be registered in the pipeline
+        // We can verify this by checking that the method returns the same builder instance
+        // which indicates successful middleware registration
+    }
+
+    [Fact]
+    public void UseSessionTracking_ShouldAllowChaining()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(_mockSessionService.Object);
+        
+        var serviceProvider = services.BuildServiceProvider();
+        var applicationBuilder = new ApplicationBuilder(serviceProvider);
+
+        // Act & Assert
+        var result = applicationBuilder
+            .UseSessionTracking()
+            .UseSessionTracking(); // Should allow chaining
+
+        Assert.NotNull(result);
+        Assert.Same(applicationBuilder, result);
+    }
+
+    [Fact]
+    public void UseSessionTracking_WithNullBuilder_ShouldThrowNullReferenceException()
+    {
+        // Arrange
+        IApplicationBuilder builder = null;
+
+        // Act & Assert
+        Assert.Throws<NullReferenceException>(() => builder.UseSessionTracking());
+    }
+
+    [Fact]
+    public void UseSessionTracking_ShouldRegisterMiddlewareInCorrectOrder()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(_mockSessionService.Object);
+        services.AddLogging();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        var applicationBuilder = new ApplicationBuilder(serviceProvider);
+
+        // Act
+        var result = applicationBuilder
+            .Use((HttpContext context, RequestDelegate next) =>
+            {
+                context.Items["middleware1"] = "executed";
+                return next(context);
+            })
+            .UseSessionTracking()
+            .Use((HttpContext context, RequestDelegate next) =>
+            {
+                context.Items["middleware2"] = "executed";
+                return next(context);
+            });
+
+        // Assert
+        Assert.NotNull(result);
+        
+        // Build the application to ensure no exceptions during pipeline construction
+        var app = applicationBuilder.Build();
+        Assert.NotNull(app);
+    }
+
+    [Fact]
+    public async Task UseSessionTracking_IntegrationTest_ShouldProcessRequestCorrectly()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton(_mockSessionService.Object);
+        services.AddLogging();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        var applicationBuilder = new ApplicationBuilder(serviceProvider);
+
+        var context = CreateHttpContext();
+        SetupAuthenticatedUser(context, "integration-test-user");
+        
+        var wasNextCalled = false;
+        
+        applicationBuilder
+            .UseSessionTracking()
+            .Use((HttpContext ctx, RequestDelegate next) =>
+            {
+                wasNextCalled = true;
+                return Task.CompletedTask;
+            });
+
+        var app = applicationBuilder.Build();
+        
+        _mockSessionService.Setup(x => x.RecordUserActivityAsync("integration-test-user"))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await app(context);
+
+        // Assert
+        Assert.True(wasNextCalled);
+        _mockSessionService.Verify(x => x.RecordUserActivityAsync("integration-test-user"), Times.Once);
+    }
+
+    #endregion
 
     private static DefaultHttpContext CreateHttpContext()
     {

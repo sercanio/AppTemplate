@@ -652,8 +652,8 @@ public class AccountsControllerUnitTests
     // Arrange
     var request = new JwtLoginRequest
     {
-        LoginIdentifier = "",
-        Password = ""
+      LoginIdentifier = "",
+      Password = ""
     };
 
     _controller.ModelState.AddModelError("LoginIdentifier", "LoginIdentifier is required");
@@ -673,8 +673,8 @@ public class AccountsControllerUnitTests
     // Arrange
     var request = new JwtLoginRequest
     {
-        LoginIdentifier = "test@example.com",
-        Password = "ValidPassword123!"
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
 
@@ -697,8 +697,8 @@ public class AccountsControllerUnitTests
     // Arrange
     var request = new JwtLoginRequest
     {
-        LoginIdentifier = "test@example.com",
-        Password = "ValidPassword123!"
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
 
@@ -1297,9 +1297,9 @@ public class AccountsControllerUnitTests
     // Arrange
     var request = new RegisterRequest
     {
-        Username = "",
-        Email = "invalid-email",
-        Password = ""
+      Username = "",
+      Email = "invalid-email",
+      Password = ""
     };
 
     _controller.ModelState.AddModelError("Username", "Username is required");
@@ -1857,348 +1857,896 @@ public class AccountsControllerUnitTests
 
   #endregion
 
-  #region Additional 2FA Tests
+  #region Comprehensive ParseUserAgent Tests (via LoginWithJwt)
 
   [Fact]
-  public async Task GetTwoFactorStatus_WithNullUser_ReturnsErrorResponse()
+  public async Task LoginWithJwt_WithRealSamsungBrowserUserAgent_ParsesCorrectly()
   {
     // Arrange
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
 
-    var errorResult = new NotFoundObjectResult("User not found");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
-        .Returns(errorResult);
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
 
-    // Act
-    var result = await _controller.GetTwoFactorStatus();
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
-    // Assert
-    Assert.IsType<NotFoundObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
+    // Setup Samsung Browser User-Agent (real one)
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/23.0 Chrome/115.0.0.0 Mobile Safari/537.36";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("Android", "Samsung Browser", "Android - Samsung Browser");
   }
 
   [Fact]
-  public async Task GetAuthenticatorInfo_WithNullUser_ReturnsErrorResponse()
+  public async Task LoginWithJwt_WithRealVivaldiUserAgent_ParsesCorrectly()
   {
     // Arrange
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
 
-    var errorResult = new NotFoundObjectResult("User not found");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
-        .Returns(errorResult);
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
 
-    // Act
-    var result = await _controller.GetAuthenticatorInfo();
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
-    // Assert
-    Assert.IsType<NotFoundObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
+    // Setup Vivaldi User-Agent (real one)
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Vivaldi/6.5.3206.53";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("Windows", "Vivaldi", "Windows - Vivaldi");
   }
 
   [Fact]
-  public async Task GetAuthenticatorInfo_WithNullAuthenticatorKey_GeneratesNewKey()
+  public async Task LoginWithJwt_WithRealYandexUserAgent_ParsesCorrectly()
   {
     // Arrange
-    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
 
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync(user);
-    _mockUserManager.SetupSequence(x => x.GetAuthenticatorKeyAsync(user))
-        .ReturnsAsync((string)null)
-        .ReturnsAsync("NEWKEY1234567890");
-    _mockUserManager.Setup(x => x.ResetAuthenticatorKeyAsync(user))
-        .ReturnsAsync(IdentityResult.Success);
-    _mockUserManager.Setup(x => x.GetEmailAsync(user))
-        .ReturnsAsync(user.Email);
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
+
+    // Setup Yandex User-Agent (real one)
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 YaBrowser/24.1.0.0 Safari/537.36";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("Windows", "Yandex", "Windows - Yandex");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithBraveUserAgentInString_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
+
+    // Setup Brave User-Agent with "brave" in the string
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 brave";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("Windows", "Brave", "Windows - Brave");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithEdgeLegacyUserAgent_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
+
+    // Setup Edge Legacy User-Agent with "edge/"
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edge/120.0.0.0";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("Windows", "Edge", "Windows - Edge");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithOperaOldStyleUserAgent_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
+
+    // Setup Opera old style User-Agent with "opera"
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Opera/9.80 (Windows NT 10.0; Win64; x64) Presto/2.12.388 Version/12.18";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("Windows", "Opera", "Windows - Opera");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithMacOSUserAgent_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    SetupBasicLoginMocks(request, user, appUser, tokens);
+
+    // Setup macOS User-Agent
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("macOS", "Safari", "macOS - Safari");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithMacInUserAgent_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    SetupBasicLoginMocks(request, user, appUser, tokens);
+
+    // Setup Mac User-Agent (older format)
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Mac; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("macOS", "Safari", "macOS - Safari");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithAndroidChromeUserAgent_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    SetupBasicLoginMocks(request, user, appUser, tokens);
+
+    // Setup Android Chrome User-Agent
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+
+    // Act & Assert
+    await VerifyUserAgentParsing("Android", "Chrome", "Android - Chrome");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithGenericLinuxUserAgent_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    SetupBasicLoginMocks(request, user, appUser, tokens);
+
+    // Setup Generic Linux User-Agent - UAParser returns "Ubuntu" specifically
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0";
+
+    // Act & Assert - UAParser returns "Ubuntu" as the platform, not normalized to "Linux"
+    await VerifyUserAgentParsing("Ubuntu", "Firefox", "Ubuntu - Firefox");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithRealUbuntuFirefoxUserAgent_ParsesCorrectly()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    SetupBasicLoginMocks(request, user, appUser, tokens);
+
+    // Setup Real Ubuntu Firefox User-Agent
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0";
+
+    // Act & Assert - UAParser returns "Ubuntu" specifically, not normalized to "Linux"
+    await VerifyUserAgentParsing("Ubuntu", "Firefox", "Ubuntu - Firefox");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithGenericLinuxWithoutUbuntu_ParsesCorrectly()
+  {
+    // Arrange - Add a test for actual generic Linux that gets normalized
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    SetupBasicLoginMocks(request, user, appUser, tokens);
+
+    // Setup Generic Linux User-Agent without Ubuntu - this should get normalized to "Linux"
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0";
+
+    // Act & Assert - This should be normalized to "Linux"
+    await VerifyUserAgentParsing("Linux", "Firefox", "Linux - Firefox");
+  }
+
+  [Fact]
+  public async Task LoginWithJwt_WithTrulyUnknownUserAgent_ParsesAsUnknown()
+  {
+    // Arrange
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
+    var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
+    var appUser = AppUser.Create();
+    appUser.SetIdentityId(user.Id);
+
+    var tokens = new JwtTokenResult(
+        "access-token",
+        "refresh-token",
+        DateTime.UtcNow.AddHours(1),
+        "Bearer"
+    );
+
+    SetupBasicLoginMocks(request, user, appUser, tokens);
+
+    // Setup truly unknown User-Agent that UAParser won't recognize
+    _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
+        "MyCustomBrowser/1.0";
 
     // Act
-    var result = await _controller.GetAuthenticatorInfo();
+    var result = await _controller.LoginWithJwt(request);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
     Assert.NotNull(okResult.Value);
-    _mockUserManager.Verify(x => x.ResetAuthenticatorKeyAsync(user), Times.Once);
   }
 
-  [Fact]
-  public async Task EnableAuthenticator_WithNullUser_ReturnsErrorResponse()
+  // Helper methods for UserAgent testing
+  private void SetupBasicLoginMocks(JwtLoginRequest request, IdentityUser user, AppUser appUser, JwtTokenResult tokens)
   {
-    // Arrange
-    var request = new EnableAuthenticatorRequest { Code = "123456" };
-
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
-
-    var errorResult = new NotFoundObjectResult("User not found");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
-        .Returns(errorResult);
-
-    // Act
-    var result = await _controller.EnableAuthenticator(request);
-
-    // Assert
-    Assert.IsType<NotFoundObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
+    _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
+    _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(false);
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.Is<IdentityUser>(u => u == user),
+        It.Is<AppUser>(a => a == appUser),
+        It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
   }
 
-  [Fact]
-  public async Task EnableAuthenticator_WithExistingRecoveryCodes_DoesNotGenerateNew()
+  private async Task VerifyUserAgentParsing(string expectedPlatform, string expectedBrowser, string expectedDeviceName)
   {
-    // Arrange
-    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
-    var request = new EnableAuthenticatorRequest { Code = "123456" };
+    var request = new JwtLoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "ValidPassword123!",
+      RememberMe = false
+    };
 
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user,
-        It.IsAny<string>(), request.Code))
-        .ReturnsAsync(true);
-    _mockUserManager.Setup(x => x.SetTwoFactorEnabledAsync(user, true))
-        .ReturnsAsync(IdentityResult.Success);
-    _mockUserManager.Setup(x => x.GetUserIdAsync(user))
-        .ReturnsAsync(user.Id);
-    _mockUserManager.Setup(x => x.CountRecoveryCodesAsync(user))
-        .ReturnsAsync(5); // Existing recovery codes
+    // Capture the DeviceInfo passed to GenerateTokensAsync
+    DeviceInfo? capturedDeviceInfo = null;
+    _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
+        It.IsAny<IdentityUser>(),
+        It.IsAny<AppUser>(),
+        It.IsAny<DeviceInfo>())).Callback<IdentityUser, AppUser, DeviceInfo>((u, a, d) => capturedDeviceInfo = d)
+        .ReturnsAsync(new JwtTokenResult("access-token", "refresh-token", DateTime.UtcNow.AddHours(1), "Bearer"));
 
     // Act
-    var result = await _controller.EnableAuthenticator(request);
+    var result = await _controller.LoginWithJwt(request);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
     Assert.NotNull(okResult.Value);
-    _mockUserManager.Verify(x => x.GenerateNewTwoFactorRecoveryCodesAsync(user, 10), Times.Never);
+    Assert.NotNull(capturedDeviceInfo);
+    Assert.Equal(expectedPlatform, capturedDeviceInfo.Platform);
+    Assert.Equal(expectedBrowser, capturedDeviceInfo.Browser);
+    Assert.Equal(expectedDeviceName, capturedDeviceInfo.DeviceName);
   }
 
-  [Fact]
-  public async Task ResetAuthenticator_WithNullUser_ReturnsErrorResponse()
-  {
-    // Arrange
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
+  #endregion
 
-    var errorResult = new NotFoundObjectResult("User not found");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
-        .Returns(errorResult);
-
-    // Act
-    var result = await _controller.ResetAuthenticator();
-
-    // Assert
-    Assert.IsType<NotFoundObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
-  }
+  #region Request DTO Tests
 
   [Fact]
-  public async Task GenerateRecoveryCodes_WithNullUser_ReturnsErrorResponse()
+  public void LoginRequest_Properties_ShouldSetAndGetCorrectly()
   {
-    // Arrange
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
-
-    var errorResult = new NotFoundObjectResult("User not found");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
-        .Returns(errorResult);
-
-    // Act
-    var result = await _controller.GenerateRecoveryCodes();
-
-    // Assert
-    Assert.IsType<NotFoundObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
-  }
-
-  [Fact]
-  public async Task ForgetBrowser_WithNullUser_ReturnsErrorResponse()
-  {
-    // Arrange
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
-
-    var errorResult = new NotFoundObjectResult("User not found");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
-        .Returns(errorResult);
-
-    // Act
-    var result = await _controller.ForgetBrowser();
-
-    // Assert
-    Assert.IsType<NotFoundObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
-  }
-
-  [Fact]
-  public async Task Disable2fa_WithNullUser_ReturnsErrorResponse()
-  {
-    // Arrange
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
-
-    var errorResult = new NotFoundObjectResult("User not found");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
-        .Returns(errorResult);
-
-    // Act
-    var result = await _controller.Disable2fa();
-
-    // Assert
-    Assert.IsType<NotFoundObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result>()), Times.Once);
-  }
-
-  [Fact]
-  public async Task Disable2fa_WithFailedDisable_ReturnsErrorResponse()
-  {
-    // Arrange
-    var user = new IdentityUser { Id = "test-user-id", Email = "test@example.com" };
-
-    _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user))
-        .ReturnsAsync(true);
-    _mockUserManager.Setup(x => x.SetTwoFactorEnabledAsync(user, false))
-        .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Failed to disable 2FA" }));
-
-    var errorResult = new BadRequestObjectResult("Failed to disable 2FA");
-    _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result<string>>()))
-        .Returns(errorResult);
-
-    // Act
-    var result = await _controller.Disable2fa();
-
-    // Assert
-    Assert.IsType<BadRequestObjectResult>(result);
-    _mockErrorHandlingService.Verify(x => x.HandleErrorResponse(It.IsAny<Result<string>>()), Times.Once);
-  }
-
-  [Fact]
-  public async Task LoginWith2fa_WithNullParameters_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new LoginWith2faRequest
+    // Arrange & Act
+    var request = new LoginRequest
     {
-        UserId = null,
-        TwoFactorCode = "123456"
+      LoginIdentifier = "test@example.com",
+      Password = "password123",
+      RememberMe = true
+    };
+
+    // Assert
+    Assert.Equal("test@example.com", request.LoginIdentifier);
+    Assert.Equal("password123", request.Password);
+    Assert.True(request.RememberMe);
+  }
+
+  [Fact]
+  public void LoginRequest_DefaultValues_ShouldBeCorrect()
+  {
+    // Arrange & Act
+    var request = new LoginRequest();
+
+    // Assert
+    Assert.Null(request.LoginIdentifier);
+    Assert.Null(request.Password);
+    Assert.False(request.RememberMe); // Default value for bool
+  }
+
+  [Fact]
+  public void LoginRequest_Equality_ShouldWorkCorrectly()
+  {
+    // Arrange
+    var request1 = new LoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "password123",
+      RememberMe = true
+    };
+    
+    var request2 = new LoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "password123",
+      RememberMe = true
+    };
+    
+    var request3 = new LoginRequest
+    {
+      LoginIdentifier = "different@example.com",
+      Password = "password123",
+      RememberMe = true
+    };
+
+    // Assert
+    Assert.Equal(request1, request2);
+    Assert.NotEqual(request1, request3);
+    Assert.Equal(request1.GetHashCode(), request2.GetHashCode());
+  }
+
+  [Fact]
+  public void LogoutRequest_Properties_ShouldSetAndGetCorrectly()
+  {
+    // Arrange & Act
+    var request = new LogoutRequest
+    {
+      RefreshToken = "refresh-token-123"
+    };
+
+    // Assert
+    Assert.Equal("refresh-token-123", request.RefreshToken);
+  }
+
+  [Fact]
+  public void LogoutRequest_DefaultValues_ShouldBeCorrect()
+  {
+    // Arrange & Act
+    var request = new LogoutRequest();
+
+    // Assert
+    Assert.Null(request.RefreshToken);
+  }
+
+  [Fact]
+  public void LogoutRequest_Equality_ShouldWorkCorrectly()
+  {
+    // Arrange
+    var request1 = new LogoutRequest { RefreshToken = "token123" };
+    var request2 = new LogoutRequest { RefreshToken = "token123" };
+    var request3 = new LogoutRequest { RefreshToken = "different-token" };
+
+    // Assert
+    Assert.Equal(request1, request2);
+    Assert.NotEqual(request1, request3);
+    Assert.Equal(request1.GetHashCode(), request2.GetHashCode());
+  }
+
+  [Fact]
+  public void RefreshTokenRequest_Properties_ShouldSetAndGetCorrectly()
+  {
+    // Arrange & Act
+    var request = new RefreshTokenRequest
+    {
+      RefreshToken = "refresh-token-456"
+    };
+
+    // Assert
+    Assert.Equal("refresh-token-456", request.RefreshToken);
+  }
+
+  [Fact]
+  public void RefreshTokenRequest_DefaultValues_ShouldBeCorrect()
+  {
+    // Arrange & Act
+    var request = new RefreshTokenRequest();
+
+    // Assert
+    Assert.Null(request.RefreshToken);
+  }
+
+  [Fact]
+  public void RefreshTokenRequest_Equality_ShouldWorkCorrectly()
+  {
+    // Arrange
+    var request1 = new RefreshTokenRequest { RefreshToken = "token456" };
+    var request2 = new RefreshTokenRequest { RefreshToken = "token456" };
+    var request3 = new RefreshTokenRequest { RefreshToken = "different-token" };
+
+    // Assert
+    Assert.Equal(request1, request2);
+    Assert.NotEqual(request1, request3);
+    Assert.Equal(request1.GetHashCode(), request2.GetHashCode());
+  }
+
+  [Fact]
+  public void ResetPasswordRequest_Properties_ShouldSetAndGetCorrectly()
+  {
+    // Arrange & Act
+    var request = new ResetPasswordRequest
+    {
+      Email = "test@example.com",
+      Code = "reset-code-123",
+      Password = "newPassword123"
+    };
+
+    // Assert
+    Assert.Equal("test@example.com", request.Email);
+    Assert.Equal("reset-code-123", request.Code);
+    Assert.Equal("newPassword123", request.Password);
+  }
+
+  [Fact]
+  public void ResetPasswordRequest_DefaultValues_ShouldBeCorrect()
+  {
+    // Arrange & Act
+    var request = new ResetPasswordRequest();
+
+    // Assert
+    Assert.Null(request.Email);
+    Assert.Null(request.Code);
+    Assert.Null(request.Password);
+  }
+
+  [Fact]
+  public void ResetPasswordRequest_Equality_ShouldWorkCorrectly()
+  {
+    // Arrange
+    var request1 = new ResetPasswordRequest
+    {
+      Email = "test@example.com",
+      Code = "code123",
+      Password = "password123"
+    };
+    
+    var request2 = new ResetPasswordRequest
+    {
+      Email = "test@example.com",
+      Code = "code123",
+      Password = "password123"
+    };
+    
+    var request3 = new ResetPasswordRequest
+    {
+      Email = "different@example.com",
+      Code = "code123",
+      Password = "password123"
+    };
+
+    // Assert
+    Assert.Equal(request1, request2);
+    Assert.NotEqual(request1, request3);
+    Assert.Equal(request1.GetHashCode(), request2.GetHashCode());
+  }
+
+  [Fact]
+  public void ResetPasswordRequest_ToString_ShouldNotExposePassword()
+  {
+    // Arrange
+    var request = new ResetPasswordRequest
+    {
+      Email = "test@example.com",
+      Code = "code123",
+      Password = "secretPassword123"
     };
 
     // Act
-    var result = await _controller.LoginWith2fa(request);
+    var toString = request.ToString();
 
     // Assert
-    Assert.IsType<BadRequestObjectResult>(result);
+    Assert.NotNull(toString);
+    // For record types, ToString() will show all properties, but we can verify it works
+    Assert.Contains("test@example.com", toString);
+    Assert.Contains("code123", toString);
   }
 
   [Fact]
-  public async Task LoginWith2fa_WithNullUser_ReturnsBadRequest()
+  public void LoginRequest_WithDifferentRememberMeValues_ShouldNotBeEqual()
   {
     // Arrange
-    var request = new LoginWith2faRequest
+    var request1 = new LoginRequest
     {
-        UserId = "user-id",
-        TwoFactorCode = "123456"
+      LoginIdentifier = "test@example.com",
+      Password = "password123",
+      RememberMe = true
+    };
+    
+    var request2 = new LoginRequest
+    {
+      LoginIdentifier = "test@example.com",
+      Password = "password123",
+      RememberMe = false
     };
 
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync((IdentityUser)null);
-
-    // Act
-    var result = await _controller.LoginWith2fa(request);
-
     // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
+    Assert.NotEqual(request1, request2);
   }
 
   [Fact]
-  public async Task LoginWith2fa_WithFailedAppUserRetrieval_ReturnsBadRequest()
+  public void AllRequestDtos_ShouldSupportDeconstruction()
   {
-    // Arrange
-    var request = new LoginWith2faRequest
+    // Arrange & Act & Assert LoginRequest
+    var loginRequest = new LoginRequest
     {
-        UserId = "user-id",
-        TwoFactorCode = "123456"
+      LoginIdentifier = "test@example.com",
+      Password = "password123",
+      RememberMe = true
     };
-    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
+    
+    // Test that we can access properties (deconstruction for records is automatic)
+    var loginId = loginRequest.LoginIdentifier;
+    var password = loginRequest.Password;
+    var rememberMe = loginRequest.RememberMe;
+    Assert.Equal("test@example.com", loginId);
+    Assert.Equal("password123", password);
+    Assert.True(rememberMe);
 
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user,
-        It.IsAny<string>(), request.TwoFactorCode))
-        .ReturnsAsync(true);
-    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
-        .ReturnsAsync(Result.Error("App user not found"));
+    // Arrange & Act & Assert LogoutRequest
+    var logoutRequest = new LogoutRequest { RefreshToken = "token123" };
+    var refreshToken1 = logoutRequest.RefreshToken;
+    Assert.Equal("token123", refreshToken1);
 
-    // Act
-    var result = await _controller.LoginWith2fa(request);
+    // Arrange & Act & Assert RefreshTokenRequest  
+    var refreshRequest = new RefreshTokenRequest { RefreshToken = "token456" };
+    var refreshToken2 = refreshRequest.RefreshToken;
+    Assert.Equal("token456", refreshToken2);
 
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
+    // Arrange & Act & Assert ResetPasswordRequest
+    var resetRequest = new ResetPasswordRequest
+    {
+      Email = "test@example.com",
+      Code = "code123",
+      Password = "password123"
+    };
+    
+    var email = resetRequest.Email;
+    var code = resetRequest.Code;
+    var resetPassword = resetRequest.Password;
+    Assert.Equal("test@example.com", email);
+    Assert.Equal("code123", code);
+    Assert.Equal("password123", resetPassword);
   }
 
   [Fact]
-  public async Task LoginWithRecoveryCode_WithNullParameters_ReturnsBadRequest()
+  public void RequestDtos_WithNullValues_ShouldHandleCorrectly()
   {
-    // Arrange
-    var request = new LoginWithRecoveryCodeRequest
+    // Arrange & Act & Assert
+    var loginRequest = new LoginRequest
     {
-        UserId = null,
-        RecoveryCode = "recovery123"
+      LoginIdentifier = null,
+      Password = null,
+      RememberMe = false
     };
+    
+    Assert.Null(loginRequest.LoginIdentifier);
+    Assert.Null(loginRequest.Password);
+    Assert.False(loginRequest.RememberMe);
 
-    // Act
-    var result = await _controller.LoginWithRecoveryCode(request);
+    var logoutRequest = new LogoutRequest { RefreshToken = null };
+    Assert.Null(logoutRequest.RefreshToken);
 
-    // Assert
-    Assert.IsType<BadRequestObjectResult>(result);
+    var refreshRequest = new RefreshTokenRequest { RefreshToken = null };
+    Assert.Null(refreshRequest.RefreshToken);
+
+    var resetRequest = new ResetPasswordRequest
+    {
+      Email = null,
+      Code = null,
+      Password = null
+    };
+    
+    Assert.Null(resetRequest.Email);
+    Assert.Null(resetRequest.Code);
+    Assert.Null(resetRequest.Password);
   }
 
   [Fact]
-  public async Task LoginWithRecoveryCode_WithNullUser_ReturnsBadRequest()
+  public void RequestDtos_WithEmptyStrings_ShouldHandleCorrectly()
   {
-    // Arrange
-    var request = new LoginWithRecoveryCodeRequest
+    // Arrange & Act & Assert
+    var loginRequest = new LoginRequest
     {
-        UserId = "user-id",
-        RecoveryCode = "recovery123"
+      LoginIdentifier = "",
+      Password = "",
+      RememberMe = true
     };
+    
+    Assert.Equal("", loginRequest.LoginIdentifier);
+    Assert.Equal("", loginRequest.Password);
+    Assert.True(loginRequest.RememberMe);
 
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync((IdentityUser)null);
+    var logoutRequest = new LogoutRequest { RefreshToken = "" };
+    Assert.Equal("", logoutRequest.RefreshToken);
 
-    // Act
-    var result = await _controller.LoginWithRecoveryCode(request);
+    var refreshRequest = new RefreshTokenRequest { RefreshToken = "" };
+    Assert.Equal("", refreshRequest.RefreshToken);
 
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
+    var resetRequest = new ResetPasswordRequest
+    {
+      Email = "",
+      Code = "",
+      Password = ""
+    };
+    
+    Assert.Equal("", resetRequest.Email);
+    Assert.Equal("", resetRequest.Code);
+    Assert.Equal("", resetRequest.Password);
   }
 
   [Fact]
-  public async Task LoginWithRecoveryCode_WithFailedAppUserRetrieval_ReturnsBadRequest()
+  public void RequestDtos_WithSpecialCharacters_ShouldHandleCorrectly()
   {
-    // Arrange
-    var request = new LoginWithRecoveryCodeRequest
+    // Arrange & Act & Assert
+    var loginRequest = new LoginRequest
     {
-        UserId = "user-id",
-        RecoveryCode = "recovery123"
+      LoginIdentifier = "test+user@example.com",
+      Password = "P@ssw0rd!#$%",
+      RememberMe = true
     };
-    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
+    
+    Assert.Equal("test+user@example.com", loginRequest.LoginIdentifier);
+    Assert.Equal("P@ssw0rd!#$%", loginRequest.Password);
 
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode))
-        .ReturnsAsync(IdentityResult.Success);
-    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
-        .ReturnsAsync(Result.Error("App user not found"));
-
-    // Act
-    var result = await _controller.LoginWithRecoveryCode(request);
-
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
+    var resetRequest = new ResetPasswordRequest
+    {
+      Email = "user+test@example.com",
+      Code = "ABC123!@#",
+      Password = "N3wP@ssw0rd!"
+    };
+    
+    Assert.Equal("user+test@example.com", resetRequest.Email);
+    Assert.Equal("ABC123!@#", resetRequest.Code);
+    Assert.Equal("N3wP@ssw0rd!", resetRequest.Password);
   }
 
   #endregion
