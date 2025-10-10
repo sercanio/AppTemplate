@@ -10,6 +10,7 @@ using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Web.Controllers;
 using Ardalis.Result;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -888,6 +889,166 @@ public class AccountsControllerUnitTests
   }
 
   #endregion
+
+  #region RevokeOthers Tests
+
+  [Fact]
+  public async Task RevokeOtherJwtTokens_WithValidJti_ShouldRevokeOtherTokensAndReturnSuccess()
+  {
+    // Arrange
+    var userId = "user123";
+    var currentJti = "current-jti-123";
+
+    var claims = new List<Claim>
+    {
+      new(ClaimTypes.NameIdentifier, userId),
+      new(JwtRegisteredClaimNames.Jti, currentJti)
+    };
+
+    var identity = new ClaimsIdentity(claims, "Bearer");
+    var principal = new ClaimsPrincipal(identity);
+
+    _controller.ControllerContext = new ControllerContext
+    {
+      HttpContext = new DefaultHttpContext { User = principal }
+    };
+
+    _mockJwtTokenService.Setup(x => x.RevokeOtherUserRefreshTokensAsync(userId, currentJti))
+      .Returns(Task.CompletedTask);
+
+    // Act
+    var result = await _controller.RevokeOtherJwtTokens();
+
+    // Assert
+    var okResult = Assert.IsType<OkObjectResult>(result);
+    var response = okResult.Value;
+
+    Assert.NotNull(response);
+    var message = response.GetType().GetProperty("message")?.GetValue(response);
+    Assert.Equal("All other sessions revoked successfully", message);
+
+    _mockJwtTokenService.Verify(x => x.RevokeOtherUserRefreshTokensAsync(userId, currentJti), Times.Once);
+  }
+
+  [Fact]
+  public async Task RevokeOtherJwtTokens_WithMissingJti_ShouldReturnBadRequest()
+  {
+    // Arrange
+    var userId = "user123";
+
+    var claims = new List<Claim>
+    {
+      new(ClaimTypes.NameIdentifier, userId)
+      // Missing JTI claim
+    };
+
+    var identity = new ClaimsIdentity(claims, "Bearer");
+    var principal = new ClaimsPrincipal(identity);
+
+    _controller.ControllerContext = new ControllerContext
+    {
+      HttpContext = new DefaultHttpContext { User = principal }
+    };
+
+    // Act
+    var result = await _controller.RevokeOtherJwtTokens();
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    var response = badRequestResult.Value;
+
+    Assert.NotNull(response);
+    var error = response.GetType().GetProperty("error")?.GetValue(response);
+    Assert.Equal("Unable to identify current session.", error);
+
+    _mockJwtTokenService.Verify(x => x.RevokeOtherUserRefreshTokensAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+  }
+
+  [Fact]
+  public async Task RevokeOtherJwtTokens_WithEmptyJti_ShouldReturnBadRequest()
+  {
+    // Arrange
+    var userId = "user123";
+
+    var claims = new List<Claim>
+    {
+      new(ClaimTypes.NameIdentifier, userId),
+      new(JwtRegisteredClaimNames.Jti, "") // Empty JTI
+    };
+
+    var identity = new ClaimsIdentity(claims, "Bearer");
+    var principal = new ClaimsPrincipal(identity);
+
+    _controller.ControllerContext = new ControllerContext
+    {
+      HttpContext = new DefaultHttpContext { User = principal }
+    };
+
+    // Act
+    var result = await _controller.RevokeOtherJwtTokens();
+
+    // Assert
+    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+    var response = badRequestResult.Value;
+
+    Assert.NotNull(response);
+    var error = response.GetType().GetProperty("error")?.GetValue(response);
+    Assert.Equal("Unable to identify current session.", error);
+
+    _mockJwtTokenService.Verify(x => x.RevokeOtherUserRefreshTokensAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+  }
+
+  [Fact]
+  public async Task RevokeOtherJwtTokens_WhenServiceThrows_ShouldPropagateException()
+  {
+    // Arrange
+    var userId = "user123";
+    var currentJti = "current-jti-123";
+
+    var claims = new List<Claim>
+    {
+      new(ClaimTypes.NameIdentifier, userId),
+      new(JwtRegisteredClaimNames.Jti, currentJti)
+    };
+
+    var identity = new ClaimsIdentity(claims, "Bearer");
+    var principal = new ClaimsPrincipal(identity);
+
+    _controller.ControllerContext = new ControllerContext
+    {
+      HttpContext = new DefaultHttpContext { User = principal }
+    };
+
+    _mockJwtTokenService.Setup(x => x.RevokeOtherUserRefreshTokensAsync(userId, currentJti))
+      .ThrowsAsync(new Exception("Database error"));
+
+    // Act & Assert
+    await Assert.ThrowsAsync<Exception>(() => _controller.RevokeOtherJwtTokens());
+
+    _mockJwtTokenService.Verify(x => x.RevokeOtherUserRefreshTokensAsync(userId, currentJti), Times.Once);
+  }
+
+  [Fact]
+  public Task RevokeOtherJwtTokens_ShouldRequireBearerAuthentication()
+  {
+    // This test verifies that the endpoint has the correct authorization attribute
+    // The actual authorization testing would be done in integration tests
+
+    // Arrange
+    var method = typeof(AccountsController).GetMethod(nameof(AccountsController.RevokeOtherJwtTokens));
+
+    // Act & Assert
+    var authorizeAttribute = method?.GetCustomAttributes(typeof(AuthorizeAttribute), false).FirstOrDefault() as AuthorizeAttribute;
+    Assert.NotNull(authorizeAttribute);
+    Assert.Equal("Bearer", authorizeAttribute.AuthenticationSchemes);
+
+    var httpPostAttribute = method?.GetCustomAttributes(typeof(HttpPostAttribute), false).FirstOrDefault() as HttpPostAttribute;
+    Assert.NotNull(httpPostAttribute);
+    Assert.Equal("revoke-others", httpPostAttribute.Template);
+    return Task.CompletedTask;
+  }
+
+  #endregion 
 
   #region ChangePassword Tests
 
