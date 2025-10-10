@@ -307,4 +307,24 @@ public sealed class JwtTokenService : IJwtTokenService
       token.IsCurrent = false;
     }
   }
+
+  public async Task RevokeOtherUserRefreshTokensAsync(string userId, string currentAccessTokenJti)
+  {
+    var userTokens = _context.RefreshTokens.Where(rt => 
+      rt.UserId == userId && 
+      !rt.IsRevoked && 
+      rt.AccessTokenJti != currentAccessTokenJti);
+
+    await foreach (var token in userTokens.AsAsyncEnumerable())
+    {
+      token.IsRevoked = true;
+      token.RevokedReason = "Other tokens revoked";
+      token.IsCurrent = false;
+    }
+
+    await _context.SaveChangesAsync();
+
+    _logger.LogInformation("Revoked all other refresh tokens for user {UserId}, preserving current session with JTI {CurrentJti}", 
+      userId, currentAccessTokenJti);
+  }
 }

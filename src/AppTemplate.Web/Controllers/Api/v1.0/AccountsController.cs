@@ -383,6 +383,24 @@ public class AccountsController : BaseController
     return Ok(new { message = "All tokens revoked successfully" });
   }
 
+  [HttpPost("revoke-others")]
+  [Authorize(AuthenticationSchemes = "Bearer")]
+  public async Task<IActionResult> RevokeOtherJwtTokens()
+  {
+    var userId = User.GetIdentityId();
+
+    // Get the JTI from current access token to preserve current session
+    var currentJti = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti)?.Value;
+
+    if (string.IsNullOrEmpty(currentJti))
+    {
+      return BadRequest(new { error = "Unable to identify current session." });
+    }
+
+    await _jwtTokenService.RevokeOtherUserRefreshTokensAsync(userId, currentJti);
+    return Ok(new { message = "All other sessions revoked successfully" });
+  }
+
   // 2FA Endpoints
   [HttpGet("2fa/status")]
   [Authorize]

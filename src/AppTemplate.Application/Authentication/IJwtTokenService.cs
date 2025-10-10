@@ -12,6 +12,7 @@ public interface IJwtTokenService
   ClaimsPrincipal? ValidateToken(string token);
   Task RevokeRefreshTokenAsync(string refreshToken);
   Task RevokeAllUserRefreshTokensAsync(string userId);
+  Task RevokeOtherUserRefreshTokensAsync(string userId, string currentAccessTokenJti);
   Task<IEnumerable<DeviceSessionDto>> GetUserDeviceSessionsAsync(string userId, string? currentAccessTokenJti = null);
   Task<bool> RevokeDeviceSessionAsync(string refreshToken, string userId);
 }
