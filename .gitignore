@@ -28,3 +28,4 @@ coverage-report/
 /coverage-reports
 /tests/coverage-reports
 /tests/tests/coverage-reports
+/.sonarqube
