@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using Spectre.Console;
 
 namespace AppTemplate.TestCoverageWorker;
 
@@ -16,25 +17,29 @@ public class TestCoverageWorker : BackgroundService
     {
       Name = "Domain",
       IncludePattern = "[AppTemplate.Domain]*",
-      Description = "Business logic and domain models"
+      Description = "Business logic and domain models",
+      Color = Color.Green
     },
     ["Application"] = new LayerConfig
     {
       Name = "Application",
       IncludePattern = "[AppTemplate.Application]*",
-      Description = "Use cases and application services"
+      Description = "Use cases and application services",
+      Color = Color.Blue
     },
     ["Infrastructure"] = new LayerConfig
     {
       Name = "Infrastructure",
       IncludePattern = "[AppTemplate.Infrastructure]*",
-      Description = "Data access and external services"
+      Description = "Data access and external services",
+      Color = Color.Orange1
     },
     ["Web"] = new LayerConfig
     {
       Name = "Web",
       IncludePattern = "[AppTemplate.Web]*",
-      Description = "API controllers and middleware"
+      Description = "API controllers and middleware",
+      Color = Color.Purple
     }
   };
 
@@ -57,43 +62,58 @@ public class TestCoverageWorker : BackgroundService
 
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
-    _logger.LogInformation("Test Coverage Worker started at: {time}", DateTimeOffset.Now);
-
     try
     {
+      ShowWelcomeBanner();
       await GenerateTestCoverageReportAsync(stoppingToken);
-      _logger.LogInformation("Test Coverage Worker completed successfully at: {time}", DateTimeOffset.Now);
+      ShowCompletionMessage();
     }
     catch (OperationCanceledException)
     {
-      _logger.LogInformation("Test Coverage Worker was cancelled.");
+      AnsiConsole.MarkupLine("[yellow]⚠️ Test Coverage Worker was cancelled.[/]");
     }
     catch (Exception ex)
     {
+      AnsiConsole.WriteException(ex);
       _logger.LogError(ex, "Error occurred while generating test coverage report");
     }
-    finally
+  }
+
+  private void ShowWelcomeBanner()
+  {
+    var rule = new Rule("[bold blue]🧪 Test Coverage Report Generator[/]")
     {
-      _logger.LogInformation("Test Coverage Worker finishing and stopping application at: {time}", DateTimeOffset.Now);
-    }
+      Justification = Justify.Left
+    };
+    AnsiConsole.Write(rule);
+    AnsiConsole.WriteLine();
+
+    var panel = new Panel(new Markup(
+        "[bold]AppTemplate Coverage Analysis[/]\n" +
+        "[dim]Generating comprehensive test coverage reports for all layers...[/]"))
+    {
+      Border = BoxBorder.Rounded,
+      BorderStyle = new Style(Color.Blue),
+      Padding = new Padding(2, 1)
+    };
+    AnsiConsole.Write(panel);
+    AnsiConsole.WriteLine();
   }
 
   private async Task GenerateTestCoverageReportAsync(CancellationToken cancellationToken)
   {
-    _logger.LogInformation("Starting test coverage report generation...");
-
     var solutionPath = await FindSolutionPathAsync();
     if (string.IsNullOrEmpty(solutionPath))
     {
-      _logger.LogError("Could not find solution file");
+      AnsiConsole.MarkupLine("[red]❌ Could not find solution file[/]");
       return;
     }
 
-    _logger.LogInformation("Found solution file: {solutionPath}", solutionPath);
+    AnsiConsole.MarkupLine($"[green]✅ Found solution:[/] [dim]{solutionPath}[/]");
 
     if (!File.Exists(solutionPath))
     {
-      _logger.LogError("Solution file does not exist: {solutionPath}", solutionPath);
+      AnsiConsole.MarkupLine("[red]❌ Solution file does not exist[/]");
       return;
     }
 
@@ -103,99 +123,163 @@ public class TestCoverageWorker : BackgroundService
     await CleanupCoverageReportsDirectoryAsync(outputDir);
     Directory.CreateDirectory(outputDir);
 
-    _logger.LogInformation("Output directory: {outputDir}", outputDir);
+    AnsiConsole.MarkupLine($"[blue]📁 Output directory:[/] [dim]{outputDir}[/]");
+    AnsiConsole.WriteLine();
 
-    // Generate layer-by-layer coverage reports FIRST
+    // Generate layer-by-layer coverage reports
     var layerResults = new Dictionary<string, CoverageStatistics>();
 
-    foreach (var layer in _layers.Values)
-    {
-      _logger.LogInformation("=== Generating Coverage Report for {layerName} Layer ===", layer.Name);
+    await AnsiConsole.Progress()
+        .StartAsync(async ctx =>
+        {
+          var overallTask = ctx.AddTask("[green]Overall Progress[/]", maxValue: _layers.Count + 2);
 
-      var layerCoverageFile = await GenerateLayerCoverageAsync(
-          solutionPath,
-          outputDir,
-          layer,
-          cancellationToken);
+          foreach (var layer in _layers.Values)
+          {
+            var layerTask = ctx.AddTask($"[{layer.Color.ToMarkup()}]{layer.Name} Layer[/]");
 
-      if (!string.IsNullOrEmpty(layerCoverageFile))
-      {
-        var layerOutputDir = Path.Combine(outputDir, layer.Name.ToLowerInvariant());
-        await GenerateHtmlReportAsync(layerCoverageFile, layerOutputDir, cancellationToken);
+            AnsiConsole.MarkupLine($"\n[bold {layer.Color.ToMarkup()}]🔍 Processing {layer.Name} Layer[/]");
+            AnsiConsole.MarkupLine($"[dim]{layer.Description}[/]");
 
-        var xmlContent = await File.ReadAllTextAsync(layerCoverageFile, cancellationToken);
-        var stats = ParseCoverageStatistics(xmlContent);
-        layerResults[layer.Name] = stats;
-      }
-    }
+            var layerCoverageFile = await GenerateLayerCoverageAsync(
+                solutionPath,
+                outputDir,
+                layer,
+                cancellationToken,
+                layerTask);
 
-    // Generate overall coverage report by merging layer results
-    _logger.LogInformation("=== Generating Overall Coverage Report ===");
-    var overallCoverageFile = await GenerateOverallCoverageAsync(solutionPath, outputDir, cancellationToken);
+            if (!string.IsNullOrEmpty(layerCoverageFile))
+            {
+              var layerOutputDir = Path.Combine(outputDir, layer.Name.ToLowerInvariant());
+              await GenerateHtmlReportAsync(layerCoverageFile, layerOutputDir, cancellationToken);
 
-    if (!string.IsNullOrEmpty(overallCoverageFile))
-    {
-      await GenerateHtmlReportAsync(overallCoverageFile, Path.Combine(outputDir, "overall"), cancellationToken);
-    }
+              var xmlContent = await File.ReadAllTextAsync(layerCoverageFile, cancellationToken);
+              var stats = ParseCoverageStatistics(xmlContent);
+              layerResults[layer.Name] = stats;
 
-    // Generate summary report
-    await GenerateSummaryReportAsync(outputDir, overallCoverageFile, layerResults, cancellationToken);
+              AnsiConsole.MarkupLine($"[green]✅ {layer.Name} completed[/] - [bold]{stats.LinesCoverage:F1}%[/] line coverage");
+            }
+            else
+            {
+              AnsiConsole.MarkupLine($"[red]❌ {layer.Name} failed[/]");
+            }
 
-    // Log access information
-    await LogWebAppAccessInfo(outputDir);
+            layerTask.Value = 100;
+            overallTask.Increment(1);
+          }
+
+          // Generate overall coverage report
+          AnsiConsole.MarkupLine("\n[bold blue]🔗 Generating Overall Coverage Report[/]");
+          var overallTask2 = ctx.AddTask("[blue]Overall Coverage[/]");
+
+          var overallCoverageFile = await GenerateOverallCoverageAsync(solutionPath, outputDir, cancellationToken);
+
+          if (!string.IsNullOrEmpty(overallCoverageFile))
+          {
+            await GenerateHtmlReportAsync(overallCoverageFile, Path.Combine(outputDir, "overall"), cancellationToken);
+          }
+
+          overallTask2.Value = 100;
+          overallTask.Increment(1);
+
+          // Generate summary report
+          AnsiConsole.MarkupLine("\n[bold yellow]📊 Generating Summary Report[/]");
+          var summaryTask = ctx.AddTask("[yellow]Summary Report[/]");
+
+          await GenerateSummaryReportAsync(outputDir, overallCoverageFile, layerResults, cancellationToken);
+
+          summaryTask.Value = 100;
+          overallTask.Increment(1);
+        });
+
+    // Display results
+    await DisplayCoverageResults(outputDir, layerResults);
   }
 
-  private async Task<string?> GenerateOverallCoverageAsync(
-      string solutionPath,
-      string outputDir,
-      CancellationToken cancellationToken)
+  private void ShowAccessInformation(string outputDir)
   {
-    var overallDir = Path.Combine(outputDir, "overall");
-    Directory.CreateDirectory(overallDir);
+    AnsiConsole.WriteLine();
 
-    // OPTION 1: Generate overall by merging layer coverage files
-    // This will give accurate overall statistics
-    var layerCoverageFiles = new List<string>();
+    // Create clickable file URLs
+    var overallHtmlPath = Path.Combine(outputDir, "overall", "html", "index.html");
+    var overallFileUrl = ConvertToFileUrl(overallHtmlPath);
 
-    foreach (var layer in _layers.Values)
+    var layerUrls = _layers.Values.Select(layer =>
     {
-      var layerCoverageFile = Path.Combine(
-          outputDir,
-          layer.Name.ToLowerInvariant(),
-          "coverage.cobertura.xml");
+      var layerPath = Path.Combine(outputDir, layer.Name.ToLowerInvariant(), "html", "index.html");
+      var fileUrl = ConvertToFileUrl(layerPath);
+      return new { Layer = layer, Path = layerPath, Url = fileUrl };
+    }).ToList();
 
-      if (File.Exists(layerCoverageFile))
+    var accessInfo = new Panel(
+        new Markup(
+            "[bold green]REPORT FILES GENERATED[/]\n\n" +
+            "[blue]Overall Report:[/]\n" +
+            $"[link={overallFileUrl}][dim]{overallHtmlPath}[/][/]\n\n" +
+            "[blue]Layer Reports:[/]\n" +
+            string.Join("\n", layerUrls.Select(item =>
+                $"[link={item.Url}][dim]{item.Layer.Name}: {item.Path}[/][/]"))
+        ))
+    {
+      Header = new PanelHeader("[bold green]ACCESS INFORMATION[/]"),
+      Border = BoxBorder.Rounded,
+      BorderStyle = new Style(Color.Green)
+    };
+
+    AnsiConsole.Write(accessInfo);
+    AnsiConsole.WriteLine();
+  }
+
+  private string ConvertToFileUrl(string filePath)
+  {
+    // Convert file path to file:// URL format
+    if (string.IsNullOrEmpty(filePath))
+      return string.Empty;
+
+    try
+    {
+      var uri = new Uri(filePath);
+      return uri.ToString();
+    }
+    catch
+    {
+      // Fallback: manually construct file URL
+      var normalizedPath = Path.GetFullPath(filePath).Replace('\\', '/');
+      
+      if (OperatingSystem.IsWindows())
       {
-        layerCoverageFiles.Add(layerCoverageFile);
+        // Windows: file:///C:/path/to/file
+        return $"file:///{normalizedPath}";
+      }
+      else
+      {
+        // Unix-like: file:///path/to/file
+        return $"file://{normalizedPath}";
       }
     }
+  }
 
-    if (layerCoverageFiles.Count > 0)
+  // Enhanced completion message
+  private void ShowCompletionMessage()
+  {
+    AnsiConsole.WriteLine();
+
+    var successRule = new Rule("[bold green]COVERAGE REPORT GENERATION COMPLETE[/]")
     {
-      var mergedFile = Path.Combine(overallDir, "coverage.cobertura.xml");
-      await MergeMultipleCoverageFilesAsync(layerCoverageFiles.ToArray(), mergedFile);
-      return mergedFile;
-    }
+      Justification = Justify.Center,
+      Style = Style.Parse("green")
+    };
 
-    // OPTION 2: Fallback to running tests again (shouldn't happen)
-    var excludePatterns = GetStandardExcludePatterns();
-    var includePatterns = string.Join(",", _layers.Values.Select(l => l.IncludePattern));
-
-    var coverageFile = await RunTestsWithCoverageAsync(
-        solutionPath,
-        overallDir,
-        includePatterns,
-        excludePatterns,
-        cancellationToken);
-
-    return coverageFile;
+    AnsiConsole.Write(successRule);
+    AnsiConsole.WriteLine();
   }
 
   private async Task<string?> GenerateLayerCoverageAsync(
       string solutionPath,
       string outputDir,
       LayerConfig layer,
-      CancellationToken cancellationToken)
+      CancellationToken cancellationToken,
+      ProgressTask? progressTask = null)
   {
     var layerDir = Path.Combine(outputDir, layer.Name.ToLowerInvariant());
     Directory.CreateDirectory(layerDir);
@@ -203,14 +287,157 @@ public class TestCoverageWorker : BackgroundService
     var excludePatterns = GetStandardExcludePatterns();
     var includePatterns = layer.IncludePattern;
 
+    progressTask?.StartTask();
+
     var coverageFile = await RunTestsWithCoverageAsync(
         solutionPath,
         layerDir,
         includePatterns,
         excludePatterns,
-        cancellationToken);
+        cancellationToken,
+        progressTask);
 
+    progressTask?.StopTask();
     return coverageFile;
+  }
+
+  private async Task<string?> RunTestsWithCoverageAsync(
+      string solutionPath,
+      string outputDir,
+      string includePatterns,
+      string excludePatterns,
+      CancellationToken cancellationToken,
+      ProgressTask? progressTask = null)
+  {
+    await CleanupOldCoverageFilesAsync(outputDir);
+
+    var arguments = $"test \"{solutionPath}\" --configuration Release " +
+                   $"--collect:\"XPlat Code Coverage\" " +
+                   $"--results-directory \"{outputDir}\" " +
+                   $"--logger \"trx;LogFileName=TestResults.trx\" " +
+                   $"--verbosity quiet " +
+                   $"-- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=\"{includePatterns}\" " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude=\"{excludePatterns}\" " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.IncludeTestAssembly=false " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.UseSourceLink=false";
+
+    var processInfo = new ProcessStartInfo
+    {
+      FileName = "dotnet",
+      Arguments = arguments,
+      UseShellExecute = false,
+      RedirectStandardOutput = true,
+      RedirectStandardError = true,
+      CreateNoWindow = true
+    };
+
+    using var process = new Process { StartInfo = processInfo };
+
+    var output = new List<string>();
+    var errors = new List<string>();
+
+    process.OutputDataReceived += (sender, e) =>
+    {
+      if (!string.IsNullOrEmpty(e.Data))
+      {
+        output.Add(e.Data);
+        
+        // Update progress based on test output
+        if (progressTask != null && e.Data.Contains("Test run"))
+        {
+          progressTask.Value = Math.Min(progressTask.Value + 10, 90);
+        }
+      }
+    };
+
+    process.ErrorDataReceived += (sender, e) =>
+    {
+      if (!string.IsNullOrEmpty(e.Data))
+      {
+        errors.Add(e.Data);
+      }
+    };
+
+    process.Start();
+    process.BeginOutputReadLine();
+    process.BeginErrorReadLine();
+
+    await process.WaitForExitAsync(cancellationToken);
+
+    if (process.ExitCode != 0)
+    {
+      AnsiConsole.MarkupLine($"[yellow]⚠️ Test execution completed with exit code {process.ExitCode}[/]");
+    }
+
+    await Task.Delay(2000, cancellationToken);
+    return await FindAndMergeCoverageFilesAsync(outputDir);
+  }
+
+  private async Task DisplayCoverageResults(string outputDir, Dictionary<string, CoverageStatistics> layerResults)
+  {
+    AnsiConsole.WriteLine();
+
+    // Create coverage summary table
+    var table = new Table()
+        .Border(TableBorder.Rounded)
+        .BorderColor(Color.Blue)
+        .AddColumn(new TableColumn("[bold]Layer[/]").Centered())
+        .AddColumn(new TableColumn("[bold]Line Coverage[/]").Centered())
+        .AddColumn(new TableColumn("[bold]Branch Coverage[/]").Centered())
+        .AddColumn(new TableColumn("[bold]Lines[/]").Centered())
+        .AddColumn(new TableColumn("[bold]Branches[/]").Centered())
+        .AddColumn(new TableColumn("[bold]Status[/]").Centered());
+
+    foreach (var (layerName, stats) in layerResults.OrderByDescending(x => x.Value.LinesCoverage))
+    {
+      var layer = _layers[layerName];
+      var statusIcon = GetCoverageStatusIcon(stats.LinesCoverage);
+      var statusColor = GetCoverageStatusColor(stats.LinesCoverage);
+
+      table.AddRow(
+          $"[{layer.Color.ToMarkup()}]{layerName}[/]",
+          $"[{statusColor}]{stats.LinesCoverage:F1}%[/]",
+          $"[{statusColor}]{stats.BranchesCoverage:F1}%[/]",
+          $"[dim]{stats.CoveredLines}/{stats.TotalLines}[/]",
+          $"[dim]{stats.CoveredBranches}/{stats.TotalBranches}[/]",
+          $"[{statusColor}]{statusIcon}[/]"
+      );
+    }
+
+    var panel = new Panel(table)
+    {
+      Header = new PanelHeader("[bold blue]📊 Coverage Summary[/]"),
+      Border = BoxBorder.Double,
+      BorderStyle = new Style(Color.Blue)
+    };
+
+    AnsiConsole.Write(panel);
+
+    // Display file access information
+    ShowAccessInformation(outputDir);
+  }
+
+  private string GetCoverageStatusIcon(decimal coverage)
+  {
+    return coverage switch
+    {
+      >= 80 => "🟢",
+      >= 60 => "🟡",
+      >= 40 => "🟠",
+      _ => "🔴"
+    };
+  }
+
+  private string GetCoverageStatusColor(decimal coverage)
+  {
+    return coverage switch
+    {
+      >= 80 => "green",
+      >= 60 => "yellow",
+      >= 40 => "orange1",
+      _ => "red"
+    };
   }
 
   private string GetStandardExcludePatterns()
@@ -263,6 +490,71 @@ public class TestCoverageWorker : BackgroundService
     });
   }
 
+  private async Task<string?> GenerateOverallCoverageAsync(
+      string solutionPath,
+      string outputDir,
+      CancellationToken cancellationToken)
+  {
+    var overallDir = Path.Combine(outputDir, "overall");
+    Directory.CreateDirectory(overallDir);
+
+    var layerCoverageFiles = new List<string>();
+
+    foreach (var layer in _layers.Values)
+    {
+      var layerCoverageFile = Path.Combine(
+          outputDir,
+          layer.Name.ToLowerInvariant(),
+          "coverage.cobertura.xml");
+
+      if (File.Exists(layerCoverageFile))
+      {
+        layerCoverageFiles.Add(layerCoverageFile);
+      }
+    }
+
+    if (layerCoverageFiles.Count > 0)
+    {
+      var mergedFile = Path.Combine(overallDir, "coverage.cobertura.xml");
+      await MergeMultipleCoverageFilesAsync(layerCoverageFiles.ToArray(), mergedFile);
+      return mergedFile;
+    }
+
+    var excludePatterns = GetStandardExcludePatterns();
+    var includePatterns = string.Join(",", _layers.Values.Select(l => l.IncludePattern));
+
+    var coverageFile = await RunTestsWithCoverageAsync(
+        solutionPath,
+        overallDir,
+        includePatterns,
+        excludePatterns,
+        cancellationToken);
+
+    return coverageFile;
+  }
+
+  private async Task<string?> GenerateLayerCoverageAsync(
+      string solutionPath,
+      string outputDir,
+      LayerConfig layer,
+      CancellationToken cancellationToken)
+  {
+    var layerDir = Path.Combine(outputDir, layer.Name.ToLowerInvariant());
+    Directory.CreateDirectory(layerDir);
+
+    var excludePatterns = GetStandardExcludePatterns();
+    var includePatterns = layer.IncludePattern;
+
+    var coverageFile = await RunTestsWithCoverageAsync(
+        solutionPath,
+        layerDir,
+        includePatterns,
+        excludePatterns,
+        cancellationToken);
+
+    return coverageFile;
+  }
+
   private async Task<string?> RunTestsWithCoverageAsync(
       string solutionPath,
       string outputDir,
@@ -282,9 +574,6 @@ public class TestCoverageWorker : BackgroundService
                    $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude=\"{excludePatterns}\" " +
                    $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.IncludeTestAssembly=false " +
                    $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.UseSourceLink=false";
-
-    _logger.LogDebug("Include patterns: {includePatterns}", includePatterns);
-    _logger.LogDebug("Exclude patterns: {excludePatterns}", excludePatterns);
 
     var processInfo = new ProcessStartInfo
     {
@@ -306,7 +595,9 @@ public class TestCoverageWorker : BackgroundService
       if (!string.IsNullOrEmpty(e.Data))
       {
         output.Add(e.Data);
-        _logger.LogDebug("Test output: {data}", e.Data);
+        
+        // Update progress based on test output
+        // (No progress task here, simpler output handling)
       }
     };
 
@@ -315,7 +606,6 @@ public class TestCoverageWorker : BackgroundService
       if (!string.IsNullOrEmpty(e.Data))
       {
         errors.Add(e.Data);
-        _logger.LogDebug("Test error: {data}", e.Data);
       }
     };
 
@@ -327,11 +617,10 @@ public class TestCoverageWorker : BackgroundService
 
     if (process.ExitCode != 0)
     {
-      _logger.LogWarning("Test execution completed with exit code {exitCode}", process.ExitCode);
+      AnsiConsole.MarkupLine($"[yellow]⚠️ Test execution completed with exit code {process.ExitCode}[/]");
     }
 
     await Task.Delay(2000, cancellationToken);
-
     return await FindAndMergeCoverageFilesAsync(outputDir);
   }
 
@@ -360,63 +649,11 @@ public class TestCoverageWorker : BackgroundService
       var json = JsonSerializer.Serialize(summary, jsonOptions);
 
       await File.WriteAllTextAsync(summaryFile, json, cancellationToken);
-
-      // Log summary to console
-      _logger.LogInformation("");
-      _logger.LogInformation("╔════════════════════════════════════════════════════════════════╗");
-      _logger.LogInformation("║           📊 TEST COVERAGE SUMMARY                             ║");
-      _logger.LogInformation("╠════════════════════════════════════════════════════════════════╣");
-
-      if (summary.Overall != null)
-      {
-        _logger.LogInformation("║  Overall Coverage:                                             ║");
-        _logger.LogInformation("║    Lines:    {lines,5:F1}%  ({covered,6}/{total,6})                      ║",
-            summary.Overall.LinesCoverage,
-            summary.Overall.CoveredLines,
-            summary.Overall.TotalLines);
-        _logger.LogInformation("║    Branches: {branches,5:F1}%  ({covered,6}/{total,6})                      ║",
-            summary.Overall.BranchesCoverage,
-            summary.Overall.CoveredBranches,
-            summary.Overall.TotalBranches);
-        _logger.LogInformation("╠════════════════════════════════════════════════════════════════╣");
-      }
-
-      _logger.LogInformation("║  Layer-by-Layer Coverage:                                      ║");
-      _logger.LogInformation("╟────────────────────────────────────────────────────────────────╢");
-
-      foreach (var (layerName, stats) in layerResults.OrderByDescending(x => x.Value.LinesCoverage))
-      {
-        var emoji = GetCoverageEmoji(stats.LinesCoverage);
-        _logger.LogInformation("║  {emoji} {layerName,-15}                                          ║", emoji, layerName);
-        _logger.LogInformation("║    Lines:    {lines,5:F1}%  ({covered,6}/{total,6})                      ║",
-            stats.LinesCoverage,
-            stats.CoveredLines,
-            stats.TotalLines);
-        _logger.LogInformation("║    Branches: {branches,5:F1}%  ({covered,6}/{total,6})                      ║",
-            stats.BranchesCoverage,
-            stats.CoveredBranches,
-            stats.TotalBranches);
-        _logger.LogInformation("╟────────────────────────────────────────────────────────────────╢");
-      }
-
-      _logger.LogInformation("╚════════════════════════════════════════════════════════════════╝");
-      _logger.LogInformation("");
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Failed to generate summary report");
+      AnsiConsole.WriteException(ex);
     }
-  }
-
-  private string GetCoverageEmoji(decimal coverage)
-  {
-    return coverage switch
-    {
-      >= 80 => "🟢",
-      >= 60 => "🟡",
-      >= 40 => "🟠",
-      _ => "🔴"
-    };
   }
 
   private async Task LogWebAppAccessInfo(string outputDir)
@@ -451,7 +688,7 @@ public class TestCoverageWorker : BackgroundService
     {
       if (Directory.Exists(outputDir))
       {
-        _logger.LogInformation("Cleaning up existing coverage reports directory: {outputDir}", outputDir);
+        AnsiConsole.MarkupLine("[yellow]🧹 Cleaning up existing coverage reports...[/]");
         await Task.Delay(500);
 
         var maxRetries = 3;
@@ -462,20 +699,18 @@ public class TestCoverageWorker : BackgroundService
           try
           {
             Directory.Delete(outputDir, true);
-            _logger.LogInformation("Successfully cleaned up coverage reports directory");
+            AnsiConsole.MarkupLine("[green]✅ Cleanup completed[/]");
             break;
           }
           catch (IOException ex) when (attempt < maxRetries)
           {
-            _logger.LogWarning(ex, "Attempt {attempt}/{maxRetries} to delete directory failed, retrying in {delay}ms",
-                attempt, maxRetries, retryDelay);
+            AnsiConsole.MarkupLine($"[yellow]⚠️ Cleanup attempt {attempt}/{maxRetries} failed, retrying...[/]");
             await Task.Delay(retryDelay);
             retryDelay *= 2;
           }
           catch (UnauthorizedAccessException ex) when (attempt < maxRetries)
           {
-            _logger.LogWarning(ex, "Access denied on attempt {attempt}/{maxRetries}, retrying in {delay}ms",
-                attempt, maxRetries, retryDelay);
+            AnsiConsole.MarkupLine($"[yellow]⚠️ Access denied on attempt {attempt}/{maxRetries}, retrying...[/]");
             await Task.Delay(retryDelay);
             retryDelay *= 2;
           }
@@ -484,7 +719,7 @@ public class TestCoverageWorker : BackgroundService
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Failed to cleanup coverage reports directory: {outputDir}. Continuing with generation...", outputDir);
+      AnsiConsole.WriteException(ex);
     }
   }
 
@@ -495,7 +730,6 @@ public class TestCoverageWorker : BackgroundService
       if (Directory.Exists(outputDir))
       {
         var cutoffTime = DateTime.Now.AddDays(-1);
-
         var subdirs = Directory.GetDirectories(outputDir)
             .Where(d => Guid.TryParse(Path.GetFileName(d), out _))
             .Where(d => Directory.GetCreationTime(d) < cutoffTime);
@@ -505,7 +739,6 @@ public class TestCoverageWorker : BackgroundService
           try
           {
             Directory.Delete(dir, true);
-            _logger.LogDebug("Deleted old coverage directory: {dir}", dir);
           }
           catch (Exception ex)
           {
@@ -521,7 +754,6 @@ public class TestCoverageWorker : BackgroundService
           try
           {
             File.Delete(file);
-            _logger.LogDebug("Deleted old coverage file: {file}", file);
           }
           catch (Exception ex)
           {
@@ -550,16 +782,12 @@ public class TestCoverageWorker : BackgroundService
             .Where(f => !f.Contains("TestResults"))
             .ToArray();
 
-        _logger.LogDebug("Found {count} coverage files on attempt {retry}", coverageFiles.Length, retry + 1);
-
         if (coverageFiles.Length == 0)
         {
           if (retry == maxRetries - 1)
           {
-            _logger.LogError("No coverage files found after {retries} attempts", maxRetries);
             return null;
           }
-
           await Task.Delay(retryDelay, CancellationToken.None);
           continue;
         }
@@ -577,12 +805,10 @@ public class TestCoverageWorker : BackgroundService
       }
       catch (Exception ex) when (retry < maxRetries - 1)
       {
-        _logger.LogWarning(ex, "Attempt {retry} failed, retrying in {delay}ms", retry + 1, retryDelay);
         await Task.Delay(retryDelay, CancellationToken.None);
       }
     }
 
-    _logger.LogError("Failed to find and merge coverage files after {retries} attempts", maxRetries);
     return null;
   }
 
@@ -599,14 +825,11 @@ public class TestCoverageWorker : BackgroundService
         {
           File.Delete(destinationFile);
         }
-
         File.Copy(sourceFile, destinationFile, true);
-        _logger.LogDebug("Successfully copied coverage file from {source} to {dest}", sourceFile, destinationFile);
         return;
       }
       catch (IOException ex) when (retry < maxRetries - 1)
       {
-        _logger.LogWarning(ex, "File copy attempt {retry} failed, retrying in {delay}ms", retry + 1, retryDelay);
         await Task.Delay(retryDelay, CancellationToken.None);
       }
     }
@@ -618,22 +841,15 @@ public class TestCoverageWorker : BackgroundService
   {
     try
     {
-      _logger.LogDebug("Merging {count} coverage files into {output}", coverageFiles.Length, outputFile);
-
       var largestFile = coverageFiles
           .Select(f => new { File = f, Size = new FileInfo(f).Length })
           .OrderByDescending(x => x.Size)
           .First();
 
-      _logger.LogDebug("Using largest coverage file: {file} ({size} bytes)",
-          largestFile.File, largestFile.Size);
-
       await CopyFileWithRetryAsync(largestFile.File, outputFile);
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Failed to merge coverage files");
-
       if (coverageFiles.Length > 0)
       {
         await CopyFileWithRetryAsync(coverageFiles[0], outputFile);
@@ -645,15 +861,12 @@ public class TestCoverageWorker : BackgroundService
   {
     try
     {
-      _logger.LogInformation("Merging {count} layer coverage files for overall report", coverageFiles.Length);
-
       if (coverageFiles.Length == 1)
       {
         await CopyFileWithRetryAsync(coverageFiles[0], outputFile);
         return;
       }
 
-      // Parse all coverage files and combine statistics
       var combinedDoc = new System.Xml.Linq.XDocument();
       var combinedCoverage = new System.Xml.Linq.XElement("coverage");
 
@@ -706,21 +919,11 @@ public class TestCoverageWorker : BackgroundService
       combinedCoverage.Add(packagesElement);
       combinedDoc.Add(combinedCoverage);
 
-      // Save merged file
       await using var writer = new StreamWriter(outputFile);
       await writer.WriteAsync(combinedDoc.ToString());
-
-      _logger.LogInformation("Successfully merged coverage files:");
-      _logger.LogInformation("  Lines: {covered}/{total} ({rate:P2})",
-          totalLinesCovered, totalLinesValid, lineRate);
-      _logger.LogInformation("  Branches: {covered}/{total} ({rate:P2})",
-          totalBranchesCovered, totalBranchesValid, branchRate);
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Failed to merge multiple coverage files");
-
-      // Fallback: use the largest file
       if (coverageFiles.Length > 0)
       {
         var largestFile = coverageFiles
@@ -755,37 +958,12 @@ public class TestCoverageWorker : BackgroundService
       };
 
       using var process = new Process { StartInfo = processInfo };
-
-      process.OutputDataReceived += (sender, e) =>
-      {
-        if (!string.IsNullOrEmpty(e.Data))
-          _logger.LogDebug("ReportGenerator output: {data}", e.Data);
-      };
-
-      process.ErrorDataReceived += (sender, e) =>
-      {
-        if (!string.IsNullOrEmpty(e.Data))
-          _logger.LogDebug("ReportGenerator error: {data}", e.Data);
-      };
-
       process.Start();
-      process.BeginOutputReadLine();
-      process.BeginErrorReadLine();
-
       await process.WaitForExitAsync(cancellationToken);
-
-      if (process.ExitCode == 0)
-      {
-        _logger.LogDebug("HTML report generated successfully at: {reportDir}", reportDir);
-      }
-      else
-      {
-        _logger.LogError("ReportGenerator failed with exit code {exitCode}", process.ExitCode);
-      }
     }
     catch (Exception ex)
     {
-      _logger.LogError(ex, "Failed to generate HTML report. Ensure 'reportgenerator' tool is installed globally");
+      AnsiConsole.WriteException(ex);
     }
   }
 
@@ -798,7 +976,6 @@ public class TestCoverageWorker : BackgroundService
 
       if (coverage?.Name.LocalName != "coverage")
       {
-        _logger.LogWarning("Invalid coverage XML format");
         return new CoverageStatistics { GeneratedAt = DateTime.UtcNow };
       }
 
@@ -874,6 +1051,7 @@ public class TestCoverageWorker : BackgroundService
     public required string Name { get; init; }
     public required string IncludePattern { get; init; }
     public required string Description { get; init; }
+    public required Color Color { get; init; }
   }
 
   public record CoverageStatistics
