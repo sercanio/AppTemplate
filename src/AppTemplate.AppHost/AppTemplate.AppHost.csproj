@@ -16,6 +16,7 @@
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.4.2" />
     <PackageReference Include="Aspire.Hosting.Seq" Version="9.4.2" />
     <PackageReference Include="KubernetesClient" Version="17.0.14" />
+    <PackageReference Include="MediatR" Version="[12.5.0,13.0.0)" />
   </ItemGroup>
 
   <ItemGroup>
