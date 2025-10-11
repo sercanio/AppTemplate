@@ -11,6 +11,13 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Identity;
+using Serilog;
+using AppTemplate.TestCoverageWorker;
+using AppTemplate.Infrastructure;
+using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Application.Services.Authentication;
+using AppTemplate.Infrastructure.Authentication;
 
 namespace AppTemplate.Web.Extensions;
 
@@ -37,7 +44,123 @@ public static class ApplicationBuilderExtensions
         return app;
     }
 
-    // Service-level configuration extensions
+    // New extension methods to extract from Program.cs
+    public static IHostBuilder ConfigureSerilog(this IHostBuilder host)
+    {
+        return host.UseSerilog((context, services, configuration) =>
+        {
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
+                .WriteTo.OpenTelemetry(options =>
+                {
+                    options.Endpoint = "http://localhost:4317";
+                    options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+                });
+
+            // Add Seq sink if connection string is available
+            var seqConnectionString = context.Configuration.GetConnectionString("apptemplate-seq");
+            if (!string.IsNullOrEmpty(seqConnectionString))
+            {
+                configuration.WriteTo.Seq(seqConnectionString);
+            }
+        });
+    }
+
+    public static IServiceCollection ConfigureIdentity(this IServiceCollection services)
+    {
+        services.AddDefaultIdentity<IdentityUser>(options =>
+            options.SignIn.RequireConfirmedAccount = false)
+            .AddEntityFrameworkStores<ApplicationDbContext>();
+        
+        return services;
+    }
+
+    public static IServiceCollection ConfigureRedisCache(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("apptemplate-redis") ?? "localhost:6379";
+            options.InstanceName = "AppTemplate:";
+        });
+        
+        return services;
+    }
+
+    public static IServiceCollection ConfigureOpenApiWithScalar(this IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+        services.AddOpenApi(options =>
+        {
+            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+            options.AddDocumentTransformer((document, context, cancellationToken) =>
+            {
+                document.Info = new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "AppTemplate API",
+                    Version = $"v{ApiVersions.V1}",
+                    Description = "API documentation for the AppTemplate application."
+                };
+                return Task.CompletedTask;
+            });
+        });
+        
+        return services;
+    }
+
+    public static IServiceCollection ConfigureJwtTokenService(this IServiceCollection services)
+    {
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+        return services;
+    }
+
+    public static IApplicationBuilder ConfigureDevelopmentEnvironment(this IApplicationBuilder app, IWebHostEnvironment environment)
+    {
+        if (environment.IsDevelopment())
+        {
+            app.UseMigrationsEndPoint();
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseHsts();
+        }
+        
+        return app;
+    }
+
+    public static IApplicationBuilder ConfigureMiddlewarePipeline(this IApplicationBuilder app, IWebHostEnvironment environment)
+    {
+        if (!environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+        
+        app.UseRouting();
+        app.UseCors("CorsPolicy");
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseCustomForbiddenRequestHandler();
+        app.UseRateLimiter();
+        app.UseRateLimitExceededHandler();
+        
+        return app;
+    }
+
+    public static IEndpointRouteBuilder MapDevelopmentEndpoints(this IEndpointRouteBuilder endpoints, IWebHostEnvironment environment)
+    {
+        if (environment.IsDevelopment())
+        {
+            endpoints.MapOpenApi();
+            endpoints.MapScalarApiReference();
+            endpoints.MapTestCoverageEndpoints();
+        }
+        
+        return endpoints;
+    }
+
+    // Service-level configuration extensions (existing methods)
     public static IServiceCollection ConfigureCors(this IServiceCollection services, IConfiguration configuration)
     {
         // Read allowed origins from configuration.

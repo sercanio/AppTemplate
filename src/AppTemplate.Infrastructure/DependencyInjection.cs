@@ -1,8 +1,7 @@
-using AppTemplate.Application.Authentication;
-using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Data.Dapper;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Authentication;
+using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Application.Services.Notifications;

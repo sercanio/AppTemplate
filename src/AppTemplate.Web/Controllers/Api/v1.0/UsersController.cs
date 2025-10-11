@@ -1,4 +1,3 @@
-using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Data.DynamicQuery;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Enums;
@@ -8,6 +7,7 @@ using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Features.AppUsers.Queries.GetUser;
+using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;

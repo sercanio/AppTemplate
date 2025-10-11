@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace AppTemplate.Application.Authorization;
+namespace AppTemplate.Application.Services.Authorization;
 
 public sealed class HasPermissionAttribute : AuthorizeAttribute
 {

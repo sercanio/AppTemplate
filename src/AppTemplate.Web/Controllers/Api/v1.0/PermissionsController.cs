@@ -1,6 +1,6 @@
-using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
+using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;

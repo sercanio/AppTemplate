@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace AppTemplate.Application.Authentication;
+namespace AppTemplate.Application.Services.Authentication;
 
 public static class ClaimsPrincipalExtensions
 {

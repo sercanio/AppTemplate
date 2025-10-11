@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 
-namespace AppTemplate.Application.Authorization;
+namespace AppTemplate.Application.Services.Authorization;
 
 public sealed class PermissionAuthorizationPolicyProvider : DefaultAuthorizationPolicyProvider
 {

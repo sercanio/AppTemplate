@@ -1,9 +1,9 @@
-using AppTemplate.Application.Authentication.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using AppTemplate.Domain.AppUsers;
+using AppTemplate.Application.Services.Authentication.Models;
 
-namespace AppTemplate.Application.Authentication;
+namespace AppTemplate.Application.Services.Authentication;
 
 public interface IJwtTokenService
 {

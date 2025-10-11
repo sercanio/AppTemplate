@@ -1,7 +1,6 @@
-using AppTemplate.Application.Authentication;
 using Microsoft.AspNetCore.Http;
 
-namespace AppTemplate.Application.Authentication;
+namespace AppTemplate.Application.Services.Authentication;
 
 public sealed class UserContext : IUserContext
 {

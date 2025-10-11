@@ -1,7 +1,7 @@
-using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
 using AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsAsRead;
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
+using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;

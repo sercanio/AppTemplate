@@ -1,4 +1,4 @@
-using AppTemplate.Application.Authentication;
+using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

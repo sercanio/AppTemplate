@@ -1,4 +1,4 @@
-using AppTemplate.Application.Authentication.Models;
+using AppTemplate.Application.Services.Authentication.Models;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;

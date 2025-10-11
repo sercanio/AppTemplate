@@ -1,4 +1,4 @@
-namespace AppTemplate.Application.Authentication.Models;
+namespace AppTemplate.Application.Services.Authentication.Models;
 
 public class RefreshToken
 {

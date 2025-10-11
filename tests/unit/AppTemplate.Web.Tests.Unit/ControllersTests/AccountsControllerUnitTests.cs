@@ -1,7 +1,7 @@
-using AppTemplate.Application.Authentication;
-using AppTemplate.Application.Authentication.Models;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Services.AppUsers;
+using AppTemplate.Application.Services.Authentication;
+using AppTemplate.Application.Services.Authentication.Models;
 using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Domain;

@@ -1,5 +1,5 @@
-﻿using AppTemplate.Application.Authentication;
-using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
+﻿using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
+using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Caching;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain;

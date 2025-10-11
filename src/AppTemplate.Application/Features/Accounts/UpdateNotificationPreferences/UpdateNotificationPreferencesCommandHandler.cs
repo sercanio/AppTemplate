@@ -1,5 +1,5 @@
-using AppTemplate.Application.Authentication;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Caching;
 using AppTemplate.Application.Services.Messages;
 using AppTemplate.Domain;

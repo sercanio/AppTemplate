@@ -1,4 +1,4 @@
-namespace AppTemplate.Application.Authentication;
+namespace AppTemplate.Application.Services.Authentication;
 
 public interface IUserContext
 {

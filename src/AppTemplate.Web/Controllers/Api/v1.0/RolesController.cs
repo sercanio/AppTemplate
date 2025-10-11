@@ -1,4 +1,3 @@
-using AppTemplate.Application.Authorization;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.Roles.Commands.Create;
@@ -7,6 +6,7 @@ using AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 using AppTemplate.Application.Features.Roles.Commands.Update.UpdateRoleName;
 using AppTemplate.Application.Features.Roles.Queries.GetAllRoles;
 using AppTemplate.Application.Features.Roles.Queries.GetRoleById;
+using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
