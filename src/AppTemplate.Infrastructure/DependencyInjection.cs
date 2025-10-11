@@ -9,6 +9,7 @@ using AppTemplate.Application.Services.OutboxMessages;
 using AppTemplate.Application.Services.Statistics;
 using AppTemplate.Domain;
 using AppTemplate.Domain.OutboxMessages;
+using AppTemplate.Infrastructure.Authentication;
 using AppTemplate.Infrastructure.Authorization;
 using AppTemplate.Infrastructure.Data.Dapper;
 using AppTemplate.Infrastructure.Repositories;
@@ -56,6 +57,7 @@ public static class DependencyInjection
     AddSignalR(services);
     AddAuthenticationStatisticsServices(services, configuration);
     AddEmailServices(services);
+    ConfigureJwtTokenService(services);
 
     return services;
   }
@@ -109,7 +111,13 @@ public static class DependencyInjection
             .AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>()
             .AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
   }
-  
+
+  private static IServiceCollection ConfigureJwtTokenService(this IServiceCollection services)
+  {
+    services.AddScoped<IJwtTokenService, JwtTokenService>();
+    return services;
+  }
+
   private static void AddNotification(IServiceCollection services)
   {
     services.AddTransient<INotificationService, NotificationsService>();

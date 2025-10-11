@@ -109,12 +109,6 @@ public static class ApplicationBuilderExtensions
         return services;
     }
 
-    public static IServiceCollection ConfigureJwtTokenService(this IServiceCollection services)
-    {
-        services.AddScoped<IJwtTokenService, JwtTokenService>();
-        return services;
-    }
-
     public static IApplicationBuilder ConfigureDevelopmentEnvironment(this IApplicationBuilder app, IWebHostEnvironment environment)
     {
         if (environment.IsDevelopment())

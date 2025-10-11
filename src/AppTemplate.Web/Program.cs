@@ -21,8 +21,7 @@ builder.Services.ConfigureIdentity()
                 .ConfigureJwtAuthentication(builder.Environment, builder.Configuration)
                 .ConfigureRateLimiting()
                 .AddValidators()
-                .ConfigureOpenApiWithScalar()
-                .ConfigureJwtTokenService();
+                .ConfigureOpenApiWithScalar();
 
 var app = builder.Build();
 

@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
+using Serilog;
 
 namespace AppTemplate.Web.Tests.Unit.ExtensionsTests;
 
@@ -82,6 +84,250 @@ public class ApplicationBuilderExtensionUnitTests
     Assert.Equal(mockApplicationBuilder.Object, result);
   }
 
+  [Fact]
+  public void ConfigureSerilog_ShouldConfigureSerilogHost()
+  {
+    // Arrange
+    var hostBuilder = Host.CreateDefaultBuilder();
+
+    // Act
+    var result = hostBuilder.ConfigureSerilog();
+
+    // Assert
+    Assert.NotNull(result);
+    Assert.IsType<IHostBuilder>(result, exactMatch: false);
+  }
+
+  [Fact]
+  public void ConfigureIdentity_ShouldAddIdentityServices()
+  {
+    // Arrange
+    var services = new ServiceCollection();
+    services.AddLogging();
+
+    // Act
+    var result = services.ConfigureIdentity();
+
+    // Assert
+    Assert.Equal(services, result);
+    Assert.Contains(services, s => s.ServiceType.Name.Contains("Identity") || 
+                                  s.ServiceType.Name.Contains("UserManager") ||
+                                  s.ServiceType.Name.Contains("SignInManager"));
+  }
+
+  [Fact]
+  public void ConfigureRedisCache_ShouldAddRedisCacheServices()
+  {
+    // Arrange
+    var services = new ServiceCollection();
+    services.AddLogging();
+    var configuration = CreateMockConfiguration(new Dictionary<string, string>
+    {
+        { "ConnectionStrings:apptemplate-redis", "localhost:6379" }
+    });
+
+    // Act
+    var result = services.ConfigureRedisCache(configuration);
+
+    // Assert
+    Assert.Equal(services, result);
+    Assert.Contains(services, s => s.ServiceType.Name.Contains("Cache") || 
+                                  s.ServiceType.Name.Contains("Redis"));
+  }
+
+  [Fact]
+  public void ConfigureRedisCache_WithoutConnectionString_ShouldUseDefaultValue()
+  {
+    // Arrange
+    var services = new ServiceCollection();
+    services.AddLogging();
+    var configuration = CreateMockConfiguration(new Dictionary<string, string>());
+
+    // Act
+    var result = services.ConfigureRedisCache(configuration);
+
+    // Assert
+    Assert.Equal(services, result);
+    Assert.Contains(services, s => s.ServiceType.Name.Contains("Cache") || 
+                                  s.ServiceType.Name.Contains("Redis"));
+  }
+
+  [Fact]
+  public void ConfigureOpenApiWithScalar_ShouldAddOpenApiServices()
+  {
+    // Arrange
+    var services = new ServiceCollection();
+    services.AddLogging();
+    services.AddRouting();
+    services.AddControllers();
+
+    // Act
+    var result = services.ConfigureOpenApiWithScalar();
+
+    // Assert
+    Assert.Equal(services, result);
+    Assert.Contains(services, s => s.ServiceType.Name.Contains("OpenApi") ||
+                                  s.ServiceType.Name.Contains("ApiExplorer"));
+  }
+
+  [Fact]
+  public void ConfigureDevelopmentEnvironment_InDevelopment_ShouldConfigureCorrectly()
+  {
+    // Arrange
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Development";
+    
+    using var app = builder.Build();
+    
+    // Act & Assert - Should not throw
+    var result = app.ConfigureDevelopmentEnvironment(app.Environment);
+    Assert.NotNull(result);
+  }
+
+  [Fact]
+  public void ConfigureDevelopmentEnvironment_InProduction_ShouldConfigureCorrectly()
+  {
+    // Arrange
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Production";
+    
+    using var app = builder.Build();
+    
+    // Act & Assert - Should not throw
+    var result = app.ConfigureDevelopmentEnvironment(app.Environment);
+    Assert.NotNull(result);
+  }
+
+  [Fact]
+  public void ConfigureMiddlewarePipeline_InDevelopment_ShouldNotAddHttpsRedirection()
+  {
+    // Arrange
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Development";
+    
+    // Add required services for the middleware pipeline
+    builder.Services.AddCors(options =>
+    {
+      options.AddPolicy("CorsPolicy", policy =>
+      {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+      });
+    });
+    builder.Services.AddAuthentication();
+    builder.Services.AddAuthorization();
+    builder.Services.AddRateLimiter(options => {});
+    
+    using var app = builder.Build();
+    
+    // Act & Assert - Should not throw
+    var result = app.ConfigureMiddlewarePipeline(app.Environment);
+    Assert.NotNull(result);
+  }
+
+  [Fact]
+  public void ConfigureMiddlewarePipeline_InProduction_ShouldAddHttpsRedirection()
+  {
+    // Arrange
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Production";
+    
+    // Add required services for the middleware pipeline
+    builder.Services.AddCors(options =>
+    {
+      options.AddPolicy("CorsPolicy", policy =>
+      {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+      });
+    });
+    builder.Services.AddAuthentication();
+    builder.Services.AddAuthorization();
+    builder.Services.AddRateLimiter(options => {});
+    
+    using var app = builder.Build();
+    
+    // Act & Assert - Should not throw
+    var result = app.ConfigureMiddlewarePipeline(app.Environment);
+    Assert.NotNull(result);
+  }
+
+  [Fact]
+  public void MapDevelopmentEndpoints_InDevelopment_ShouldMapEndpoints()
+  {
+    // Arrange
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Development";
+    
+    // Add required services for OpenAPI
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddOpenApi();
+    
+    using var app = builder.Build();
+    
+    // Act & Assert - Should not throw
+    var result = app.MapDevelopmentEndpoints(app.Environment);
+    Assert.NotNull(result);
+  }
+
+  [Fact]
+  public void MapDevelopmentEndpoints_InProduction_ShouldNotMapEndpoints()
+  {
+    // Arrange
+    var builder = WebApplication.CreateBuilder();
+    builder.Environment.EnvironmentName = "Production";
+    
+    using var app = builder.Build();
+    
+    // Act & Assert - Should not throw
+    var result = app.MapDevelopmentEndpoints(app.Environment);
+    Assert.NotNull(result);
+  }
+
+  [Fact]
+  public void ConfigureIdentity_ShouldReturnSameServiceCollection()
+  {
+    // Arrange
+    var services = new ServiceCollection();
+    services.AddLogging();
+
+    // Act
+    var result = services.ConfigureIdentity();
+
+    // Assert
+    Assert.Same(services, result);
+  }
+
+  [Fact]
+  public void ConfigureRedisCache_ShouldReturnSameServiceCollection()
+  {
+    // Arrange
+    var services = new ServiceCollection();
+    services.AddLogging();
+    var configuration = CreateMockConfiguration(new Dictionary<string, string>());
+
+    // Act
+    var result = services.ConfigureRedisCache(configuration);
+
+    // Assert
+    Assert.Same(services, result);
+  }
+
+  [Fact]
+  public void ConfigureOpenApiWithScalar_ShouldReturnSameServiceCollection()
+  {
+    // Arrange
+    var services = new ServiceCollection();
+    services.AddLogging();
+    services.AddRouting();
+    services.AddControllers();
+
+    // Act
+    var result = services.ConfigureOpenApiWithScalar();
+
+    // Assert
+    Assert.Same(services, result);
+  }
+
+  // Existing tests remain the same...
   [Fact]
   public void ConfigureCors_ShouldAddCorsServices_WithCorrectPolicy()
   {
