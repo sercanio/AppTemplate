@@ -27,6 +27,7 @@ indent_size = 2
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 end_of_line = crlf
 dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_explicit_tuple_names = true:warning
 
 ###############################
 # XML Config Files

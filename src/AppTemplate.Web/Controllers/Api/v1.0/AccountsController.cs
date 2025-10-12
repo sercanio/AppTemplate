@@ -85,7 +85,7 @@ public class AccountsController : BaseController
       return _errorHandlingService.HandleErrorResponse(Result.NotFound($"Unable to load user with ID '{userId}'."));
     }
 
-    code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+    code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code) ?? Array.Empty<byte>());
     var identityResult = await _userManager.ConfirmEmailAsync(user, code);
 
     var result = ConvertIdentityResult(identityResult, "Email confirmed successfully.", "Error confirming email.");
@@ -201,7 +201,7 @@ public class AccountsController : BaseController
       return NotFound(new { error = $"Unable to load user with ID '{userId}'." });
     }
 
-    code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+    code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code) ?? Array.Empty<byte>());
     var changeResult = await _userManager.ChangeEmailAsync(user, email, code);
     if (!changeResult.Succeeded)
     {

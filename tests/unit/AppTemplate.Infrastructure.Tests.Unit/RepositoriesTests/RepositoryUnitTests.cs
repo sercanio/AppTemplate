@@ -579,7 +579,7 @@ public class RepositoryUnitTests : IDisposable
     await _context.SaveChangesAsync();
 
     // Assert
-    var savedUser = await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == user.Id);
+    AppUser? savedUser = await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == user.Id);
     Assert.NotNull(savedUser);
     Assert.Equal("new-user", savedUser.IdentityId);
   }
