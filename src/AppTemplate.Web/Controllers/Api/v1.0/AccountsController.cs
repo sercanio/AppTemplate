@@ -45,7 +45,7 @@ public class AccountsController : BaseController
       IUnitOfWork unitOfWork,
       IAccountEmailService accountEmailService,
       IJwtTokenService jwtTokenService,
-      IConfiguration configuration, 
+      IConfiguration configuration,
       ISender sender,
       IErrorHandlingService errorHandlingService
       ) : base(sender, errorHandlingService)
@@ -56,7 +56,7 @@ public class AccountsController : BaseController
     _appUsersService = appUsersService;
     _unitOfWork = unitOfWork;
     _jwtTokenService = jwtTokenService;
-    _configuration = configuration; 
+    _configuration = configuration;
   }
 
   private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
@@ -121,7 +121,6 @@ public class AccountsController : BaseController
     var code = await _userManager.GenerateChangeEmailTokenAsync(user, request.NewEmail);
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-    // No more casting needed!
     await _accountEmailService.SendEmailChangeConfirmationAsync(
         request.NewEmail,
         userId,
@@ -258,7 +257,13 @@ public class AccountsController : BaseController
 
   // POST: /api/v1.0/account/login
   [HttpPost("login")]
-  public async Task<IActionResult> LoginWithJwt([FromBody] JwtLoginRequest request)
+  public async Task<IActionResult> LoginWithJwt(
+      [FromBody] JwtLoginRequest request,
+      [FromHeader(Name = "User-Agent")] string userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string realIp,
+      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
+      HttpContext context)
   {
     if (!ModelState.IsValid)
       return BadRequest(ModelState);
@@ -292,7 +297,7 @@ public class AccountsController : BaseController
         });
       }
 
-      var deviceInfo = GetDeviceInfoFromRequest();
+      var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
       var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
 
       // Set refresh token as HTTP-only cookie with RememberMe consideration
@@ -316,23 +321,28 @@ public class AccountsController : BaseController
   }
 
   [HttpPost("refresh-token")]
-  public async Task<IActionResult> RefreshJwtToken()
+  public async Task<IActionResult> RefreshJwtToken(
+      [FromHeader(Name = "User-Agent")] string userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string realIp,
+      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
+      HttpContext context)
   {
     try
     {
-      // Get refresh token from "session" cookie instead of "refreshToken"
-      if (!Request.Cookies.TryGetValue("session", out var refreshToken) || 
+      // Get refresh token from cookie using HttpContext
+      if (!context.Request.Cookies.TryGetValue("session", out var refreshToken) ||
           string.IsNullOrEmpty(refreshToken))
       {
         return BadRequest(new { error = "Refresh token not found" });
       }
 
-      var deviceInfo = GetDeviceInfoFromRequest();
+      var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
       var tokens = await _jwtTokenService.RefreshTokensAsync(refreshToken, deviceInfo);
-      
+
       // Set new refresh token in cookie
       SetRefreshTokenCookie(tokens.RefreshToken);
-      
+
       // Return only access token
       return Ok(new
       {
@@ -342,8 +352,8 @@ public class AccountsController : BaseController
     }
     catch (SecurityTokenValidationException ex)
     {
-      // Clear the invalid cookie - use "session"
-      Response.Cookies.Delete("session");
+      // Clear the invalid cookie
+      context.Response.Cookies.Delete("session");
       return BadRequest(new { error = ex.Message });
     }
     catch (Exception ex)
@@ -354,22 +364,22 @@ public class AccountsController : BaseController
 
   [HttpPost("logout")]
   [Authorize(AuthenticationSchemes = "Bearer")]
-  public async Task<IActionResult> LogoutJwt()
+  public async Task<IActionResult> LogoutJwt(HttpContext context)
   {
-    if (Request.Cookies.TryGetValue("session", out var refreshToken) && 
+    if (context.Request.Cookies.TryGetValue("session", out var refreshToken) &&
         !string.IsNullOrEmpty(refreshToken))
     {
       await _jwtTokenService.RevokeRefreshTokenAsync(refreshToken);
     }
-    
-    // Clear the refresh token cookie - use consistent name "session"
-    Response.Cookies.Delete("session", new CookieOptions
+
+    // Clear the refresh token cookie
+    context.Response.Cookies.Delete("session", new CookieOptions
     {
-      Path = "/", // Match the actual endpoint path
+      Path = "/",
       Secure = true,
-      SameSite = SameSiteMode.None // Use None for development cross-origin
+      SameSite = SameSiteMode.None
     });
-    
+
     return Ok(new { message = "Logged out successfully" });
   }
 
@@ -607,7 +617,13 @@ public class AccountsController : BaseController
   }
 
   [HttpPost("2fa/login")]
-  public async Task<IActionResult> LoginWith2fa([FromBody] LoginWith2faRequest request)
+  public async Task<IActionResult> LoginWith2fa(
+      [FromBody] LoginWith2faRequest request,
+      [FromHeader(Name = "User-Agent")] string userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string realIp,
+      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
+      HttpContext context)
   {
     if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.TwoFactorCode))
     {
@@ -633,12 +649,12 @@ public class AccountsController : BaseController
     if (!appUser.IsSuccess)
       return BadRequest(new { error = "App user not found" });
 
-    var deviceInfo = GetDeviceInfoFromRequest();
+    var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
-    
+
     // Set refresh token as HTTP-only cookie with RememberMe consideration
     SetRefreshTokenCookie(tokens.RefreshToken, request.RememberMe);
-    
+
     // Return only access token in response body
     return Ok(new
     {
@@ -648,7 +664,13 @@ public class AccountsController : BaseController
   }
 
   [HttpPost("2fa/login-recovery")]
-  public async Task<IActionResult> LoginWithRecoveryCode([FromBody] LoginWithRecoveryCodeRequest request)
+  public async Task<IActionResult> LoginWithRecoveryCode(
+      [FromBody] LoginWithRecoveryCodeRequest request,
+      [FromHeader(Name = "User-Agent")] string userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string realIp,
+      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
+      HttpContext context)
   {
     if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.RecoveryCode))
     {
@@ -673,12 +695,12 @@ public class AccountsController : BaseController
     if (!appUser.IsSuccess)
       return BadRequest(new { error = "App user not found" });
 
-    var deviceInfo = GetDeviceInfoFromRequest();
+    var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
-    
+
     // Set refresh token as HTTP-only cookie
     SetRefreshTokenCookie(tokens.RefreshToken);
-    
+
     // Return only access token in response body
     return Ok(new
     {
@@ -768,38 +790,40 @@ public class AccountsController : BaseController
         unformattedKey);
   }
 
-  private DeviceInfo GetDeviceInfoFromRequest()
+  private DeviceInfo CreateDeviceInfo(
+      string userAgent,
+      string forwardedFor,
+      string realIp,
+      string browserInfo,
+      HttpContext context)
   {
-    var userAgent = Request.Headers.UserAgent.ToString();
-    var ipAddress = GetClientIpAddress();
-    var (platform, browser, deviceName) = ParseUserAgent(userAgent);
+    var ipAddress = GetClientIpAddress(forwardedFor, realIp, context);
+    var (platform, browser, deviceName) = ParseUserAgent(userAgent ?? "Unknown", browserInfo);
 
     return new DeviceInfo(
-        UserAgent: userAgent,
+        UserAgent: userAgent ?? "Unknown",
         IpAddress: ipAddress,
         DeviceName: deviceName,
         Platform: platform,
         Browser: browser);
   }
 
-  private string GetClientIpAddress()
+  private string GetClientIpAddress(string forwardedFor, string realIp, HttpContext context)
   {
-    var forwardedFor = Request.Headers["X-Forwarded-For"].FirstOrDefault();
     if (!string.IsNullOrEmpty(forwardedFor))
     {
       return forwardedFor.Split(',')[0].Trim();
     }
 
-    var realIp = Request.Headers["X-Real-IP"].FirstOrDefault();
     if (!string.IsNullOrEmpty(realIp))
     {
       return realIp;
     }
 
-    return Request.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+    return context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
   }
 
-  private (string platform, string browser, string deviceName) ParseUserAgent(string userAgent)
+  private (string platform, string browser, string deviceName) ParseUserAgent(string userAgent, string browserInfo)
   {
     if (string.IsNullOrEmpty(userAgent))
     {
@@ -813,8 +837,7 @@ public class AccountsController : BaseController
     var browser = clientInfo.Browser.Family ?? "Unknown";
 
     // Check for custom browser info header first (for Brave detection)
-    var customBrowserInfo = Request.Headers["X-Browser-Info"].FirstOrDefault();
-    if (!string.IsNullOrEmpty(customBrowserInfo) && customBrowserInfo.Equals("Brave", StringComparison.OrdinalIgnoreCase))
+    if (!string.IsNullOrEmpty(browserInfo) && browserInfo.Equals("Brave", StringComparison.OrdinalIgnoreCase))
     {
       browser = "Brave";
     }
@@ -884,7 +907,7 @@ public class AccountsController : BaseController
     var sameSiteMode = Enum.Parse<SameSiteMode>(
       _configuration["Authentication:Cookie:SameSite"] ?? "Strict"
     );
-    
+
     var cookieOptions = new CookieOptions
     {
       HttpOnly = true,
@@ -892,14 +915,14 @@ public class AccountsController : BaseController
       SameSite = sameSiteMode,
       Path = "/"
     };
-    
+
     if (rememberMe)
     {
       // Set expiry for RememberMe
       var expiryDays = int.Parse(_configuration["Jwt:RememberMeTokenExpiryInDays"] ?? "30");
       cookieOptions.Expires = DateTime.UtcNow.AddDays(expiryDays);
     }
-    
+
     Response.Cookies.Append("session", refreshToken, cookieOptions);
   }
 }

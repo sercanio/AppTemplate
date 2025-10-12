@@ -5,7 +5,7 @@ using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Roles.ValueObjects;
 using Moq;
 
-namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Roles;
+namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Roles.Queries.GetRoleStatisticsTests;
 
 [Trait("Category", "Unit")]
 public class GetRoleStatisticsQueryHandlerUnitTests
@@ -37,12 +37,12 @@ public class GetRoleStatisticsQueryHandlerUnitTests
         .SetValue(role2, new List<Permission> { permission3 });
 
     // Add users to roles
-    var user1 = AppTemplate.Domain.AppUsers.AppUser.Create();
-    var user2 = AppTemplate.Domain.AppUsers.AppUser.Create();
+    var user1 = Domain.AppUsers.AppUser.Create();
+    var user2 = Domain.AppUsers.AppUser.Create();
     typeof(Role).GetField("_users", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-        .SetValue(role1, new List<AppTemplate.Domain.AppUsers.AppUser> { user1 });
+        .SetValue(role1, new List<Domain.AppUsers.AppUser> { user1 });
     typeof(Role).GetField("_users", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-        .SetValue(role2, new List<AppTemplate.Domain.AppUsers.AppUser> { user2 });
+        .SetValue(role2, new List<Domain.AppUsers.AppUser> { user2 });
 
     var rolesList = new List<Role> { role1, role2 };
     var permissionsList = new List<Permission> { permission1, permission2, permission3 };

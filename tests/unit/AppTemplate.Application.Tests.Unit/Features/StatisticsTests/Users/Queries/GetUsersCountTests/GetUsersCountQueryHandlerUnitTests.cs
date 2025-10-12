@@ -2,7 +2,7 @@
 using AppTemplate.Application.Repositories;
 using Moq;
 
-namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Users;
+namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Users.Queries.GetUsersCount;
 
 [Trait("Category", "Unit")]
 public class GetUsersCountQueryHandlerUnitTests

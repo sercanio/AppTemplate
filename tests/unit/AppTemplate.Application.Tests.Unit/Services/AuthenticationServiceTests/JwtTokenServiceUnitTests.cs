@@ -1,6 +1,7 @@
 ﻿using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Authentication.Models;
+using AppTemplate.Application.Services.Clock;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Authentication;
@@ -123,6 +124,97 @@ public class JwtTokenServiceUnitTests : IDisposable
     // Act & Assert
     Assert.Equal(result1, result2);
     Assert.NotEqual(result1, result3);
+  }
+
+  [Fact]
+  public void RefreshToken_CanSetAndGetDeviceInformation()
+  {
+    // Arrange & Act
+    var refreshToken = new RefreshToken
+    {
+      Token = "test-token",
+      UserId = "user-123",
+      ExpiresAt = DateTime.UtcNow.AddDays(7),
+      CreatedAt = DateTime.UtcNow,
+      LastUsedAt = DateTime.UtcNow,
+      IsRevoked = false,
+      IsCurrent = true,
+      DeviceName = "Windows - Chrome",
+      UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      IpAddress = "192.168.1.1",
+      Platform = "Windows",
+      Browser = "Chrome",
+      AccessTokenJti = "jti-123"
+    };
+
+    // Assert
+    Assert.Equal("test-token", refreshToken.Token);
+    Assert.Equal("user-123", refreshToken.UserId);
+    Assert.False(refreshToken.IsRevoked);
+    Assert.True(refreshToken.IsCurrent);
+    Assert.Equal("Windows - Chrome", refreshToken.DeviceName);
+    Assert.Equal("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", refreshToken.UserAgent);
+    Assert.Equal("192.168.1.1", refreshToken.IpAddress);
+    Assert.Equal("Windows", refreshToken.Platform);
+    Assert.Equal("Chrome", refreshToken.Browser);
+    Assert.Equal("jti-123", refreshToken.AccessTokenJti);
+  }
+
+  [Fact]
+  public void RefreshToken_CanSetReplacedByToken()
+  {
+    // Arrange & Act
+    var refreshToken = new RefreshToken
+    {
+      Token = "old-token",
+      UserId = "user-123",
+      ExpiresAt = DateTime.UtcNow.AddDays(7),
+      CreatedAt = DateTime.UtcNow,
+      LastUsedAt = DateTime.UtcNow,
+      IsRevoked = true,
+      RevokedReason = "Replaced by new token",
+      ReplacedByToken = "new-token-456",
+      IsCurrent = false,
+      AccessTokenJti = "jti-old"
+    };
+
+    // Assert
+    Assert.Equal("old-token", refreshToken.Token);
+    Assert.True(refreshToken.IsRevoked);
+    Assert.Equal("Replaced by new token", refreshToken.RevokedReason);
+    Assert.Equal("new-token-456", refreshToken.ReplacedByToken);
+    Assert.False(refreshToken.IsCurrent);
+  }
+
+  [Fact]
+  public void RefreshToken_CanHaveNullDeviceInformation()
+  {
+    // Arrange & Act
+    var refreshToken = new RefreshToken
+    {
+      Token = "test-token",
+      UserId = "user-123",
+      ExpiresAt = DateTime.UtcNow.AddDays(7),
+      CreatedAt = DateTime.UtcNow,
+      LastUsedAt = DateTime.UtcNow,
+      IsRevoked = false,
+      IsCurrent = true,
+      DeviceName = null,
+      UserAgent = null,
+      IpAddress = null,
+      Platform = null,
+      Browser = null,
+      AccessTokenJti = "jti-123"
+    };
+
+    // Assert
+    Assert.Null(refreshToken.DeviceName);
+    Assert.Null(refreshToken.UserAgent);
+    Assert.Null(refreshToken.IpAddress);
+    Assert.Null(refreshToken.Platform);
+    Assert.Null(refreshToken.Browser);
+    Assert.Null(refreshToken.RevokedReason);
+    Assert.Null(refreshToken.ReplacedByToken);
   }
 
   [Fact]

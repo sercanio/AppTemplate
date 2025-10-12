@@ -196,184 +196,6 @@ public class TestCoverageWorker : BackgroundService
     await DisplayCoverageResults(outputDir, layerResults);
   }
 
-  private void ShowAccessInformation(string outputDir)
-  {
-    AnsiConsole.WriteLine();
-
-    // Create clickable file URLs
-    var overallHtmlPath = Path.Combine(outputDir, "overall", "html", "index.html");
-    var overallFileUrl = ConvertToFileUrl(overallHtmlPath);
-
-    var layerUrls = _layers.Values.Select(layer =>
-    {
-      var layerPath = Path.Combine(outputDir, layer.Name.ToLowerInvariant(), "html", "index.html");
-      var fileUrl = ConvertToFileUrl(layerPath);
-      return new { Layer = layer, Path = layerPath, Url = fileUrl };
-    }).ToList();
-
-    var accessInfo = new Panel(
-        new Markup(
-            "[bold green]REPORT FILES GENERATED[/]\n\n" +
-            "[blue]Overall Report:[/]\n" +
-            $"[link={overallFileUrl}][dim]{overallHtmlPath}[/][/]\n\n" +
-            "[blue]Layer Reports:[/]\n" +
-            string.Join("\n", layerUrls.Select(item =>
-                $"[link={item.Url}][dim]{item.Layer.Name}: {item.Path}[/][/]"))
-        ))
-    {
-      Header = new PanelHeader("[bold green]ACCESS INFORMATION[/]"),
-      Border = BoxBorder.Rounded,
-      BorderStyle = new Style(Color.Green)
-    };
-
-    AnsiConsole.Write(accessInfo);
-    AnsiConsole.WriteLine();
-  }
-
-  private string ConvertToFileUrl(string filePath)
-  {
-    // Convert file path to file:// URL format
-    if (string.IsNullOrEmpty(filePath))
-      return string.Empty;
-
-    try
-    {
-      var uri = new Uri(filePath);
-      return uri.ToString();
-    }
-    catch
-    {
-      // Fallback: manually construct file URL
-      var normalizedPath = Path.GetFullPath(filePath).Replace('\\', '/');
-      
-      if (OperatingSystem.IsWindows())
-      {
-        // Windows: file:///C:/path/to/file
-        return $"file:///{normalizedPath}";
-      }
-      else
-      {
-        // Unix-like: file:///path/to/file
-        return $"file://{normalizedPath}";
-      }
-    }
-  }
-
-  // Enhanced completion message
-  private void ShowCompletionMessage()
-  {
-    AnsiConsole.WriteLine();
-
-    var successRule = new Rule("[bold green]COVERAGE REPORT GENERATION COMPLETE[/]")
-    {
-      Justification = Justify.Center,
-      Style = Style.Parse("green")
-    };
-
-    AnsiConsole.Write(successRule);
-    AnsiConsole.WriteLine();
-  }
-
-  private async Task<string?> GenerateLayerCoverageAsync(
-      string solutionPath,
-      string outputDir,
-      LayerConfig layer,
-      CancellationToken cancellationToken,
-      ProgressTask? progressTask = null)
-  {
-    var layerDir = Path.Combine(outputDir, layer.Name.ToLowerInvariant());
-    Directory.CreateDirectory(layerDir);
-
-    var excludePatterns = GetStandardExcludePatterns();
-    var includePatterns = layer.IncludePattern;
-
-    progressTask?.StartTask();
-
-    var coverageFile = await RunTestsWithCoverageAsync(
-        solutionPath,
-        layerDir,
-        includePatterns,
-        excludePatterns,
-        cancellationToken,
-        progressTask);
-
-    progressTask?.StopTask();
-    return coverageFile;
-  }
-
-  private async Task<string?> RunTestsWithCoverageAsync(
-      string solutionPath,
-      string outputDir,
-      string includePatterns,
-      string excludePatterns,
-      CancellationToken cancellationToken,
-      ProgressTask? progressTask = null)
-  {
-    await CleanupOldCoverageFilesAsync(outputDir);
-
-    var arguments = $"test \"{solutionPath}\" --configuration Release " +
-                   $"--collect:\"XPlat Code Coverage\" " +
-                   $"--results-directory \"{outputDir}\" " +
-                   $"--logger \"trx;LogFileName=TestResults.trx\" " +
-                   $"--verbosity quiet " +
-                   $"-- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=\"{includePatterns}\" " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude=\"{excludePatterns}\" " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.IncludeTestAssembly=false " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.UseSourceLink=false";
-
-    var processInfo = new ProcessStartInfo
-    {
-      FileName = "dotnet",
-      Arguments = arguments,
-      UseShellExecute = false,
-      RedirectStandardOutput = true,
-      RedirectStandardError = true,
-      CreateNoWindow = true
-    };
-
-    using var process = new Process { StartInfo = processInfo };
-
-    var output = new List<string>();
-    var errors = new List<string>();
-
-    process.OutputDataReceived += (sender, e) =>
-    {
-      if (!string.IsNullOrEmpty(e.Data))
-      {
-        output.Add(e.Data);
-        
-        // Update progress based on test output
-        if (progressTask != null && e.Data.Contains("Test run"))
-        {
-          progressTask.Value = Math.Min(progressTask.Value + 10, 90);
-        }
-      }
-    };
-
-    process.ErrorDataReceived += (sender, e) =>
-    {
-      if (!string.IsNullOrEmpty(e.Data))
-      {
-        errors.Add(e.Data);
-      }
-    };
-
-    process.Start();
-    process.BeginOutputReadLine();
-    process.BeginErrorReadLine();
-
-    await process.WaitForExitAsync(cancellationToken);
-
-    if (process.ExitCode != 0)
-    {
-      AnsiConsole.MarkupLine($"[yellow]⚠️ Test execution completed with exit code {process.ExitCode}[/]");
-    }
-
-    await Task.Delay(2000, cancellationToken);
-    return await FindAndMergeCoverageFilesAsync(outputDir);
-  }
-
   private async Task DisplayCoverageResults(string outputDir, Dictionary<string, CoverageStatistics> layerResults)
   {
     AnsiConsole.WriteLine();
@@ -440,6 +262,83 @@ public class TestCoverageWorker : BackgroundService
     };
   }
 
+  private void ShowAccessInformation(string outputDir)
+  {
+    AnsiConsole.WriteLine();
+
+    // Create clickable file URLs
+    var overallHtmlPath = Path.Combine(outputDir, "overall", "html", "index.html");
+    var overallFileUrl = ConvertToFileUrl(overallHtmlPath);
+
+    var layerUrls = _layers.Values.Select(layer =>
+    {
+      var layerPath = Path.Combine(outputDir, layer.Name.ToLowerInvariant(), "html", "index.html");
+      var fileUrl = ConvertToFileUrl(layerPath);
+      return new { Layer = layer, Path = layerPath, Url = fileUrl };
+    }).ToList();
+
+    var accessInfo = new Panel(
+        new Markup(
+            "[bold green]REPORT FILES GENERATED[/]\n\n" +
+            "[blue]Overall Report:[/]\n" +
+            $"[link={overallFileUrl}][dim]{overallHtmlPath}[/][/]\n\n" +
+            "[blue]Layer Reports:[/]\n" +
+            string.Join("\n", layerUrls.Select(item =>
+                $"[link={item.Url}][dim]{item.Layer.Name}: {item.Path}[/][/]"))
+        ))
+    {
+      Header = new PanelHeader("[bold green]ACCESS INFORMATION[/]"),
+      Border = BoxBorder.Rounded,
+      BorderStyle = new Style(Color.Green)
+    };
+
+    AnsiConsole.Write(accessInfo);
+    AnsiConsole.WriteLine();
+  }
+
+  private string ConvertToFileUrl(string filePath)
+  {
+    // Convert file path to file:// URL format
+    if (string.IsNullOrEmpty(filePath))
+      return string.Empty;
+
+    try
+    {
+      var uri = new Uri(filePath);
+      return uri.ToString();
+    }
+    catch
+    {
+      // Fallback: manually construct file URL
+      var normalizedPath = Path.GetFullPath(filePath).Replace('\\', '/');
+
+      if (OperatingSystem.IsWindows())
+      {
+        // Windows: file:///C:/path/to/file
+        return $"file:///{normalizedPath}";
+      }
+      else
+      {
+        // Unix-like: file:///path/to/file
+        return $"file://{normalizedPath}";
+      }
+    }
+  }
+
+  private void ShowCompletionMessage()
+  {
+    AnsiConsole.WriteLine();
+
+    var successRule = new Rule("[bold green]COVERAGE REPORT GENERATION COMPLETE[/]")
+    {
+      Justification = Justify.Center,
+      Style = Style.Parse("green")
+    };
+
+    AnsiConsole.Write(successRule);
+    AnsiConsole.WriteLine();
+  }
+
   private string GetStandardExcludePatterns()
   {
     return string.Join(",", new[]
@@ -490,6 +389,163 @@ public class TestCoverageWorker : BackgroundService
     });
   }
 
+  private async Task<string?> GenerateLayerCoverageAsync(
+      string solutionPath,
+      string outputDir,
+      LayerConfig layer,
+      CancellationToken cancellationToken,
+      ProgressTask? progressTask = null)
+  {
+    var layerDir = Path.Combine(outputDir, layer.Name.ToLowerInvariant());
+    Directory.CreateDirectory(layerDir);
+
+    var excludePatterns = GetStandardExcludePatterns();
+    var includePatterns = layer.IncludePattern;
+
+    progressTask?.StartTask();
+
+    var coverageFile = await RunTestsWithCoverageAsync(
+        solutionPath,
+        layerDir,
+        includePatterns,
+        excludePatterns,
+        cancellationToken,
+        progressTask);
+
+    progressTask?.StopTask();
+    return coverageFile;
+  }
+
+  private async Task<string?> RunTestsWithCoverageAsync(
+      string solutionPath,
+      string outputDir,
+      string includePatterns,
+      string excludePatterns,
+      CancellationToken cancellationToken,
+      ProgressTask? progressTask = null)
+  {
+    await CleanupOldCoverageFilesAsync(outputDir);
+
+    var arguments = $"test \"{solutionPath}\" --configuration Release " +
+                   $"--collect:\"XPlat Code Coverage\" " +
+                   $"--results-directory \"{outputDir}\" " +
+                   $"--logger \"trx;LogFileName=TestResults.trx\" " +
+                   $"--verbosity quiet " +
+                   $"-- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=\"{includePatterns}\" " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude=\"{excludePatterns}\" " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.IncludeTestAssembly=false " +
+                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.UseSourceLink=false";
+
+    var dotnetPath = GetDotNetExecutablePath();
+
+    var processInfo = new ProcessStartInfo
+    {
+      FileName = dotnetPath,
+      Arguments = arguments,
+      UseShellExecute = false,
+      RedirectStandardOutput = true,
+      RedirectStandardError = true,
+      CreateNoWindow = true
+    };
+
+    using var process = new Process { StartInfo = processInfo };
+
+    var output = new List<string>();
+    var errors = new List<string>();
+
+    process.OutputDataReceived += (sender, e) =>
+    {
+      if (!string.IsNullOrEmpty(e.Data))
+      {
+        output.Add(e.Data);
+
+        // Update progress based on test output
+        if (progressTask != null && e.Data.Contains("Test run"))
+        {
+          progressTask.Value = Math.Min(progressTask.Value + 10, 90);
+        }
+      }
+    };
+
+    process.ErrorDataReceived += (sender, e) =>
+    {
+      if (!string.IsNullOrEmpty(e.Data))
+      {
+        errors.Add(e.Data);
+      }
+    };
+
+    process.Start();
+    process.BeginOutputReadLine();
+    process.BeginErrorReadLine();
+
+    await process.WaitForExitAsync(cancellationToken);
+
+    if (process.ExitCode != 0)
+    {
+      AnsiConsole.MarkupLine($"[yellow]⚠️ Test execution completed with exit code {process.ExitCode}[/]");
+    }
+
+    await Task.Delay(2000, cancellationToken);
+    return await FindAndMergeCoverageFilesAsync(outputDir);
+  }
+
+  private static string GetDotNetExecutablePath()
+  {
+    // Try to get the dotnet path from DOTNET_ROOT environment variable first
+    var dotnetRoot = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+    if (!string.IsNullOrEmpty(dotnetRoot))
+    {
+      var dotnetPath = Path.Combine(dotnetRoot, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
+      if (File.Exists(dotnetPath))
+      {
+        return dotnetPath;
+      }
+    }
+
+    // Fallback: Use Process.GetCurrentProcess() to find the dotnet host
+    var currentProcess = Environment.ProcessPath;
+    if (!string.IsNullOrEmpty(currentProcess))
+    {
+      var processDir = Path.GetDirectoryName(currentProcess);
+      if (!string.IsNullOrEmpty(processDir))
+      {
+        var dotnetPath = Path.Combine(processDir, OperatingSystem.IsWindows() ? "dotnet.exe" : "dotnet");
+        if (File.Exists(dotnetPath))
+        {
+          return dotnetPath;
+        }
+      }
+    }
+
+    // Last resort: Check common installation paths
+    if (OperatingSystem.IsWindows())
+    {
+      var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+      var dotnetPath = Path.Combine(programFiles, "dotnet", "dotnet.exe");
+      if (File.Exists(dotnetPath))
+      {
+        return dotnetPath;
+      }
+    }
+    else if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+    {
+      var commonPaths = new[] { "/usr/local/share/dotnet/dotnet", "/usr/share/dotnet/dotnet", "/usr/bin/dotnet" };
+      foreach (var path in commonPaths)
+      {
+        if (File.Exists(path))
+        {
+          return path;
+        }
+      }
+    }
+
+    // If all else fails, fall back to "dotnet" and rely on PATH (with a warning)
+    AnsiConsole.MarkupLine("[yellow]⚠️ Could not locate dotnet executable, falling back to PATH resolution[/]");
+    return "dotnet";
+  }
+
   private async Task<string?> GenerateOverallCoverageAsync(
       string solutionPath,
       string outputDir,
@@ -533,97 +589,6 @@ public class TestCoverageWorker : BackgroundService
     return coverageFile;
   }
 
-  private async Task<string?> GenerateLayerCoverageAsync(
-      string solutionPath,
-      string outputDir,
-      LayerConfig layer,
-      CancellationToken cancellationToken)
-  {
-    var layerDir = Path.Combine(outputDir, layer.Name.ToLowerInvariant());
-    Directory.CreateDirectory(layerDir);
-
-    var excludePatterns = GetStandardExcludePatterns();
-    var includePatterns = layer.IncludePattern;
-
-    var coverageFile = await RunTestsWithCoverageAsync(
-        solutionPath,
-        layerDir,
-        includePatterns,
-        excludePatterns,
-        cancellationToken);
-
-    return coverageFile;
-  }
-
-  private async Task<string?> RunTestsWithCoverageAsync(
-      string solutionPath,
-      string outputDir,
-      string includePatterns,
-      string excludePatterns,
-      CancellationToken cancellationToken)
-  {
-    await CleanupOldCoverageFilesAsync(outputDir);
-
-    var arguments = $"test \"{solutionPath}\" --configuration Release " +
-                   $"--collect:\"XPlat Code Coverage\" " +
-                   $"--results-directory \"{outputDir}\" " +
-                   $"--logger \"trx;LogFileName=TestResults.trx\" " +
-                   $"--verbosity quiet " +
-                   $"-- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=\"{includePatterns}\" " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude=\"{excludePatterns}\" " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.IncludeTestAssembly=false " +
-                   $"DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.UseSourceLink=false";
-
-    var processInfo = new ProcessStartInfo
-    {
-      FileName = "dotnet",
-      Arguments = arguments,
-      UseShellExecute = false,
-      RedirectStandardOutput = true,
-      RedirectStandardError = true,
-      CreateNoWindow = true
-    };
-
-    using var process = new Process { StartInfo = processInfo };
-
-    var output = new List<string>();
-    var errors = new List<string>();
-
-    process.OutputDataReceived += (sender, e) =>
-    {
-      if (!string.IsNullOrEmpty(e.Data))
-      {
-        output.Add(e.Data);
-        
-        // Update progress based on test output
-        // (No progress task here, simpler output handling)
-      }
-    };
-
-    process.ErrorDataReceived += (sender, e) =>
-    {
-      if (!string.IsNullOrEmpty(e.Data))
-      {
-        errors.Add(e.Data);
-      }
-    };
-
-    process.Start();
-    process.BeginOutputReadLine();
-    process.BeginErrorReadLine();
-
-    await process.WaitForExitAsync(cancellationToken);
-
-    if (process.ExitCode != 0)
-    {
-      AnsiConsole.MarkupLine($"[yellow]⚠️ Test execution completed with exit code {process.ExitCode}[/]");
-    }
-
-    await Task.Delay(2000, cancellationToken);
-    return await FindAndMergeCoverageFilesAsync(outputDir);
-  }
-
   private async Task GenerateSummaryReportAsync(
       string outputDir,
       string? overallCoverageFile,
@@ -656,32 +621,6 @@ public class TestCoverageWorker : BackgroundService
     }
   }
 
-  private async Task LogWebAppAccessInfo(string outputDir)
-  {
-    _logger.LogInformation("");
-    _logger.LogInformation("╔════════════════════════════════════════════════════════════════╗");
-    _logger.LogInformation("║           📁 COVERAGE REPORTS ACCESS                           ║");
-    _logger.LogInformation("╠════════════════════════════════════════════════════════════════╣");
-    _logger.LogInformation("║  Overall Report:                                               ║");
-    _logger.LogInformation("║    📄 {0,-58} ║", Path.Combine(outputDir, "overall", "html", "index.html"));
-    _logger.LogInformation("╟────────────────────────────────────────────────────────────────╢");
-    _logger.LogInformation("║  Layer Reports:                                                ║");
-
-    foreach (var layer in _layers.Values)
-    {
-      var layerPath = Path.Combine(outputDir, layer.Name.ToLowerInvariant(), "html", "index.html");
-      if (File.Exists(layerPath))
-      {
-        _logger.LogInformation("║    📄 {0}: {1,-40} ║",
-            layer.Name,
-            Path.Combine(layer.Name.ToLowerInvariant(), "html", "index.html"));
-      }
-    }
-
-    _logger.LogInformation("╚════════════════════════════════════════════════════════════════╝");
-    _logger.LogInformation("");
-  }
-
   private async Task CleanupCoverageReportsDirectoryAsync(string outputDir)
   {
     try
@@ -702,13 +641,13 @@ public class TestCoverageWorker : BackgroundService
             AnsiConsole.MarkupLine("[green]✅ Cleanup completed[/]");
             break;
           }
-          catch (IOException ex) when (attempt < maxRetries)
+          catch (IOException) when (attempt < maxRetries)
           {
             AnsiConsole.MarkupLine($"[yellow]⚠️ Cleanup attempt {attempt}/{maxRetries} failed, retrying...[/]");
             await Task.Delay(retryDelay);
             retryDelay *= 2;
           }
-          catch (UnauthorizedAccessException ex) when (attempt < maxRetries)
+          catch (UnauthorizedAccessException) when (attempt < maxRetries)
           {
             AnsiConsole.MarkupLine($"[yellow]⚠️ Access denied on attempt {attempt}/{maxRetries}, retrying...[/]");
             await Task.Delay(retryDelay);
@@ -803,7 +742,7 @@ public class TestCoverageWorker : BackgroundService
         await MergeCoverageFilesAsync(coverageFiles, mergedFile);
         return mergedFile;
       }
-      catch (Exception ex) when (retry < maxRetries - 1)
+      catch (Exception) when (retry < maxRetries - 1)
       {
         await Task.Delay(retryDelay, CancellationToken.None);
       }
@@ -828,7 +767,7 @@ public class TestCoverageWorker : BackgroundService
         File.Copy(sourceFile, destinationFile, true);
         return;
       }
-      catch (IOException ex) when (retry < maxRetries - 1)
+      catch (IOException) when (retry < maxRetries - 1)
       {
         await Task.Delay(retryDelay, CancellationToken.None);
       }
@@ -848,7 +787,7 @@ public class TestCoverageWorker : BackgroundService
 
       await CopyFileWithRetryAsync(largestFile.File, outputFile);
     }
-    catch (Exception ex)
+    catch (Exception)
     {
       if (coverageFiles.Length > 0)
       {
@@ -922,7 +861,7 @@ public class TestCoverageWorker : BackgroundService
       await using var writer = new StreamWriter(outputFile);
       await writer.WriteAsync(combinedDoc.ToString());
     }
-    catch (Exception ex)
+    catch (Exception)
     {
       if (coverageFiles.Length > 0)
       {

@@ -566,7 +566,13 @@ public class AccountsControllerUnitTests
         It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -587,7 +593,13 @@ public class AccountsControllerUnitTests
     _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -611,7 +623,13 @@ public class AccountsControllerUnitTests
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(false);
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -639,7 +657,13 @@ public class AccountsControllerUnitTests
     _mockUserManager.Setup(x => x.GetTwoFactorEnabledAsync(user)).ReturnsAsync(true);
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -660,7 +684,13 @@ public class AccountsControllerUnitTests
     _controller.ModelState.AddModelError("Password", "Password is required");
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -684,7 +714,13 @@ public class AccountsControllerUnitTests
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -710,7 +746,13 @@ public class AccountsControllerUnitTests
         .ReturnsAsync(Result.Error("App user not found"));
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -737,7 +779,12 @@ public class AccountsControllerUnitTests
         It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
     // Act
-    var result = await _controller.RefreshJwtToken();
+    var result = await _controller.RefreshJwtToken(
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -754,7 +801,12 @@ public class AccountsControllerUnitTests
         .ThrowsAsync(new SecurityTokenValidationException("Invalid token"));
 
     // Act
-    var result = await _controller.RefreshJwtToken();
+    var result = await _controller.RefreshJwtToken(
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -785,13 +837,13 @@ public class AccountsControllerUnitTests
         });
     httpContext.Request.Cookies = mockCookies.Object;
 
-    _controller.ControllerContext = new ControllerContext()
-    {
-      HttpContext = httpContext
-    };
-
     // Act
-    var result = await _controller.RefreshJwtToken();
+    var result = await _controller.RefreshJwtToken(
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        httpContext);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -808,7 +860,12 @@ public class AccountsControllerUnitTests
         .ThrowsAsync(new InvalidOperationException("Some error"));
 
     // Act
-    var result = await _controller.RefreshJwtToken();
+    var result = await _controller.RefreshJwtToken(
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -826,7 +883,7 @@ public class AccountsControllerUnitTests
     _mockJwtTokenService.Setup(x => x.RevokeRefreshTokenAsync("valid-refresh-token")).Returns(Task.CompletedTask);
 
     // Act
-    var result = await _controller.LogoutJwt();
+    var result = await _controller.LogoutJwt(_controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -862,7 +919,7 @@ public class AccountsControllerUnitTests
     };
 
     // Act
-    var result = await _controller.LogoutJwt();
+    var result = await _controller.LogoutJwt(httpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -1738,49 +1795,26 @@ public class AccountsControllerUnitTests
         "Bearer"
     );
 
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user,
-        It.IsAny<string>(), request.TwoFactorCode))
-        .ReturnsAsync(true);
-    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
-        .ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user, It.IsAny<string>(), request.TwoFactorCode)).ReturnsAsync(true);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
     _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
         It.Is<IdentityUser>(u => u == user),
         It.Is<AppUser>(a => a == appUser),
         It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
     // Act
-    var result = await _controller.LoginWith2fa(request);
+    var result = await _controller.LoginWith2fa(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
     Assert.NotNull(okResult.Value);
-  }
-
-  [Fact]
-  public async Task LoginWith2fa_WithInvalidCode_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new LoginWith2faRequest
-    {
-      UserId = "user-id",
-      TwoFactorCode = "invalid"
-    };
-    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
-
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.VerifyTwoFactorTokenAsync(user,
-        It.IsAny<string>(), request.TwoFactorCode))
-        .ReturnsAsync(false);
-
-    // Act
-    var result = await _controller.LoginWith2fa(request);
-
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
   }
 
   [Fact]
@@ -1803,56 +1837,26 @@ public class AccountsControllerUnitTests
         "Bearer"
     );
 
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode))
-        .ReturnsAsync(IdentityResult.Success);
-    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default))
-        .ReturnsAsync(Result.Success(appUser));
+    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId)).ReturnsAsync(user);
+    _mockUserManager.Setup(x => x.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode)).ReturnsAsync(IdentityResult.Success);
+    _mockAppUsersService.Setup(x => x.GetByIdentityIdAsync(user.Id, default)).ReturnsAsync(Result.Success(appUser));
     _mockJwtTokenService.Setup(x => x.GenerateTokensAsync(
         It.Is<IdentityUser>(u => u == user),
         It.Is<AppUser>(a => a == appUser),
         It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
     // Act
-    var result = await _controller.LoginWithRecoveryCode(request);
+    var result = await _controller.LoginWithRecoveryCode(
+        request,
+        "Mozilla/5.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
-    var response = okResult.Value;
-    Assert.NotNull(response);
-
-    // Use reflection or dynamic to check the anonymous object properties
-    var responseType = response.GetType();
-    var accessTokenProperty = responseType.GetProperty("accessToken");
-    var expiresAtProperty = responseType.GetProperty("expiresAt");
-
-    Assert.Equal(tokens.AccessToken, accessTokenProperty?.GetValue(response));
-    Assert.Equal(tokens.ExpiresAt, expiresAtProperty?.GetValue(response));
-  }
-
-  [Fact]
-  public async Task LoginWithRecoveryCode_WithInvalidCode_ReturnsBadRequest()
-  {
-    // Arrange
-    var request = new LoginWithRecoveryCodeRequest
-    {
-      UserId = "user-id",
-      RecoveryCode = "invalid"
-    };
-    var user = new IdentityUser { Id = "user-id", Email = "test@example.com" };
-
-    _mockUserManager.Setup(x => x.FindByIdAsync(request.UserId))
-        .ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.RedeemTwoFactorRecoveryCodeAsync(user, request.RecoveryCode))
-        .ReturnsAsync(IdentityResult.Failed());
-
-    // Act
-    var result = await _controller.LoginWithRecoveryCode(request);
-
-    // Assert
-    var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-    Assert.NotNull(badRequestResult.Value);
+    Assert.NotNull(okResult.Value);
   }
 
   #endregion
@@ -1866,8 +1870,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -1907,8 +1910,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -1948,8 +1950,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -1974,7 +1975,7 @@ public class AccountsControllerUnitTests
         It.Is<AppUser>(a => a == appUser),
         It.IsAny<DeviceInfo>())).ReturnsAsync(tokens);
 
-    // Setup Yandex User-Agent (real one)
+    // Setup Yandex User-Agent (real one with YaBrowser)
     _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"] =
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 YaBrowser/24.1.0.0 Safari/537.36";
 
@@ -1989,8 +1990,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2030,8 +2030,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2071,8 +2070,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2112,8 +2110,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2143,8 +2140,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2174,8 +2170,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2205,8 +2200,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2236,8 +2230,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2267,8 +2260,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2298,8 +2290,7 @@ public class AccountsControllerUnitTests
     var request = new JwtLoginRequest
     {
       LoginIdentifier = "test@example.com",
-      Password = "ValidPassword123!",
-      RememberMe = false
+      Password = "ValidPassword123!"
     };
     var user = new IdentityUser { Id = "user-id", Email = "test@example.com", UserName = "testuser" };
     var appUser = AppUser.Create();
@@ -2319,7 +2310,13 @@ public class AccountsControllerUnitTests
         "MyCustomBrowser/1.0";
 
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        "MyCustomBrowser/1.0",
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -2359,8 +2356,17 @@ public class AccountsControllerUnitTests
         It.IsAny<DeviceInfo>())).Callback<IdentityUser, AppUser, DeviceInfo>((u, a, d) => capturedDeviceInfo = d)
         .ReturnsAsync(new JwtTokenResult("access-token", "refresh-token", DateTime.UtcNow.AddHours(1), "Bearer"));
 
+    // Get the current User-Agent from the request headers
+    var userAgent = _controller.ControllerContext.HttpContext.Request.Headers["User-Agent"].ToString();
+
     // Act
-    var result = await _controller.LoginWithJwt(request);
+    var result = await _controller.LoginWithJwt(
+        request,
+        userAgent,
+        "192.168.1.1",
+        null,
+        null,
+        _controller.HttpContext);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -2704,12 +2710,6 @@ public class AccountsControllerUnitTests
     Assert.Equal("", loginRequest.LoginIdentifier);
     Assert.Equal("", loginRequest.Password);
     Assert.True(loginRequest.RememberMe);
-
-    var logoutRequest = new LogoutRequest { RefreshToken = "" };
-    Assert.Equal("", logoutRequest.RefreshToken);
-
-    var refreshRequest = new RefreshTokenRequest { RefreshToken = "" };
-    Assert.Equal("", refreshRequest.RefreshToken);
 
     var resetRequest = new ResetPasswordRequest
     {

@@ -403,7 +403,7 @@ public sealed class NotificationsService(
   /// <summary>
   /// Enum for cache key types
   /// </summary>
-  private enum CacheKeyType
+  public enum CacheKeyType
   {
     AllNotifications,
     UnreadNotifications,

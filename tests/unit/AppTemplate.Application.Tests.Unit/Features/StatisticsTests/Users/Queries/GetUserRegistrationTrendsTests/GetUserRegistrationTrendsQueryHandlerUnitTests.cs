@@ -6,7 +6,7 @@ using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Moq;
 
-namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Users;
+namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Users.Queries.GetUserRegistrationTrendsTests;
 
 [Trait("Category", "Unit")]
 public class GetUserRegistrationTrendsQueryHandlerUnitTests
@@ -64,7 +64,7 @@ public class GetUserRegistrationTrendsQueryHandlerUnitTests
 
     _userRepositoryMock
         .Setup(r => r.GetAllUsersWithIdentityAndRolesAsync(0, int.MaxValue, It.IsAny<CancellationToken>()))
-        .ReturnsAsync(Result.Success<PaginatedList<AppUser>>(paginatedList));
+        .ReturnsAsync(Result.Success(paginatedList));
 
     var query = new GetUserRegistrationTrendsQuery();
 
