@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Delete;
 
-internal class DeleteRoleEventHandler(
+public class DeleteRoleEventHandler(
     ILogger<DeleteRoleEventHandler> logger) : INotificationHandler<RoleDeletedDomainEvent>
 {
 

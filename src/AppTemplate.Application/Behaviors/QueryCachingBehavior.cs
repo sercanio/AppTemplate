@@ -15,8 +15,8 @@ public sealed class QueryCachingBehavior<TRequest, TResponse>
         ICacheService cacheService,
         ILogger<QueryCachingBehavior<TRequest, TResponse>> logger)
     {
-        _cacheService = cacheService;
-        _logger = logger;
+        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<TResponse> Handle(
@@ -24,6 +24,9 @@ public sealed class QueryCachingBehavior<TRequest, TResponse>
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(next);
+
         TResponse? cachedResponse = await _cacheService.GetAsync<TResponse>(
             request.CacheKey,
             cancellationToken);
@@ -38,7 +41,7 @@ public sealed class QueryCachingBehavior<TRequest, TResponse>
 
         _logger.LogInformation("Cache miss for {Query}", name);
 
-        TResponse response = await next();
+        TResponse response = await next(cancellationToken);
 
         await _cacheService.SetAsync(request.CacheKey, response, request.Expiration, cancellationToken);
 

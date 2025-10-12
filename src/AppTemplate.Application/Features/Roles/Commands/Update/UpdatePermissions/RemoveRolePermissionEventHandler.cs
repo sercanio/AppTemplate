@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 
-internal class RemoveRolePermissionEventHandler(
+public class RemoveRolePermissionEventHandler(
     ILogger<RemoveRolePermissionEventHandler> logger) : INotificationHandler<RolePermissionRemovedDomainEvent>
 {
   public async Task Handle(RolePermissionRemovedDomainEvent notification, CancellationToken cancellationToken)

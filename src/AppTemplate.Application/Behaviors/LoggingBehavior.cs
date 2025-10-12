@@ -14,7 +14,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>
 
     public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
     {
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public async Task<TResponse> Handle(
@@ -22,13 +22,16 @@ public sealed class LoggingBehavior<TRequest, TResponse>
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(next);
+
         string requestName = request.GetType().Name;
 
         try
         {
             _logger.LogInformation("Executing request {RequestName}", requestName);
 
-            TResponse result = await next();
+            TResponse result = await next(cancellationToken);
 
             if (result.IsSuccess)
             {

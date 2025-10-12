@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 
-internal class AddRolePermissionEventHandler(
+public class AddRolePermissionEventHandler(
     ILogger<AddRolePermissionEventHandler> logger) : INotificationHandler<RolePermissionAddedDomainEvent>
 {
 

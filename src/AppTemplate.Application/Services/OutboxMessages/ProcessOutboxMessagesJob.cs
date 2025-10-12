@@ -13,7 +13,7 @@ using System.Data;
 namespace AppTemplate.Application.Services.OutboxMessages;
 
 [DisallowConcurrentExecution]
-internal sealed class ProcessOutboxMessagesJob : IJob
+public sealed class ProcessOutboxMessagesJob : IJob
 {
     private static readonly JsonSerializerSettings JsonSerializerSettings = new()
     {
@@ -33,6 +33,12 @@ internal sealed class ProcessOutboxMessagesJob : IJob
         IOptions<OutboxOptions> outboxOptions,
         ILogger<ProcessOutboxMessagesJob> logger)
     {
+        ArgumentNullException.ThrowIfNull(sqlConnectionFactory);
+        ArgumentNullException.ThrowIfNull(publisher);
+        ArgumentNullException.ThrowIfNull(dateTimeProvider);
+        ArgumentNullException.ThrowIfNull(outboxOptions);
+        ArgumentNullException.ThrowIfNull(logger);
+
         _sqlConnectionFactory = sqlConnectionFactory;
         _publisher = publisher;
         _dateTimeProvider = dateTimeProvider;
@@ -122,5 +128,5 @@ internal sealed class ProcessOutboxMessagesJob : IJob
             transaction: transaction);
     }
 
-    internal sealed record OutboxMessageResponse(Guid Id, string Content);
+    public sealed record OutboxMessageResponse(Guid Id, string Content);
 }

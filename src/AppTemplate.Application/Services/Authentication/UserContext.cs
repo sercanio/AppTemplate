@@ -11,12 +11,23 @@ public sealed class UserContext : IUserContext
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid UserId =>
-        _httpContextAccessor
-            .HttpContext?
-            .User
-            .GetUserId() ??
-        throw new ApplicationException("User context is unavailable");
+    public Guid UserId
+    {
+        get
+        {
+            var userId = _httpContextAccessor
+                .HttpContext?
+                .User
+                .GetUserId() ?? throw new ApplicationException("User context is unavailable");
+
+            if (userId == Guid.Empty)
+            {
+                throw new ApplicationException("User id is unavailable");
+            }
+
+            return userId;
+        }
+    }
 
     public string IdentityId
     {
