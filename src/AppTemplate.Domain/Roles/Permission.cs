@@ -1,5 +1,3 @@
-using Myrtus.Clarity.Core.Domain.Abstractions;
-
 namespace AppTemplate.Domain.Roles;
 
 public sealed class Permission : Entity<Guid>
@@ -90,7 +88,7 @@ public sealed class Permission : Entity<Guid>
     Roles = new List<Role>([]);
   }
 
-  internal Permission()
+  public Permission()
   {
     Feature = string.Empty;
     Name = string.Empty;

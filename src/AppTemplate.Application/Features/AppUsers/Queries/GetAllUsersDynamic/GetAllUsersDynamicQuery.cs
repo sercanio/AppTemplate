@@ -1,7 +1,7 @@
+using AppTemplate.Application.Data.DynamicQuery;
+using AppTemplate.Application.Data.Pagination;
 using Ardalis.Result;
 using MediatR;
-using Myrtus.Clarity.Core.Infrastructure.Dynamic;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 

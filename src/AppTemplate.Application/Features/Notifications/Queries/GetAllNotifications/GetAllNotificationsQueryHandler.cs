@@ -1,3 +1,4 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Domain.AppUsers;
@@ -5,7 +6,6 @@ using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
 using System.Security.Claims;
 
 namespace AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;

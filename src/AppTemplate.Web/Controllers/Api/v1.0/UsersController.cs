@@ -1,21 +1,20 @@
+using AppTemplate.Application.Data.DynamicQuery;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
+using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsers;
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersByRoleId;
 using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Features.AppUsers.Queries.GetUser;
-using AppTemplate.Application.Features.Users.Queries.GetAllUsers;
+using AppTemplate.Application.Services.Authorization;
+using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Attributes;
 using AppTemplate.Web.Controllers.Api;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using Myrtus.Clarity.Core.Infrastructure.Authorization;
-using Myrtus.Clarity.Core.Infrastructure.Dynamic;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
-using Myrtus.Clarity.Core.WebAPI;
-using Myrtus.Clarity.Core.WebAPI.Controllers;
 
 namespace AppTemplate.Web.Controllers;
 

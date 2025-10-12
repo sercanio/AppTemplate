@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
 using AppTemplate.Application.Services.Statistics;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 
 namespace AppTemplate.Web.Services;

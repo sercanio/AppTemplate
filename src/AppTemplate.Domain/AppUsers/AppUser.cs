@@ -1,9 +1,9 @@
+using AppTemplate.Domain.AppUsers.DomainEvents;
 using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Users.DomainEvents;
 using Microsoft.AspNetCore.Identity;
-using Myrtus.Clarity.Core.Domain.Abstractions;
 
 namespace AppTemplate.Domain.AppUsers;
 
@@ -70,9 +70,8 @@ public sealed class AppUser : Entity<Guid>, IAggregateRoot
     {
       _roles.Add(role);
       RaiseDomainEvent(new AppUserRoleAddedDomainEvent(Id, role.Id));
+      MarkUpdated();
     }
-
-    MarkUpdated();
   }
 
   public void RemoveRole(Role role)
@@ -80,9 +79,8 @@ public sealed class AppUser : Entity<Guid>, IAggregateRoot
     if (_roles.Remove(role))
     {
       RaiseDomainEvent(new AppUserRoleRemovedDomainEvent(Id, role.Id));
+      MarkUpdated();
     }
-
-    MarkUpdated();
   }
 
   public void SetIdentityId(string identityId)
@@ -98,6 +96,15 @@ public sealed class AppUser : Entity<Guid>, IAggregateRoot
   public void SetProfilePictureUrl(string? url)
   {
     ProfilePictureUrl = url;
+    MarkUpdated();
+  }
+  public void SetNotificationPreference(NotificationPreference preference)
+  {
+    NotificationPreference = preference;
+  }
+  public void SetBiography(string? biography)
+  {
+    Biography = biography;
     MarkUpdated();
   }
 }

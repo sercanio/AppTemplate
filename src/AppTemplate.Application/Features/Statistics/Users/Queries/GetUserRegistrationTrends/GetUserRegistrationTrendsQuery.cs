@@ -1,8 +1,8 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
+using AppTemplate.Application.Services.Caching;
 
 namespace AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 
-public sealed record GetUserRegistrationTrendsQuery() : ICachedQuery<GetUserRegistrationTrendsResponse>
+public sealed record GetUserRegistrationTrendsQuery() : ICachedQuery<GetUserRegistrationTrendsQueryResponse>
 {
     public string CacheKey => "users-registration-trends";
     

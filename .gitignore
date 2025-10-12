@@ -18,3 +18,14 @@ obj/
 *.suo
 appsettings.Development.json
 /containers
+
+# Test results
+TestResults/
+
+# Coverage reports
+coverage-report/
+/src/AppTemplate.Web/Logs
+/coverage-reports
+/tests/coverage-reports
+/tests/tests/coverage-reports
+/.sonarqube

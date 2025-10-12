@@ -1,10 +1,10 @@
 using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.Authentication;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.Messages;
+using AppTemplate.Domain;
 using Ardalis.Result;
 using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Authentication;
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Domain.Abstractions;
 
 namespace AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 
@@ -32,10 +32,7 @@ public sealed class UpdateNotificationPreferencesCommandHandler(
       return Result<UpdateNotificationPreferencesCommandResponse>.NotFound();
     }
 
-    user.NotificationPreference.Update(
-        request.NotificationPreference.IsInAppNotificationEnabled,
-        request.NotificationPreference.IsEmailNotificationEnabled,
-        request.NotificationPreference.IsPushNotificationEnabled);
+    user.SetNotificationPreference(request.NotificationPreference);
 
     await _unitOfWork.SaveChangesAsync(cancellationToken);
 

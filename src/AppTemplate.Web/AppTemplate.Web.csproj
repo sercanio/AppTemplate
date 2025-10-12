@@ -9,28 +9,50 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="App\**" />
+    <Content Remove="App\**" />
+    <EmbeddedResource Remove="App\**" />
+    <None Remove="App\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    <PackageReference Include="Azure.Core" Version="1.44.1" />
-    <PackageReference Include="LigerShark.WebOptimizer.Core" Version="3.0.433" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.2" />
+    <PackageReference Include="Aspire.StackExchange.Redis" Version="9.4.2" />
+    <PackageReference Include="Azure.Core" Version="1.48.0" />
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageReference Include="KubernetesClient" Version="17.0.14" />
+    <PackageReference Include="LigerShark.WebOptimizer.Core" Version="3.0.477" />
+    <PackageReference Include="MediatR" Version="[12.5.0,13.0.0)" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.9" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.8.5" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0" />
+    <PackageReference Include="UAParser.Core" Version="4.0.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Module\Myrtus.Clarity.Core.Application.Abstractions.Module.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authorization\Myrtus.Clarity.Core.Infrastructure.Authorization.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Localization\Myrtus.Clarity.Core.Infrastructure.Localization.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.WebApi\Myrtus.Clarity.Core.WebApi.csproj" />
+    <ProjectReference Include="..\..\tests\AppTemplate.TestCoverageWorker\AppTemplate.TestCoverageWorker.csproj" />
     <ProjectReference Include="..\AppTemplate.Infrastructure\AppTemplate.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\lib\" />
+    <ProjectReference Include="..\AppTemplate.ServiceDefaults\AppTemplate.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

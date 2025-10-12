@@ -1,5 +1,3 @@
-﻿using Myrtus.Clarity.Core.Domain.Abstractions;
-
 namespace AppTemplate.Domain.AppUsers.ValueObjects;
 
 public class NotificationPreference(

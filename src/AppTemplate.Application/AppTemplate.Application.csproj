@@ -8,22 +8,26 @@
 
 	<ItemGroup>
 		<PackageReference Include="Ardalis.Result" Version="10.1.0" />
+		<PackageReference Include="Ardalis.Result.FluentValidation" Version="10.1.0" />
+		<PackageReference Include="Dapper" Version="2.1.66" />
+		<PackageReference Include="FluentValidation" Version="12.0.0" />
 		<PackageReference Include="HtmlSanitizer" Version="9.0.886" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.2" />
-		<PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.2" />
-		<PackageReference Include="Azure.Communication.Email" Version="1.0.1" />
+		<PackageReference Include="KubernetesClient" Version="17.0.14" />
+    <PackageReference Include="MediatR" Version="[12.5.0,13.0.0)" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Identity.Core" Version="9.0.9" />
+		<PackageReference Include="Azure.Communication.Email" Version="1.0.2" />
+		<PackageReference Include="Quartz" Version="3.15.0" />
+		<PackageReference Include="Quartz.AspNetCore" Version="3.15.0" />
+		<PackageReference Include="Serilog" Version="4.3.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+		<PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.7" />
+		<PackageReference Include="YamlDotNet" Version="16.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Authentication\Myrtus.Clarity.Core.Application.Abstractions.Authentication.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Behaviours\Myrtus.Clarity.Core.Application.Abstractions.Behaviours.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Messaging\Myrtus.Clarity.Core.Application.Abstractions.Messaging.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Application.Abstractions.Repositories\Myrtus.Clarity.Core.Application.Abstractions.Repositories.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Caching\Myrtus.Clarity.Core.Infrastructure.Caching.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj" />
-		<ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.SignalR\Myrtus.Clarity.Core.Infrastructure.SignalR.csproj" />
 		<ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />
 	</ItemGroup>
 

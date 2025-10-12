@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -7,13 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.4.1" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Domain.Abstractions\Myrtus.Clarity.Core.Domain.Abstractions.csproj" />
+    <PackageReference Include="MediatR" Version="[12.5.0,13.0.0)" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.9" />
+    <PackageReference Include="MimeKit" Version="4.13.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
 </Project>

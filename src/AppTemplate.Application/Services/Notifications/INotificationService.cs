@@ -1,6 +1,6 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
 using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.Notifications;

@@ -1,8 +1,8 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
+using AppTemplate.Application.Services.Caching;
 
 namespace AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
 
-public sealed record GetAuthenticationStatisticsQuery() : ICachedQuery<GetAuthenticationStatisticsResponse>
+public sealed record GetAuthenticationStatisticsQuery() : ICachedQuery<GetAuthenticationStatisticsQueryResponse>
 {
     public string CacheKey => "authentication-statistics";
     

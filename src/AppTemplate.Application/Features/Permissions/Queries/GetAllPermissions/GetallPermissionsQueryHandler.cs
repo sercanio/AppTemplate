@@ -1,24 +1,30 @@
-﻿using Ardalis.Result;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using Myrtus.Clarity.Core.Application.Abstractions.Pagination;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Services.Messages;
+using Ardalis.Result;
 
 namespace AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 
 public class GetallPermissionsQueryHandler(IPermissionsRepository permissionRepository)
-            : IQueryHandler<GetAllPermissionsQuery, IPaginatedList<GetAllPermissionsQueryResponse>>
+    : IQueryHandler<GetAllPermissionsQuery, PaginatedList<GetAllPermissionsQueryResponse>>
 {
     private readonly IPermissionsRepository _permissionRepository = permissionRepository;
 
-    public async Task<Result<IPaginatedList<GetAllPermissionsQueryResponse>>> Handle(
+    public async Task<Result<PaginatedList<GetAllPermissionsQueryResponse>>> Handle(
         GetAllPermissionsQuery request,
         CancellationToken cancellationToken)
     {
-        var permissions = await _permissionRepository.GetAllAsync(
+        var result = await _permissionRepository.GetAllPermissionsAsync(
             pageIndex: request.PageIndex,
             pageSize: request.PageSize,
             cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return Result.Error("Could not retrieve permissions.");
+        }
+
+        var permissions = result.Value;
 
         List<GetAllPermissionsQueryResponse> mappedPermissions = permissions.Items.Select(permission =>
             new GetAllPermissionsQueryResponse(permission.Id, permission.Feature, permission.Name)).ToList();
@@ -30,6 +36,6 @@ public class GetallPermissionsQueryHandler(IPermissionsRepository permissionRepo
             request.PageSize
         );
 
-        return Result.Success<IPaginatedList<GetAllPermissionsQueryResponse>>(paginatedList);
+        return Result.Success<PaginatedList<GetAllPermissionsQueryResponse>>(paginatedList);
     }
 }

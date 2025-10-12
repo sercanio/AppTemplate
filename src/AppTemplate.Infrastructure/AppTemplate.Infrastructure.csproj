@@ -9,25 +9,27 @@
   <ItemGroup>
 	<PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
 	<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    <PackageReference Include="MediatR" Version="12.4.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.2" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.2" />
-	<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.13.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.2" />
+	<PackageReference Include="Dapper" Version="2.1.66" />
+	<PackageReference Include="KubernetesClient" Version="17.0.14" />
+    <PackageReference Include="MediatR" Version="[12.5.0,13.0.0)" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.9">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+	<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.15.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.9" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authentication.Azure\Myrtus.Clarity.Core.Infrastructure.Authentication.Azure.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Authorization\Myrtus.Clarity.Core.Infrastructure.Authorization.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Data.Dapper\Myrtus.Clarity.Core.Infrastructure.Data.Dapper.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Outbox\Myrtus.Clarity.Core.Infrastructure.Outbox.csproj" />
-    <ProjectReference Include="..\..\core\Myrtus.Clarity.Core.Infrastructure.Pagination\Myrtus.Clarity.Core.Infrastructure.Pagination.csproj" />
     <ProjectReference Include="..\AppTemplate.Application\AppTemplate.Application.csproj" />
     <ProjectReference Include="..\AppTemplate.Domain\AppTemplate.Domain.csproj" />
   </ItemGroup>

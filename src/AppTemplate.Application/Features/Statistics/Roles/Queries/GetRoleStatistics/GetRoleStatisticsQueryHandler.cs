@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 
-public sealed class GetRoleStatisticsQueryHandler : IRequestHandler<GetRoleStatisticsQuery, Result<GetRoleStatisticsResponse>>
+public sealed class GetRoleStatisticsQueryHandler : IRequestHandler<GetRoleStatisticsQuery, Result<GetRoleStatisticsQueryResponse>>
 {
   private readonly IRolesRepository _rolesRepository;
   private readonly IPermissionsRepository _permissionsRepository;
@@ -18,7 +18,7 @@ public sealed class GetRoleStatisticsQueryHandler : IRequestHandler<GetRoleStati
     _permissionsRepository = permissionsRepository;
   }
 
-  public async Task<Result<GetRoleStatisticsResponse>> Handle(
+  public async Task<Result<GetRoleStatisticsQueryResponse>> Handle(
       GetRoleStatisticsQuery request,
       CancellationToken cancellationToken)
   {
@@ -61,7 +61,7 @@ public sealed class GetRoleStatisticsQueryHandler : IRequestHandler<GetRoleStati
         .ToDictionary(g => g.Key, g => g.Count());
 
     // Create response
-    var response = new GetRoleStatisticsResponse(
+    var response = new GetRoleStatisticsQueryResponse(
         TotalRoles: totalRoles,
         TotalPermissions: totalPermissions,
         PermissionsPerRole: permissionsPerRole,

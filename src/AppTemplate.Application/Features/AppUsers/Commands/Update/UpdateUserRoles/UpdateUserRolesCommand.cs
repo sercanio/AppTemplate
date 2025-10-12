@@ -1,5 +1,5 @@
 using AppTemplate.Application.Enums;
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
+using AppTemplate.Application.Services.Messages;
 
 namespace AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
 

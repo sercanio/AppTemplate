@@ -1,5 +1,3 @@
-﻿using Myrtus.Clarity.Core.Domain.Abstractions;
-
 namespace AppTemplate.Domain.Roles;
 
 public static class RoleErrors

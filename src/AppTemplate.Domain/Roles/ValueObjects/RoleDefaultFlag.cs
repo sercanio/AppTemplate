@@ -1,5 +1,3 @@
-﻿using Myrtus.Clarity.Core.Domain.Abstractions;
-
 namespace AppTemplate.Domain.Roles.ValueObjects;
 
 public sealed class RoleDefaultFlag : ValueObject

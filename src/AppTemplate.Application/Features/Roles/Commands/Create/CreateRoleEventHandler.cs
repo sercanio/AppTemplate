@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Create;
 
-internal class CreateRoleEventHandler(
+public class CreateRoleEventHandler(
     IRolesRepository rolesRepository,
     IEmailSender emailSender,
     INotificationService notificationService,

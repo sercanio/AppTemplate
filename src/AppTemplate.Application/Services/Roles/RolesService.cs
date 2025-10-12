@@ -1,6 +1,7 @@
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.Roles;
-using Myrtus.Clarity.Core.Infrastructure.Pagination;
+using Ardalis.Result;
 using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.Roles;
@@ -66,5 +67,18 @@ public sealed class RolesService(IRolesRepository roleRepository) : IRolesServic
         roles.PageSize);
 
     return paginatedList;
+  }
+
+  public async Task<Result<Role>> GetDefaultRole(CancellationToken cancellationToken = default)
+  {
+    var role = await _roleRepository.GetAsync(
+        r => r.IsDefault,
+        asNoTracking: false,
+        cancellationToken: cancellationToken);
+
+    if (role != null)
+      return Result.Success(role);
+
+    return Result.Error("Default role not found");
   }
 }

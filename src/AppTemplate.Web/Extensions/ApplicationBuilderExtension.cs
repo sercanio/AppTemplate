@@ -1,27 +1,28 @@
-﻿using System.Reflection;
+using AppTemplate.Application.Features.Roles.Commands.Create;
+using AppTemplate.Web.Middlewares;
+using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
-using AppTemplate.Application.Features.Roles.Commands.Create;
+using Microsoft.AspNetCore.Identity;
+using Serilog;
+using AppTemplate.TestCoverageWorker;
 using AppTemplate.Infrastructure;
-using AppTemplate.Web.Middlewares;
-using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.EntityFrameworkCore;
-using Myrtus.Clarity.Core.Application.Abstractions.Module;
+using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Application.Services.Authentication;
+using AppTemplate.Infrastructure.Authentication;
 
 namespace AppTemplate.Web.Extensions;
 
-internal static class ApplicationBuilderExtensions
+public static class ApplicationBuilderExtensions
 {
-    public static void ApplyMigrations(this IApplicationBuilder app)
-    {
-        using var scope = app.ApplicationServices.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.Migrate();
-    }
-
     public static void UseCustomExceptionHandler(this IApplicationBuilder app)
     {
         app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -43,7 +44,117 @@ internal static class ApplicationBuilderExtensions
         return app;
     }
 
-    // Service-level configuration extensions
+    // New extension methods to extract from Program.cs
+    public static IHostBuilder ConfigureSerilog(this IHostBuilder host)
+    {
+        return host.UseSerilog((context, services, configuration) =>
+        {
+            configuration
+                .ReadFrom.Configuration(context.Configuration)
+                .ReadFrom.Services(services)
+                .WriteTo.Console(new Serilog.Formatting.Json.JsonFormatter())
+                .WriteTo.OpenTelemetry(options =>
+                {
+                    options.Endpoint = "http://localhost:4317";
+                    options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+                });
+
+            // Add Seq sink if connection string is available
+            var seqConnectionString = context.Configuration.GetConnectionString("apptemplate-seq");
+            if (!string.IsNullOrEmpty(seqConnectionString))
+            {
+                configuration.WriteTo.Seq(seqConnectionString);
+            }
+        });
+    }
+
+    public static IServiceCollection ConfigureIdentity(this IServiceCollection services)
+    {
+        services.AddDefaultIdentity<IdentityUser>(options =>
+            options.SignIn.RequireConfirmedAccount = false)
+            .AddEntityFrameworkStores<ApplicationDbContext>();
+        
+        return services;
+    }
+
+    public static IServiceCollection ConfigureRedisCache(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = configuration.GetConnectionString("apptemplate-redis") ?? "localhost:6379";
+            options.InstanceName = "AppTemplate:";
+        });
+        
+        return services;
+    }
+
+    public static IServiceCollection ConfigureOpenApiWithScalar(this IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+        services.AddOpenApi(options =>
+        {
+            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+            options.AddDocumentTransformer((document, context, cancellationToken) =>
+            {
+                document.Info = new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "AppTemplate API",
+                    Version = $"v{ApiVersions.V1}",
+                    Description = "API documentation for the AppTemplate application."
+                };
+                return Task.CompletedTask;
+            });
+        });
+        
+        return services;
+    }
+
+    public static IApplicationBuilder ConfigureDevelopmentEnvironment(this IApplicationBuilder app, IWebHostEnvironment environment)
+    {
+        if (environment.IsDevelopment())
+        {
+            app.UseMigrationsEndPoint();
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseHsts();
+        }
+        
+        return app;
+    }
+
+    public static IApplicationBuilder ConfigureMiddlewarePipeline(this IApplicationBuilder app, IWebHostEnvironment environment)
+    {
+        if (!environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
+        
+        app.UseRouting();
+        app.UseCors("CorsPolicy");
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.UseCustomForbiddenRequestHandler();
+        app.UseRateLimiter();
+        app.UseRateLimitExceededHandler();
+        
+        return app;
+    }
+
+    public static IEndpointRouteBuilder MapDevelopmentEndpoints(this IEndpointRouteBuilder endpoints, IWebHostEnvironment environment)
+    {
+        if (environment.IsDevelopment())
+        {
+            endpoints.MapOpenApi();
+            endpoints.MapScalarApiReference();
+            endpoints.MapTestCoverageEndpoints();
+        }
+        
+        return endpoints;
+    }
+
+    // Service-level configuration extensions (existing methods)
     public static IServiceCollection ConfigureCors(this IServiceCollection services, IConfiguration configuration)
     {
         // Read allowed origins from configuration.
@@ -77,127 +188,85 @@ internal static class ApplicationBuilderExtensions
         return services;
     }
 
-    public static IServiceCollection ConfigureAuthenticationAndAntiforgery(this IServiceCollection services, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
+    // Only configure JWT authentication
+    public static IServiceCollection ConfigureJwtAuthentication(this IServiceCollection services, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env, IConfiguration configuration)
     {
-        if (env.IsDevelopment())
+        var jwtSettings = configuration.GetSection("Jwt");
+        var secret = jwtSettings["Secret"];
+        
+        // Validate JWT secret
+        if (string.IsNullOrWhiteSpace(secret))
         {
-            services.ConfigureApplicationCookie(options =>
-            {
-                options.Cookie.Name = "AppTemplateAuthCookie";
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
-                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
-                options.Events.OnRedirectToLogin = context =>
-                {
-                    if (context.Request.Path.StartsWithSegments("/api"))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        context.Response.ContentType = "application/json";
-                        var problem = new ProblemDetails
-                        {
-                            Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
-                            Title = "Unauthorized",
-                            Status = StatusCodes.Status401Unauthorized,
-                            Detail = "You must be logged in to access this API.",
-                            Instance = context.Request.Path
-                        };
-                        problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-                        return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-                    }
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
-                options.Events.OnRedirectToAccessDenied = context =>
-                {
-                    if (context.Request.Path.StartsWithSegments("/api"))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        context.Response.ContentType = "application/json";
-                        var problem = new ProblemDetails
-                        {
-                            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-                            Title = "Forbidden",
-                            Status = StatusCodes.Status403Forbidden,
-                            Detail = "You do not have permission to access this resource.",
-                            Instance = context.Request.Path
-                        };
-                        problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-                        return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-                    }
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
-            });
-
-            services.AddAntiforgery(options =>
-            {
-                options.Cookie.Name = "AppTemplate.AntiForgery";
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
-                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
-                options.HeaderName = "X-XSRF-TOKEN";
-            });
+            throw new ArgumentException("JWT Secret cannot be null or empty.", nameof(configuration));
         }
-        else
+        
+        if (secret.Length < 32)
         {
-            services.ConfigureApplicationCookie(options =>
-            {
-                options.Cookie.Name = "AppTemplateAuthCookie";
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
-                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
-                options.Events.OnRedirectToLogin = context =>
-                {
-                    if (context.Request.Path.StartsWithSegments("/api"))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        context.Response.ContentType = "application/json";
-                        var problem = new ProblemDetails
-                        {
-                            Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
-                            Title = "Unauthorized",
-                            Status = StatusCodes.Status401Unauthorized,
-                            Detail = "You must be logged in to access this API.",
-                            Instance = context.Request.Path
-                        };
-                        problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-                        return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-                    }
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
-                options.Events.OnRedirectToAccessDenied = context =>
-                {
-                    if (context.Request.Path.StartsWithSegments("/api"))
-                    {
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        context.Response.ContentType = "application/json";
-                        var problem = new ProblemDetails
-                        {
-                            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-                            Title = "Forbidden",
-                            Status = StatusCodes.Status403Forbidden,
-                            Detail = "You do not have permission to access this resource.",
-                            Instance = context.Request.Path
-                        };
-                        problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
-                        return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
-                    }
-                    context.Response.Redirect(context.RedirectUri);
-                    return Task.CompletedTask;
-                };
-            });
-
-            services.AddAntiforgery(options =>
-            {
-                options.Cookie.Name = "AppTemplate.AntiForgery";
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
-                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
-                options.HeaderName = "X-XSRF-TOKEN";
-            });
+            throw new ArgumentException("JWT Secret must be at least 32 characters long for security.", nameof(configuration));
         }
 
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+        {
+            var key = Encoding.UTF8.GetBytes(secret);
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwtSettings["Issuer"],
+                ValidAudience = jwtSettings["Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ClockSkew = TimeSpan.Zero,
+                RequireExpirationTime = true
+            };
+            options.Events = new JwtBearerEvents
+            {
+                OnChallenge = context =>
+                {
+                    context.HandleResponse();
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/json";
+                    var problem = new ProblemDetails
+                    {
+                        Type = "https://tools.ietf.org/html/rfc7235#section-3.1",
+                        Title = "Unauthorized",
+                        Status = StatusCodes.Status401Unauthorized,
+                        Detail = "You must provide a valid JWT token to access this API.",
+                        Instance = context.Request.Path
+                    };
+                    problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
+                    return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+                },
+                OnForbidden = context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    context.Response.ContentType = "application/json";
+                    var problem = new ProblemDetails
+                    {
+                        Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
+                        Title = "Forbidden",
+                        Status = StatusCodes.Status403Forbidden,
+                        Detail = "You do not have permission to access this resource.",
+                        Instance = context.Request.Path
+                    };
+                    problem.Extensions.Add("traceId", context.HttpContext.TraceIdentifier);
+                    return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+                },
+                OnAuthenticationFailed = context =>
+                {
+                    if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                    {
+                        context.Response.Headers.Add("Token-Expired", "true");
+                    }
+                    return Task.CompletedTask;
+                }
+            };
+        });
         return services;
     }
 
-    // Rate limiting configuration moved to an extension method.
     public static IServiceCollection ConfigureRateLimiting(this IServiceCollection services)
     {
         services.AddRateLimiter(options =>
@@ -209,7 +278,6 @@ internal static class ApplicationBuilderExtensions
                 limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 limiterOptions.QueueLimit = 0;
             });
-
             options.OnRejected = async (context, cancellationToken) =>
             {
                 context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
@@ -245,5 +313,29 @@ internal static class ApplicationBuilderExtensions
         });
         return services;
     }
-}
 
+    public static IServiceCollection ConfigureApiDocumentation(this IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+        services.AddOpenApi(options =>
+        {
+            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+        });
+        return services;
+    }
+
+    public static IEndpointRouteBuilder MapApiDocumentation(this IEndpointRouteBuilder endpoints, IWebHostEnvironment environment)
+    {
+        if (environment.IsDevelopment())
+        {
+            endpoints.MapOpenApi();
+            endpoints.MapScalarApiReference(options =>
+            {
+                options.Title = "AppTemplate API";
+                options.Theme = ScalarTheme.BluePlanet;
+                options.ShowSidebar = true;
+            });
+        }
+        return endpoints;
+    }
+}

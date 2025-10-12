@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Repositories;
+using AppTemplate.Application.Repositories;
 using Ardalis.Result;
 using MediatR;
 
@@ -6,18 +6,14 @@ namespace AppTemplate.Application.Features.Statistics.Users.Queries.GetUsersCoun
 
 public sealed class GetUsersCountQueryHandler(IAppUsersRepository userRepository) : IRequestHandler<GetUsersCountQuery, Result<GetUsersCountQueryResponse>>
 {
-    private readonly IAppUsersRepository _userRepository = userRepository;
+  private readonly IAppUsersRepository _userRepository = userRepository;
 
-    public async Task<Result<GetUsersCountQueryResponse>> Handle(GetUsersCountQuery request, CancellationToken cancellationToken)
-    {
-        var users = await _userRepository.GetAllAsync(
-            pageIndex: 0,
-            pageSize: 1,
-            includeSoftDeleted: false,
-            cancellationToken: cancellationToken);
+  public async Task<Result<GetUsersCountQueryResponse>> Handle(GetUsersCountQuery request, CancellationToken cancellationToken)
+  {
+    int count = await _userRepository.GetUsersCountAsync(cancellationToken: cancellationToken);
 
-        var response = new GetUsersCountQueryResponse(users.TotalCount);
+    var response = new GetUsersCountQueryResponse(count);
 
-        return Result.Success(response);
-    }
+    return Result.Success(response);
+  }
 }

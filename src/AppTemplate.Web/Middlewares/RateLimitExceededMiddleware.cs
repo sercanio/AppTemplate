@@ -1,10 +1,10 @@
+using AppTemplate.Application.Services.Localization;
+using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
-using Microsoft.AspNetCore.Mvc;
-using Myrtus.Clarity.Core.Application.Abstractions.Localization.Services;
 
 namespace AppTemplate.Web.Middlewares;
 

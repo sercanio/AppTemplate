@@ -1,19 +1,20 @@
+using AppTemplate.Application.Services.Authentication.Models;
+using AppTemplate.Application.Services.Clock;
+using AppTemplate.Domain;
+using AppTemplate.Domain.AppUsers;
+using AppTemplate.Domain.Notifications;
+using AppTemplate.Domain.OutboxMessages;
+using AppTemplate.Domain.Roles;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Newtonsoft.Json;
-using Myrtus.Clarity.Core.Application.Abstractions.Clock;
-using Myrtus.Clarity.Core.Domain.Abstractions;
-using Myrtus.Clarity.Core.Infrastructure.Outbox;
-using AppTemplate.Domain.AppUsers;
-using AppTemplate.Domain.Roles;
-using AppTemplate.Domain.Notifications;
+using System.Reflection.Emit;
 
 namespace AppTemplate.Infrastructure;
 
-public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
+public class ApplicationDbContext : IdentityUserContext<IdentityUser>, IUnitOfWork
 {
   private readonly IDateTimeProvider _dateTimeProvider;
   private static readonly JsonSerializerSettings JsonSerializerSettings = new()
@@ -26,6 +27,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
   public DbSet<Role> Roles { get; set; }
   public DbSet<Permission> Permissions { get; set; }
   public DbSet<Notification> Notifications { get; set; }
+  public DbSet<RefreshToken> RefreshTokens { get; set; }
 
   public ApplicationDbContext(
       DbContextOptions<ApplicationDbContext> options,
@@ -35,21 +37,33 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
     _dateTimeProvider = dateTimeProvider;
   }
 
-  protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+  protected override void OnModelCreating(ModelBuilder builder)
   {
-    optionsBuilder.ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
-  }
+    base.OnModelCreating(builder);
 
-  protected override void OnModelCreating(ModelBuilder modelBuilder)
-  {
-    base.OnModelCreating(modelBuilder);
+    // Since we're using IdentityUserContext, we only need to ignore user claims
+    // as roles are not included by default
+    builder.Ignore<IdentityUserClaim<string>>();
+
+    builder.Entity<IdentityUser>(b =>
+    {
+      b.Property(u => u.UserName)
+          .IsRequired();
+      b.HasIndex(u => u.UserName)
+          .IsUnique();
+
+      b.Property(u => u.Email)
+          .IsRequired();
+      b.HasIndex(u => u.Email)
+          .IsUnique();
+    });
 
     var hasher = new PasswordHasher<IdentityUser>();
     var dummyUser = new IdentityUser();
     string password = "Passw0rd!";
     string hashedPassword = hasher.HashPassword(dummyUser, password);
 
-    modelBuilder.Entity<IdentityUser>().HasData(
+    builder.Entity<IdentityUser>().HasData(
     new IdentityUser
     {
       Id = "b3398ff2-1b43-4af7-812d-eb4347eecbb8",
@@ -59,10 +73,26 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IUnitOfWork
       NormalizedEmail = "ADMIN@EXAMPLE.COM",
       EmailConfirmed = true,
       PasswordHash = hashedPassword,
-      SecurityStamp = Guid.NewGuid().ToString("D")
+      SecurityStamp = "fixed-security-stamp-for-seeding"
     });
 
-    modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+    builder.Entity<RefreshToken>(entity =>
+    {
+      entity.HasKey(e => e.Token);
+      entity.Property(e => e.Token).HasMaxLength(200);
+      entity.Property(e => e.UserId).HasMaxLength(450);
+      entity.Property(e => e.DeviceName).HasMaxLength(200);
+      entity.Property(e => e.UserAgent).HasMaxLength(500);
+      entity.Property(e => e.IpAddress).HasMaxLength(50);
+      entity.Property(e => e.Platform).HasMaxLength(50);
+      entity.Property(e => e.Browser).HasMaxLength(50);
+      entity.HasIndex(e => e.UserId);
+      entity.HasIndex(e => e.ExpiresAt);
+      entity.HasIndex(e => e.IsRevoked);
+      entity.HasIndex(e => new { e.UserId, e.IsRevoked });
+    });
+
+    builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
   }
 
   public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AppTemplate.Application.Features.Roles.Commands.Update.UpdateRoleName;
 
-internal class UpdateRoleNameEventHandler(
+public class UpdateRoleNameEventHandler(
     ILogger<UpdateRoleNameEventHandler> logger) : INotificationHandler<RoleNameUpdatedDomainEvent>
 {
   public async Task Handle(RoleNameUpdatedDomainEvent notification, CancellationToken cancellationToken)

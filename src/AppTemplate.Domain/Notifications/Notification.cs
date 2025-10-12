@@ -1,6 +1,5 @@
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Notifications.Enums;
-using Myrtus.Clarity.Core.Domain.Abstractions;
 
 namespace AppTemplate.Domain.Notifications;
 

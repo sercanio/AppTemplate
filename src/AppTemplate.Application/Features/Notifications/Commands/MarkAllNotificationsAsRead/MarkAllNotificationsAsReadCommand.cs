@@ -1,5 +1,4 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Messaging;
-using AppTemplate.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
+using AppTemplate.Application.Services.Messages;
 
 namespace AppTemplate.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
 

@@ -1,6 +1,5 @@
-using Myrtus.Clarity.Core.Application.Abstractions.Localization.Services;
-using Myrtus.Clarity.Core.Infrastructure.Localization.Services;
-using Myrtus.Clarity.Core.WebAPI;
+using AppTemplate.Application.Services.ErrorHandling;
+using AppTemplate.Application.Services.Localization;
 
 namespace AppTemplate.Web;
 

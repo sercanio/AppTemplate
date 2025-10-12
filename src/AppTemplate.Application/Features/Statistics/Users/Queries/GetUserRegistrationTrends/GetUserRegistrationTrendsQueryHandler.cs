@@ -5,7 +5,7 @@ using MediatR;
 
 namespace AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 
-public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetUserRegistrationTrendsQuery, Result<GetUserRegistrationTrendsResponse>>
+public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetUserRegistrationTrendsQuery, Result<GetUserRegistrationTrendsQueryResponse>>
 {
     private readonly IAppUsersRepository _userRepository;
 
@@ -14,55 +14,34 @@ public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetU
         _userRepository = userRepository;
     }
 
-    public async Task<Result<GetUserRegistrationTrendsResponse>> Handle(
+    public async Task<Result<GetUserRegistrationTrendsQueryResponse>> Handle(
         GetUserRegistrationTrendsQuery request, 
         CancellationToken cancellationToken)
     {
-        // Get all users - we'll filter in memory to avoid complex DB queries
-        var allUsers = await _userRepository.GetAllAsync(
+        var result = await _userRepository.GetAllUsersWithIdentityAndRolesAsync(
             pageIndex: 0,
-            pageSize: int.MaxValue, // Get all users
-            includeSoftDeleted: false,
+            pageSize: int.MaxValue,
             cancellationToken: cancellationToken);
 
-        // Define time periods
-        var today = DateTime.UtcNow.Date;
-        var firstDayOfThisMonth = new DateTime(today.Year, today.Month, 1);
-        var firstDayOfLastMonth = firstDayOfThisMonth.AddMonths(-1);
-        var lastDayOfLastMonth = firstDayOfThisMonth.AddDays(-1);
-        
-        // Filter users by creation date
-        var usersThisMonth = allUsers.Items
-            .Where(u => u.CreatedOnUtc >= firstDayOfThisMonth)
-            .ToList();
-        
-        var usersLastMonth = allUsers.Items
-            .Where(u => u.CreatedOnUtc >= firstDayOfLastMonth && u.CreatedOnUtc < firstDayOfThisMonth)
-            .ToList();
-        
-        // Calculate growth percentage
-        int totalUsersLastMonth = usersLastMonth.Count;
-        int totalUsersThisMonth = usersThisMonth.Count;
-        int growthPercentage = totalUsersLastMonth > 0 
-            ? (int)Math.Round((double)(totalUsersThisMonth - totalUsersLastMonth) / totalUsersLastMonth * 100) 
-            : 100;
-        
-        // Calculate daily registrations for the last 30 days
-        var last30Days = Enumerable.Range(0, 30)
-            .Select(i => today.AddDays(-i))
-            .ToList();
-        
-        var dailyRegistrations = new Dictionary<string, int>();
-        
-        foreach (var day in last30Days)
+        if (!result.IsSuccess || result.Value is null)
         {
-            string dateKey = day.ToString("MM-dd");
-            int count = allUsers.Items.Count(u => u.CreatedOnUtc.Date == day);
-            dailyRegistrations.Add(dateKey, count);
+            return Result.Error("Could not retrieve users.");
         }
 
-        // Create response
-        var response = new GetUserRegistrationTrendsResponse(
+        var allUsers = result.Value.Items;
+        var today = DateTime.UtcNow.Date;
+
+        var usersThisMonth = GetUsersThisMonth(allUsers, today);
+        var usersLastMonth = GetUsersLastMonth(allUsers, today);
+
+        int totalUsersLastMonth = usersLastMonth.Count;
+        int totalUsersThisMonth = usersThisMonth.Count;
+        int growthPercentage = CalculateGrowthPercentage(totalUsersLastMonth, totalUsersThisMonth);
+
+        var last30Days = GetLast30Days(today);
+        var dailyRegistrations = GetDailyRegistrations(allUsers, last30Days);
+
+        var response = new GetUserRegistrationTrendsQueryResponse(
             TotalUsersLastMonth: totalUsersLastMonth,
             TotalUsersThisMonth: totalUsersThisMonth,
             GrowthPercentage: growthPercentage,
@@ -70,5 +49,44 @@ public sealed class GetUserRegistrationTrendsQueryHandler : IRequestHandler<GetU
         );
 
         return Result.Success(response);
+    }
+
+    private static List<AppUser> GetUsersThisMonth(IEnumerable<AppUser> users, DateTime today)
+    {
+        var firstDayOfThisMonth = new DateTime(today.Year, today.Month, 1);
+        return users.Where(u => u.CreatedOnUtc >= firstDayOfThisMonth).ToList();
+    }
+
+    private static List<AppUser> GetUsersLastMonth(IEnumerable<AppUser> users, DateTime today)
+    {
+        var firstDayOfThisMonth = new DateTime(today.Year, today.Month, 1);
+        var firstDayOfLastMonth = firstDayOfThisMonth.AddMonths(-1);
+        return users.Where(u => u.CreatedOnUtc >= firstDayOfLastMonth && u.CreatedOnUtc < firstDayOfThisMonth).ToList();
+    }
+
+    private static List<DateTime> GetLast30Days(DateTime today)
+    {
+        return Enumerable.Range(0, 30)
+            .Select(i => today.AddDays(-i))
+            .ToList();
+    }
+
+    private static Dictionary<string, int> GetDailyRegistrations(IEnumerable<AppUser> users, List<DateTime> last30Days)
+    {
+        var dailyRegistrations = new Dictionary<string, int>();
+        foreach (var day in last30Days)
+        {
+            string dateKey = day.ToString("MM-dd");
+            int count = users.Count(u => u.CreatedOnUtc.Date == day);
+            dailyRegistrations.Add(dateKey, count);
+        }
+        return dailyRegistrations;
+    }
+
+    private static int CalculateGrowthPercentage(int lastMonth, int thisMonth)
+    {
+        return lastMonth > 0
+            ? (int)Math.Round((double)(thisMonth - lastMonth) / lastMonth * 100)
+            : 100;
     }
 }

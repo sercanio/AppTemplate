@@ -1,9 +1,9 @@
+using AppTemplate.Application.Behaviors;
 using AppTemplate.Application.Services.AppUsers;
+using AppTemplate.Application.Services.Caching;
+using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Application.Services.Roles;
 using Microsoft.Extensions.DependencyInjection;
-using Myrtus.Clarity.Core.Application.Abstractions.Behaviors;
-using Myrtus.Clarity.Core.Application.Abstractions.Caching;
-using Myrtus.Clarity.Core.Infrastructure.Caching;
 
 namespace AppTemplate.Application;
 
@@ -24,9 +24,7 @@ public static class DependencyInjection
             configuration.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
 
             configuration.AddOpenBehavior(typeof(LoggingBehavior<,>));
-
             configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
-
             configuration.AddOpenBehavior(typeof(QueryCachingBehavior<,>));
         });
     }
@@ -35,6 +33,9 @@ public static class DependencyInjection
     {
         services.AddScoped<IRolesService, RolesService>();
         services.AddScoped<IAppUsersService, AppUsersService>();
+        
+        // Add the account email service
+        services.AddScoped<IAccountEmailService, AccountEmailService>();
     }
 
     private static void AddCache(IServiceCollection services)
