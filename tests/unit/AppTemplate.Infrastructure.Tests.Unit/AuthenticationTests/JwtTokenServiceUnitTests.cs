@@ -73,7 +73,7 @@ public class JwtTokenServiceUnitTests : IDisposable
   {
     var store = new Mock<IUserStore<IdentityUser>>();
     var mgr = new Mock<UserManager<IdentityUser>>(
-        store.Object, null, null, null, null, null, null, null, null);
+        store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
     mgr.Object.UserValidators.Add(new UserValidator<IdentityUser>());
     mgr.Object.PasswordValidators.Add(new PasswordValidator<IdentityUser>());
     return mgr;

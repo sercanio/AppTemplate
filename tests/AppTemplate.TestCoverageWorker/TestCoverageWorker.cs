@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text.Json;
 using Spectre.Console;
 
@@ -821,7 +821,10 @@ public class TestCoverageWorker : BackgroundService
         var doc = System.Xml.Linq.XDocument.Load(file);
         var coverage = doc.Root;
 
-        if (coverage == null) continue;
+        if (coverage == null)
+        {
+          continue;
+        }
 
         // Accumulate totals
         totalLinesValid += int.Parse(coverage.Attribute("lines-valid")?.Value ?? "0");

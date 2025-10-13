@@ -1,9 +1,7 @@
 using AppTemplate.Application.Data.DynamicQuery;
 using AppTemplate.Application.Services.Clock;
-using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
-using AppTemplate.Infrastructure;
 using AppTemplate.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Moq;

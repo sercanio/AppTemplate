@@ -11,20 +11,14 @@ namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Commands.Upd
 [Trait("Category", "Unit")]
 public class AddUserRoleEventHandlerUnitTests
 {
-  private readonly Mock<IAppUsersRepository> _userRepositoryMock;
-  private readonly Mock<IRolesService> _rolesServiceMock;
   private readonly Mock<ILogger<AddUserRoleEventHandler>> _loggerMock;
   private readonly AddUserRoleEventHandler _handler;
 
   public AddUserRoleEventHandlerUnitTests()
   {
-    _userRepositoryMock = new Mock<IAppUsersRepository>();
-    _rolesServiceMock = new Mock<IRolesService>();
     _loggerMock = new Mock<ILogger<AddUserRoleEventHandler>>();
 
     _handler = new AddUserRoleEventHandler(
-        _userRepositoryMock.Object,
-        _rolesServiceMock.Object,
         _loggerMock.Object);
   }
 
@@ -113,23 +107,6 @@ public class AddUserRoleEventHandlerUnitTests
   }
 
   [Fact]
-  public async Task Handle_ShouldNotCallRepository_AsItOnlyLogs()
-  {
-    // Arrange
-    var userId = Guid.NewGuid();
-    var roleId = Guid.NewGuid();
-    var domainEvent = new AppUserRoleAddedDomainEvent(userId, roleId);
-    var cancellationToken = CancellationToken.None;
-
-    // Act
-    await _handler.Handle(domainEvent, cancellationToken);
-
-    // Assert
-    _userRepositoryMock.VerifyNoOtherCalls();
-    _rolesServiceMock.VerifyNoOtherCalls();
-  }
-
-  [Fact]
   public async Task Handle_ShouldHandleMultipleEvents_Independently()
   {
     // Arrange
@@ -180,10 +157,7 @@ public class AddUserRoleEventHandlerUnitTests
   public void Constructor_ShouldInitializeHandler_WithValidDependencies()
   {
     // Arrange & Act
-    var handler = new AddUserRoleEventHandler(
-        _userRepositoryMock.Object,
-        _rolesServiceMock.Object,
-        _loggerMock.Object);
+    var handler = new AddUserRoleEventHandler(_loggerMock.Object);
 
     // Assert
     handler.Should().NotBeNull();

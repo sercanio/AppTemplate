@@ -74,14 +74,15 @@ public class AccountsControllerUnitTests
     _mockConfiguration.Setup(x => x["Authentication:Cookie:SameSite"]).Returns("Strict");
     var mockSection = new Mock<IConfigurationSection>();
     mockSection.Setup(x => x.Value).Returns("true");
-    _mockConfiguration.Setup(x => x.GetSection("Authentication:Cookie:Secure")).Returns(mockSection.Object); _mockConfiguration.Setup(x => x["Jwt:RememberMeTokenExpiryInDays"]).Returns("30");
+    _mockConfiguration.Setup(x => x.GetSection("Authentication:Cookie:Secure")).Returns(mockSection.Object);
+    _mockConfiguration.Setup(x => x["Jwt:RememberMeTokenExpiryInDays"]).Returns("30");
   }
 
   private static Mock<UserManager<IdentityUser>> CreateMockUserManager()
   {
     var store = new Mock<IUserStore<IdentityUser>>();
     var mgr = new Mock<UserManager<IdentityUser>>(
-        store.Object, null, null, null, null, null, null, null, null);
+        store.Object, null!, null!, null!, null!, null!, null!, null!, null!);
     mgr.Object.UserValidators.Add(new UserValidator<IdentityUser>());
     mgr.Object.PasswordValidators.Add(new PasswordValidator<IdentityUser>());
     return mgr;
@@ -100,7 +101,7 @@ public class AccountsControllerUnitTests
         userPrincipalFactory.Object,
         options.Object,
         logger.Object,
-        null, null);
+        null!, null!);
   }
 
   private void SetupControllerContext()
@@ -117,7 +118,7 @@ public class AccountsControllerUnitTests
 
     // Setup request cookies for refresh token tests using a mock
     var mockCookies = new Mock<IRequestCookieCollection>();
-    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny))
+    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny!))
         .Returns((string key, out string value) =>
         {
           value = "valid-refresh-token";
@@ -167,7 +168,7 @@ public class AccountsControllerUnitTests
     var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
     _mockUserManager.Setup(x => x.FindByIdAsync(userId))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
 
     var errorResult = new BadRequestObjectResult("User not found");
     _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
@@ -243,7 +244,7 @@ public class AccountsControllerUnitTests
     _mockUserManager.Setup(x => x.GetEmailAsync(user))
         .ReturnsAsync(user.Email);
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.NewEmail))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
     _mockUserManager.Setup(x => x.GetUserIdAsync(user))
         .ReturnsAsync(user.Id);
     _mockUserManager.Setup(x => x.GenerateChangeEmailTokenAsync(user, request.NewEmail))
@@ -266,7 +267,7 @@ public class AccountsControllerUnitTests
     var request = new ChangeEmailRequest { NewEmail = "newemail@example.com" };
 
     _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
 
     // Act
     var result = await _controller.ChangeEmail(request);
@@ -353,7 +354,7 @@ public class AccountsControllerUnitTests
   {
     // Arrange
     _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
 
     // Act
     var result = await _controller.SendVerificationEmail();
@@ -431,7 +432,7 @@ public class AccountsControllerUnitTests
     var request = new ResendEmailConfirmationRequest { Email = "nonexistent@example.com" };
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.Email))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
 
     // Act
     var result = await _controller.ResendEmailConfirmation(request);
@@ -447,7 +448,7 @@ public class AccountsControllerUnitTests
   public async Task ResendEmailConfirmation_WithNullEmail_ReturnsBadRequest()
   {
     // Arrange
-    var request = new ResendEmailConfirmationRequest { Email = null };
+    var request = new ResendEmailConfirmationRequest { Email = null! };
 
     // Act
     var result = await _controller.ResendEmailConfirmation(request);
@@ -498,7 +499,7 @@ public class AccountsControllerUnitTests
   {
     // Arrange
     _mockUserManager.Setup(x => x.FindByIdAsync(It.IsAny<string>()))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
 
     // Act
     var result = await _controller.ConfirmEmailChange("user-id", "email@test.com", "code");
@@ -554,7 +555,7 @@ public class AccountsControllerUnitTests
     );
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -570,9 +571,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -589,17 +589,16 @@ public class AccountsControllerUnitTests
       Password = "WrongPassword"
     };
 
-    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
 
     // Act
     var result = await _controller.LoginWithJwt(
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -627,9 +626,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -661,9 +659,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -688,9 +685,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -718,9 +714,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -750,9 +745,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -782,9 +776,8 @@ public class AccountsControllerUnitTests
     var result = await _controller.RefreshJwtToken(
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -804,9 +797,8 @@ public class AccountsControllerUnitTests
     var result = await _controller.RefreshJwtToken(
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -829,10 +821,10 @@ public class AccountsControllerUnitTests
 
     // Setup empty cookies
     var mockCookies = new Mock<IRequestCookieCollection>();
-    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny))
+    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny!))
         .Returns((string key, out string value) =>
         {
-          value = null;
+          value = null!;
           return false;
         });
     httpContext.Request.Cookies = mockCookies.Object;
@@ -841,9 +833,8 @@ public class AccountsControllerUnitTests
     var result = await _controller.RefreshJwtToken(
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        httpContext);
+        null!,
+        null!);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -863,9 +854,8 @@ public class AccountsControllerUnitTests
     var result = await _controller.RefreshJwtToken(
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
@@ -883,7 +873,7 @@ public class AccountsControllerUnitTests
     _mockJwtTokenService.Setup(x => x.RevokeRefreshTokenAsync("valid-refresh-token")).Returns(Task.CompletedTask);
 
     // Act
-    var result = await _controller.LogoutJwt(_controller.HttpContext);
+    var result = await _controller.LogoutJwt();
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -905,10 +895,10 @@ public class AccountsControllerUnitTests
         }, "mock"));
 
     var mockCookies = new Mock<IRequestCookieCollection>();
-    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny))
+    mockCookies.Setup(x => x.TryGetValue("session", out It.Ref<string>.IsAny!))
         .Returns((string key, out string value) =>
         {
-          value = null;
+          value = null!;
           return false;
         });
     httpContext.Request.Cookies = mockCookies.Object;
@@ -919,7 +909,7 @@ public class AccountsControllerUnitTests
     };
 
     // Act
-    var result = await _controller.LogoutJwt(httpContext);
+    var result = await _controller.LogoutJwt();
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -1148,7 +1138,7 @@ public class AccountsControllerUnitTests
     };
 
     _mockUserManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>()))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
 
     var errorResult = new NotFoundObjectResult("User not found");
     _mockErrorHandlingService.Setup(x => x.HandleErrorResponse(It.IsAny<Result>()))
@@ -1227,7 +1217,7 @@ public class AccountsControllerUnitTests
     var request = new ForgotPasswordRequest { Email = "nonexistent@example.com" };
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.Email))
-        .ReturnsAsync((IdentityUser)null);
+        .ReturnsAsync((IdentityUser)null!);
 
     // Act
     var result = await _controller.ForgotPassword(request);
@@ -1278,7 +1268,7 @@ public class AccountsControllerUnitTests
   public async Task ForgotPassword_WithNullEmail_ReturnsBadRequest()
   {
     // Arrange
-    var request = new ForgotPasswordRequest { Email = null };
+    var request = new ForgotPasswordRequest { Email = null! };
 
     // Act
     var result = await _controller.ForgotPassword(request);
@@ -1534,7 +1524,7 @@ public class AccountsControllerUnitTests
   public async Task RevokeDeviceSession_WithNullToken_ReturnsBadRequest()
   {
     // Arrange
-    var request = new RevokeDeviceRequest { RefreshToken = null };
+    var request = new RevokeDeviceRequest { RefreshToken = null! };
 
     // Act
     var result = await _controller.RevokeDeviceSession(request);
@@ -1808,9 +1798,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -1850,9 +1839,8 @@ public class AccountsControllerUnitTests
         request,
         "Mozilla/5.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -1884,7 +1872,7 @@ public class AccountsControllerUnitTests
     );
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -1924,7 +1912,7 @@ public class AccountsControllerUnitTests
     );
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -1964,7 +1952,7 @@ public class AccountsControllerUnitTests
     );
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -2004,7 +1992,7 @@ public class AccountsControllerUnitTests
     );
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -2044,7 +2032,7 @@ public class AccountsControllerUnitTests
     );
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -2084,7 +2072,7 @@ public class AccountsControllerUnitTests
     );
 
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -2314,9 +2302,8 @@ public class AccountsControllerUnitTests
         request,
         "MyCustomBrowser/1.0",
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -2327,7 +2314,7 @@ public class AccountsControllerUnitTests
   private void SetupBasicLoginMocks(JwtLoginRequest request, IdentityUser user, AppUser appUser, JwtTokenResult tokens)
   {
     _mockUserManager.Setup(x => x.FindByEmailAsync(request.LoginIdentifier)).ReturnsAsync(user);
-    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null);
+    _mockUserManager.Setup(x => x.FindByNameAsync(request.LoginIdentifier)).ReturnsAsync((IdentityUser)null!);
     _mockSignInManager.Setup(x => x.CheckPasswordSignInAsync(user, request.Password, false)).ReturnsAsync(SignInResult.Success);
     _mockUserManager.Setup(x => x.CheckPasswordAsync(user, request.Password)).ReturnsAsync(true);
     _mockUserManager.Setup(x => x.IsEmailConfirmedAsync(user)).ReturnsAsync(true);
@@ -2364,9 +2351,8 @@ public class AccountsControllerUnitTests
         request,
         userAgent,
         "192.168.1.1",
-        null,
-        null,
-        _controller.HttpContext);
+        null!,
+        null!);
 
     // Assert
     var okResult = Assert.IsType<OkObjectResult>(result);
@@ -2399,18 +2385,6 @@ public class AccountsControllerUnitTests
   }
 
   [Fact]
-  public void LoginRequest_DefaultValues_ShouldBeCorrect()
-  {
-    // Arrange & Act
-    var request = new LoginRequest();
-
-    // Assert
-    Assert.Null(request.LoginIdentifier);
-    Assert.Null(request.Password);
-    Assert.False(request.RememberMe); // Default value for bool
-  }
-
-  [Fact]
   public void LoginRequest_Equality_ShouldWorkCorrectly()
   {
     // Arrange
@@ -2420,14 +2394,14 @@ public class AccountsControllerUnitTests
       Password = "password123",
       RememberMe = true
     };
-    
+
     var request2 = new LoginRequest
     {
       LoginIdentifier = "test@example.com",
       Password = "password123",
       RememberMe = true
     };
-    
+
     var request3 = new LoginRequest
     {
       LoginIdentifier = "different@example.com",
@@ -2452,16 +2426,6 @@ public class AccountsControllerUnitTests
 
     // Assert
     Assert.Equal("refresh-token-123", request.RefreshToken);
-  }
-
-  [Fact]
-  public void LogoutRequest_DefaultValues_ShouldBeCorrect()
-  {
-    // Arrange & Act
-    var request = new LogoutRequest();
-
-    // Assert
-    Assert.Null(request.RefreshToken);
   }
 
   [Fact]
@@ -2491,15 +2455,6 @@ public class AccountsControllerUnitTests
     Assert.Equal("refresh-token-456", request.RefreshToken);
   }
 
-  [Fact]
-  public void RefreshTokenRequest_DefaultValues_ShouldBeCorrect()
-  {
-    // Arrange & Act
-    var request = new RefreshTokenRequest();
-
-    // Assert
-    Assert.Null(request.RefreshToken);
-  }
 
   [Fact]
   public void RefreshTokenRequest_Equality_ShouldWorkCorrectly()
@@ -2533,18 +2488,6 @@ public class AccountsControllerUnitTests
   }
 
   [Fact]
-  public void ResetPasswordRequest_DefaultValues_ShouldBeCorrect()
-  {
-    // Arrange & Act
-    var request = new ResetPasswordRequest();
-
-    // Assert
-    Assert.Null(request.Email);
-    Assert.Null(request.Code);
-    Assert.Null(request.Password);
-  }
-
-  [Fact]
   public void ResetPasswordRequest_Equality_ShouldWorkCorrectly()
   {
     // Arrange
@@ -2554,14 +2497,14 @@ public class AccountsControllerUnitTests
       Code = "code123",
       Password = "password123"
     };
-    
+
     var request2 = new ResetPasswordRequest
     {
       Email = "test@example.com",
       Code = "code123",
       Password = "password123"
     };
-    
+
     var request3 = new ResetPasswordRequest
     {
       Email = "different@example.com",
@@ -2606,7 +2549,7 @@ public class AccountsControllerUnitTests
       Password = "password123",
       RememberMe = true
     };
-    
+
     var request2 = new LoginRequest
     {
       LoginIdentifier = "test@example.com",
@@ -2628,7 +2571,7 @@ public class AccountsControllerUnitTests
       Password = "password123",
       RememberMe = true
     };
-    
+
     // Test that we can access properties (deconstruction for records is automatic)
     var loginId = loginRequest.LoginIdentifier;
     var password = loginRequest.Password;
@@ -2654,7 +2597,7 @@ public class AccountsControllerUnitTests
       Code = "code123",
       Password = "password123"
     };
-    
+
     var email = resetRequest.Email;
     var code = resetRequest.Code;
     var resetPassword = resetRequest.Password;
@@ -2669,28 +2612,28 @@ public class AccountsControllerUnitTests
     // Arrange & Act & Assert
     var loginRequest = new LoginRequest
     {
-      LoginIdentifier = null,
-      Password = null,
+      LoginIdentifier = null!,
+      Password = null!,
       RememberMe = false
     };
-    
+
     Assert.Null(loginRequest.LoginIdentifier);
     Assert.Null(loginRequest.Password);
     Assert.False(loginRequest.RememberMe);
 
-    var logoutRequest = new LogoutRequest { RefreshToken = null };
+    var logoutRequest = new LogoutRequest { RefreshToken = null! };
     Assert.Null(logoutRequest.RefreshToken);
 
-    var refreshRequest = new RefreshTokenRequest { RefreshToken = null };
+    var refreshRequest = new RefreshTokenRequest { RefreshToken = null! };
     Assert.Null(refreshRequest.RefreshToken);
 
     var resetRequest = new ResetPasswordRequest
     {
-      Email = null,
-      Code = null,
-      Password = null
+      Email = null!,
+      Code = null!,
+      Password = null!
     };
-    
+
     Assert.Null(resetRequest.Email);
     Assert.Null(resetRequest.Code);
     Assert.Null(resetRequest.Password);
@@ -2706,7 +2649,7 @@ public class AccountsControllerUnitTests
       Password = "",
       RememberMe = true
     };
-    
+
     Assert.Equal("", loginRequest.LoginIdentifier);
     Assert.Equal("", loginRequest.Password);
     Assert.True(loginRequest.RememberMe);
@@ -2717,7 +2660,7 @@ public class AccountsControllerUnitTests
       Code = "",
       Password = ""
     };
-    
+
     Assert.Equal("", resetRequest.Email);
     Assert.Equal("", resetRequest.Code);
     Assert.Equal("", resetRequest.Password);
@@ -2733,7 +2676,7 @@ public class AccountsControllerUnitTests
       Password = "P@ssw0rd!#$%",
       RememberMe = true
     };
-    
+
     Assert.Equal("test+user@example.com", loginRequest.LoginIdentifier);
     Assert.Equal("P@ssw0rd!#$%", loginRequest.Password);
 
@@ -2743,7 +2686,7 @@ public class AccountsControllerUnitTests
       Code = "ABC123!@#",
       Password = "N3wP@ssw0rd!"
     };
-    
+
     Assert.Equal("user+test@example.com", resetRequest.Email);
     Assert.Equal("ABC123!@#", resetRequest.Code);
     Assert.Equal("N3wP@ssw0rd!", resetRequest.Password);

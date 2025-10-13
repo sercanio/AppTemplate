@@ -1,9 +1,7 @@
-﻿using AppTemplate.Application.Services.ErrorHandling;
+using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Application.Services.Localization;
-using AppTemplate.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace AppTemplate.Web.Tests.Unit;
 
@@ -15,10 +13,9 @@ public class DependencyInjectionUnitTests
   {
     // Arrange
     var services = new ServiceCollection();
-    var configuration = new ConfigurationBuilder().Build();
 
     // Act
-    var result = services.AddWebApi(configuration);
+    var result = services.AddWebApi();
 
     // Assert
     Assert.NotNull(result);
@@ -31,10 +28,9 @@ public class DependencyInjectionUnitTests
     // Arrange
     var services = new ServiceCollection();
     AddRequiredDependencies(services);
-    var configuration = new ConfigurationBuilder().Build();
 
     // Act
-    services.AddWebApi(configuration);
+    services.AddWebApi();
 
     // Assert
     var serviceProvider = services.BuildServiceProvider();
@@ -56,10 +52,9 @@ public class DependencyInjectionUnitTests
     // Arrange
     var services = new ServiceCollection();
     AddRequiredDependencies(services);
-    var configuration = new ConfigurationBuilder().Build();
 
     // Act
-    services.AddWebApi(configuration);
+    services.AddWebApi();
 
     // Assert
     var serviceProvider = services.BuildServiceProvider();
@@ -80,11 +75,10 @@ public class DependencyInjectionUnitTests
   {
     // Arrange
     var services = new ServiceCollection();
-    var configuration = new ConfigurationBuilder().Build();
     var initialServiceCount = services.Count;
 
     // Act
-    services.AddWebApi(configuration);
+    services.AddWebApi();
 
     // Assert
     var addedServicesCount = services.Count - initialServiceCount;
@@ -97,8 +91,7 @@ public class DependencyInjectionUnitTests
     // Arrange
     var services = new ServiceCollection();
     AddRequiredDependencies(services);
-    var configuration = new ConfigurationBuilder().Build();
-    services.AddWebApi(configuration);
+    services.AddWebApi();
     var serviceProvider = services.BuildServiceProvider();
 
     IErrorHandlingService errorHandlingService1a, errorHandlingService1b;
@@ -134,8 +127,7 @@ public class DependencyInjectionUnitTests
     // Arrange
     var services = new ServiceCollection();
     AddRequiredDependencies(services);
-    var configuration = new ConfigurationBuilder().Build();
-    services.AddWebApi(configuration);
+    services.AddWebApi();
     var serviceProvider = services.BuildServiceProvider();
 
     // Act & Assert - Singleton services should always be the same instance
@@ -164,10 +156,9 @@ public class DependencyInjectionUnitTests
     // Arrange
     var services = new ServiceCollection();
     AddRequiredDependencies(services);
-    IConfiguration configuration = null;
 
     // Act
-    services.AddWebApi(configuration);
+    services.AddWebApi();
 
     // Assert
     var serviceProvider = services.BuildServiceProvider();
@@ -185,11 +176,10 @@ public class DependencyInjectionUnitTests
     // Arrange
     var services = new ServiceCollection();
     AddRequiredDependencies(services);
-    var configuration = new ConfigurationBuilder().Build();
 
     // Act
-    services.AddWebApi(configuration);
-    services.AddWebApi(configuration); // Call again
+    services.AddWebApi();
+    services.AddWebApi(); // Call again
 
     // Assert
     var serviceProvider = services.BuildServiceProvider();
@@ -214,10 +204,9 @@ public class DependencyInjectionUnitTests
   {
     // Arrange
     var services = new ServiceCollection();
-    var configuration = new ConfigurationBuilder().Build();
 
     // Act
-    services.AddWebApi(configuration);
+    services.AddWebApi();
 
     // Assert
     var errorHandlingDescriptor = services.First(s => s.ServiceType == typeof(IErrorHandlingService));
@@ -232,10 +221,9 @@ public class DependencyInjectionUnitTests
   {
     // Arrange
     var services = new ServiceCollection();
-    var configuration = new ConfigurationBuilder().Build();
 
     // Act
-    services.AddWebApi(configuration);
+    services.AddWebApi();
 
     // Assert
     var concreteErrorHandling = services.FirstOrDefault(s => s.ServiceType == typeof(ErrorHandlingService));
@@ -250,12 +238,11 @@ public class DependencyInjectionUnitTests
   {
     // Arrange
     var services = new ServiceCollection();
-    var configuration = new ConfigurationBuilder().Build();
 
     // Act & Assert - Should support method chaining
     var result = services
-        .AddWebApi(configuration)
-        .AddWebApi(configuration);
+        .AddWebApi()
+        .AddWebApi();
 
     Assert.NotNull(result);
     Assert.Same(services, result);
