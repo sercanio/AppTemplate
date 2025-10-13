@@ -1,4 +1,4 @@
-﻿using AppTemplate.Web.Middlewares;
+using AppTemplate.Web.Middlewares;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;

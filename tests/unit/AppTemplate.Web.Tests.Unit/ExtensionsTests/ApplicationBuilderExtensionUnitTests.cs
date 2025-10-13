@@ -1,4 +1,4 @@
-﻿using AppTemplate.Web.Extensions;
+using AppTemplate.Web.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -8,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Moq;
-using Serilog;
 
 namespace AppTemplate.Web.Tests.Unit.ExtensionsTests;
 
@@ -110,7 +109,7 @@ public class ApplicationBuilderExtensionUnitTests
 
     // Assert
     Assert.Equal(services, result);
-    Assert.Contains(services, s => s.ServiceType.Name.Contains("Identity") || 
+    Assert.Contains(services, s => s.ServiceType.Name.Contains("Identity") ||
                                   s.ServiceType.Name.Contains("UserManager") ||
                                   s.ServiceType.Name.Contains("SignInManager"));
   }
@@ -131,7 +130,7 @@ public class ApplicationBuilderExtensionUnitTests
 
     // Assert
     Assert.Equal(services, result);
-    Assert.Contains(services, s => s.ServiceType.Name.Contains("Cache") || 
+    Assert.Contains(services, s => s.ServiceType.Name.Contains("Cache") ||
                                   s.ServiceType.Name.Contains("Redis"));
   }
 
@@ -148,7 +147,7 @@ public class ApplicationBuilderExtensionUnitTests
 
     // Assert
     Assert.Equal(services, result);
-    Assert.Contains(services, s => s.ServiceType.Name.Contains("Cache") || 
+    Assert.Contains(services, s => s.ServiceType.Name.Contains("Cache") ||
                                   s.ServiceType.Name.Contains("Redis"));
   }
 
@@ -176,9 +175,9 @@ public class ApplicationBuilderExtensionUnitTests
     // Arrange
     var builder = WebApplication.CreateBuilder();
     builder.Environment.EnvironmentName = "Development";
-    
+
     using var app = builder.Build();
-    
+
     // Act & Assert - Should not throw
     var result = app.ConfigureDevelopmentEnvironment(app.Environment);
     Assert.NotNull(result);
@@ -190,9 +189,9 @@ public class ApplicationBuilderExtensionUnitTests
     // Arrange
     var builder = WebApplication.CreateBuilder();
     builder.Environment.EnvironmentName = "Production";
-    
+
     using var app = builder.Build();
-    
+
     // Act & Assert - Should not throw
     var result = app.ConfigureDevelopmentEnvironment(app.Environment);
     Assert.NotNull(result);
@@ -204,7 +203,7 @@ public class ApplicationBuilderExtensionUnitTests
     // Arrange
     var builder = WebApplication.CreateBuilder();
     builder.Environment.EnvironmentName = "Development";
-    
+
     // Add required services for the middleware pipeline
     builder.Services.AddCors(options =>
     {
@@ -215,10 +214,10 @@ public class ApplicationBuilderExtensionUnitTests
     });
     builder.Services.AddAuthentication();
     builder.Services.AddAuthorization();
-    builder.Services.AddRateLimiter(options => {});
-    
+    builder.Services.AddRateLimiter(options => { });
+
     using var app = builder.Build();
-    
+
     // Act & Assert - Should not throw
     var result = app.ConfigureMiddlewarePipeline(app.Environment);
     Assert.NotNull(result);
@@ -230,7 +229,7 @@ public class ApplicationBuilderExtensionUnitTests
     // Arrange
     var builder = WebApplication.CreateBuilder();
     builder.Environment.EnvironmentName = "Production";
-    
+
     // Add required services for the middleware pipeline
     builder.Services.AddCors(options =>
     {
@@ -241,10 +240,10 @@ public class ApplicationBuilderExtensionUnitTests
     });
     builder.Services.AddAuthentication();
     builder.Services.AddAuthorization();
-    builder.Services.AddRateLimiter(options => {});
-    
+    builder.Services.AddRateLimiter(options => { });
+
     using var app = builder.Build();
-    
+
     // Act & Assert - Should not throw
     var result = app.ConfigureMiddlewarePipeline(app.Environment);
     Assert.NotNull(result);
@@ -256,13 +255,13 @@ public class ApplicationBuilderExtensionUnitTests
     // Arrange
     var builder = WebApplication.CreateBuilder();
     builder.Environment.EnvironmentName = "Development";
-    
+
     // Add required services for OpenAPI
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddOpenApi();
-    
+
     using var app = builder.Build();
-    
+
     // Act & Assert - Should not throw
     var result = app.MapDevelopmentEndpoints(app.Environment);
     Assert.NotNull(result);
@@ -274,9 +273,9 @@ public class ApplicationBuilderExtensionUnitTests
     // Arrange
     var builder = WebApplication.CreateBuilder();
     builder.Environment.EnvironmentName = "Production";
-    
+
     using var app = builder.Build();
-    
+
     // Act & Assert - Should not throw
     var result = app.MapDevelopmentEndpoints(app.Environment);
     Assert.NotNull(result);
@@ -746,7 +745,7 @@ public class ApplicationBuilderExtensionUnitTests
   private static IConfiguration CreateMockConfiguration(Dictionary<string, string> configValues)
   {
     var configBuilder = new ConfigurationBuilder();
-    configBuilder.AddInMemoryCollection(configValues);
+    configBuilder.AddInMemoryCollection(configValues!);
     return configBuilder.Build();
   }
 }
