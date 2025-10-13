@@ -125,7 +125,7 @@ public class AccountsController : BaseController
         request.NewEmail,
         userId,
         code,
-        user.UserName);
+        user.UserName!);
 
     return Ok(new { message = "Confirmation link to change email sent. Please check your email." });
   }
@@ -151,10 +151,10 @@ public class AccountsController : BaseController
     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
     await _accountEmailService.SendConfirmationEmailAsync(
-        email,
+        email!,
         userId,
         code,
-        user.UserName);
+        user.UserName!);
 
     return Ok(new { message = "Verification email sent. Please check your email." });
   }
@@ -182,7 +182,7 @@ public class AccountsController : BaseController
         request.Email,
         userId,
         code,
-        user.UserName);
+        user.UserName!);
 
     return Ok(new { message = "Verification email sent. Please check your email." });
   }
@@ -250,7 +250,7 @@ public class AccountsController : BaseController
     await _accountEmailService.SendPasswordResetAsync(
         request.Email,
         code,
-        user.UserName);
+        user.UserName!);
 
     return Ok(new { message = "Verification email sent. Please check your email." });
   }
@@ -259,33 +259,43 @@ public class AccountsController : BaseController
   [HttpPost("login")]
   public async Task<IActionResult> LoginWithJwt(
       [FromBody] JwtLoginRequest request,
-      [FromHeader(Name = "User-Agent")] string userAgent,
-      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
-      [FromHeader(Name = "X-Real-IP")] string realIp,
-      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
-      HttpContext context)
+      [FromHeader(Name = "User-Agent")] string? userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string? forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string? realIp,
+      [FromHeader(Name = "X-Browser-Info")] string? browserInfo)
   {
+    var context = HttpContext;
     if (!ModelState.IsValid)
+    {
       return BadRequest(ModelState);
+    }
 
     var user = await _userManager.FindByEmailAsync(request.LoginIdentifier)
                ?? await _userManager.FindByNameAsync(request.LoginIdentifier);
 
     if (user == null)
+    {
       return BadRequest(new { error = "Invalid credentials" });
+    }
 
     var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
     if (!await _userManager.CheckPasswordAsync(user, request.Password))
+    {
       return BadRequest(new { error = "Invalid credentials" });
+    }
 
     if (result.Succeeded)
     {
       if (!await _userManager.IsEmailConfirmedAsync(user))
+      {
         return BadRequest(new { error = "Email not confirmed" });
+      }
 
       var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
       if (!appUser.IsSuccess)
+      {
         return BadRequest(new { error = "App user not found" });
+      }
 
       // Check if 2FA is required
       if (await _userManager.GetTwoFactorEnabledAsync(user))
@@ -312,22 +322,26 @@ public class AccountsController : BaseController
     }
 
     if (result.RequiresTwoFactor)
+    {
       return Ok(new { requiresTwoFactor = true, userId = user.Id });
+    }
 
     if (result.IsLockedOut)
+    {
       return BadRequest(new { error = "Account locked" });
+    }
 
     return BadRequest(new { error = "Invalid credentials" });
   }
 
   [HttpPost("refresh-token")]
   public async Task<IActionResult> RefreshJwtToken(
-      [FromHeader(Name = "User-Agent")] string userAgent,
-      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
-      [FromHeader(Name = "X-Real-IP")] string realIp,
-      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
-      HttpContext context)
+      [FromHeader(Name = "User-Agent")] string? userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string? forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string? realIp,
+      [FromHeader(Name = "X-Browser-Info")] string? browserInfo)
   {
+    var context = HttpContext;
     try
     {
       // Get refresh token from cookie using HttpContext
@@ -356,7 +370,7 @@ public class AccountsController : BaseController
       context.Response.Cookies.Delete("session");
       return BadRequest(new { error = ex.Message });
     }
-    catch (Exception ex)
+    catch (Exception)
     {
       return BadRequest(new { error = "An error occurred while refreshing the token." });
     }
@@ -364,8 +378,9 @@ public class AccountsController : BaseController
 
   [HttpPost("logout")]
   [Authorize(AuthenticationSchemes = "Bearer")]
-  public async Task<IActionResult> LogoutJwt(HttpContext context)
+  public async Task<IActionResult> LogoutJwt()
   {
+    var context = HttpContext;
     if (context.Request.Cookies.TryGetValue("session", out var refreshToken) &&
         !string.IsNullOrEmpty(refreshToken))
     {
@@ -492,9 +507,9 @@ public class AccountsController : BaseController
       unformattedKey = await _userManager.GetAuthenticatorKeyAsync(user);
     }
 
-    var sharedKey = FormatKey(unformattedKey);
+    var sharedKey = FormatKey(unformattedKey!);
     var email = await _userManager.GetEmailAsync(user);
-    var authenticatorUri = GenerateQrCodeUri(email, unformattedKey);
+    var authenticatorUri = GenerateQrCodeUri(email!, unformattedKey!);
 
     return Ok(new
     {
@@ -531,7 +546,7 @@ public class AccountsController : BaseController
     if (await _userManager.CountRecoveryCodesAsync(user) == 0)
     {
       var newRecoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-      recoveryCodes.AddRange(newRecoveryCodes);
+      recoveryCodes.AddRange(newRecoveryCodes!);
     }
 
     return Ok(new
@@ -574,6 +589,11 @@ public class AccountsController : BaseController
     }
 
     var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
+
+    if (recoveryCodes == null || !recoveryCodes.Any())
+    {
+      return _errorHandlingService.HandleErrorResponse(Result.Error(new Ardalis.Result.ErrorList(new[] { "Error generating recovery codes." })));
+    }
 
     return Ok(new
     {
@@ -619,12 +639,12 @@ public class AccountsController : BaseController
   [HttpPost("2fa/login")]
   public async Task<IActionResult> LoginWith2fa(
       [FromBody] LoginWith2faRequest request,
-      [FromHeader(Name = "User-Agent")] string userAgent,
-      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
-      [FromHeader(Name = "X-Real-IP")] string realIp,
-      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
-      HttpContext context)
+      [FromHeader(Name = "User-Agent")] string? userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string? forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string? realIp,
+      [FromHeader(Name = "X-Browser-Info")] string? browserInfo)
   {
+    var context = HttpContext;
     if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.TwoFactorCode))
     {
       return BadRequest(new { error = "UserId and TwoFactorCode are required." });
@@ -647,7 +667,9 @@ public class AccountsController : BaseController
 
     var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
     if (!appUser.IsSuccess)
+    {
       return BadRequest(new { error = "App user not found" });
+    }
 
     var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
@@ -666,12 +688,12 @@ public class AccountsController : BaseController
   [HttpPost("2fa/login-recovery")]
   public async Task<IActionResult> LoginWithRecoveryCode(
       [FromBody] LoginWithRecoveryCodeRequest request,
-      [FromHeader(Name = "User-Agent")] string userAgent,
-      [FromHeader(Name = "X-Forwarded-For")] string forwardedFor,
-      [FromHeader(Name = "X-Real-IP")] string realIp,
-      [FromHeader(Name = "X-Browser-Info")] string browserInfo,
-      HttpContext context)
+      [FromHeader(Name = "User-Agent")] string? userAgent,
+      [FromHeader(Name = "X-Forwarded-For")] string? forwardedFor,
+      [FromHeader(Name = "X-Real-IP")] string? realIp,
+      [FromHeader(Name = "X-Browser-Info")] string? browserInfo)
   {
+    var context = HttpContext;
     if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.RecoveryCode))
     {
       return BadRequest(new { error = "UserId and RecoveryCode are required." });
@@ -693,7 +715,9 @@ public class AccountsController : BaseController
 
     var appUser = await _appUsersService.GetByIdentityIdAsync(user.Id);
     if (!appUser.IsSuccess)
+    {
       return BadRequest(new { error = "App user not found" });
+    }
 
     var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
@@ -731,7 +755,9 @@ public class AccountsController : BaseController
   public async Task<IActionResult> Register([FromBody] RegisterRequest request)
   {
     if (!ModelState.IsValid)
+    {
       return BadRequest(ModelState);
+    }
 
     var identityUser = new IdentityUser { UserName = request.Username, Email = request.Email };
     var identityResult = await _userManager.CreateAsync(identityUser, request.Password);
@@ -887,15 +913,25 @@ public class AccountsController : BaseController
 
     // Clean up platform names
     if (platform.Contains("Windows"))
+    {
       platform = "Windows";
+    }
     else if (platform.Contains("Mac") || platform.Contains("macOS"))
+    {
       platform = "macOS";
+    }
     else if (platform.Contains("Linux"))
+    {
       platform = "Linux";
+    }
     else if (platform.Contains("Android"))
+    {
       platform = "Android";
+    }
     else if (platform.Contains("iOS"))
+    {
       platform = "iOS";
+    }
 
     var deviceName = $"{platform} - {browser}";
 
@@ -932,23 +968,23 @@ public sealed record ChangePasswordRequest
 {
   [Required]
   [DataType(DataType.Password)]
-  public string OldPassword { get; set; }
+  public required string OldPassword { get; set; }
 
   [Required]
   [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
   [DataType(DataType.Password)]
-  public string NewPassword { get; set; }
+  public required string NewPassword { get; set; }
 
   [DataType(DataType.Password)]
   [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
-  public string ConfirmPassword { get; set; }
+  public required string ConfirmPassword { get; set; }
 }
 
 public sealed record ChangeEmailRequest
 {
   [Required]
   [EmailAddress]
-  public string NewEmail { get; set; }
+  public required string NewEmail { get; set; }
 }
 
 public sealed record EnableAuthenticatorRequest
@@ -956,30 +992,30 @@ public sealed record EnableAuthenticatorRequest
   [Required]
   [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
   [DataType(DataType.Text)]
-  public string Code { get; set; }
+  public required string Code { get; set; }
 }
 
 public sealed record ForgotPasswordRequest
 {
   [Required, EmailAddress]
-  public string Email { get; set; }
+  public required string Email { get; set; }
 }
 
 public sealed record LoginRequest
 {
   [Required]
-  public string LoginIdentifier { get; set; }
+  public required string LoginIdentifier { get; set; }
   [Required]
-  public string Password { get; set; }
+  public required string Password { get; set; }
   public bool RememberMe { get; set; }
 }
 
 public sealed record LoginWith2faRequest
 {
   [Required]
-  public string UserId { get; set; }
+  public required string UserId { get; set; }
   [Required]
-  public string TwoFactorCode { get; set; }
+  public required string TwoFactorCode { get; set; }
   public bool RememberMe { get; set; }
   public bool RememberMachine { get; set; }
 }
@@ -987,35 +1023,35 @@ public sealed record LoginWith2faRequest
 public sealed record LoginWithRecoveryCodeRequest
 {
   [Required]
-  public string UserId { get; set; }
+  public required string UserId { get; set; }
   [Required]
-  public string RecoveryCode { get; set; }
+  public required string RecoveryCode { get; set; }
 }
 
 public sealed record RegisterRequest
 {
   [Required]
-  public string Username { get; set; }
+  public required string Username { get; set; }
   [Required, EmailAddress]
-  public string Email { get; set; }
+  public required string Email { get; set; }
   [Required, StringLength(100, MinimumLength = 6)]
-  public string Password { get; set; }
+  public required string Password { get; set; }
 }
 
 public sealed record ResendEmailConfirmationRequest
 {
   [Required, EmailAddress]
-  public string Email { get; set; }
+  public required string Email { get; set; }
 }
 
 public sealed record ResetPasswordRequest
 {
   [Required, EmailAddress]
-  public string Email { get; set; }
+  public required string Email { get; set; }
   [Required]
-  public string Code { get; set; }
+  public required string Code { get; set; }
   [Required, StringLength(100, MinimumLength = 6)]
-  public string Password { get; set; }
+  public required string Password { get; set; }
 }
 
 public sealed record UpdateUserNotificationsRequest(
@@ -1026,26 +1062,26 @@ public sealed record UpdateUserNotificationsRequest(
 public sealed record JwtLoginRequest
 {
   [Required]
-  public string LoginIdentifier { get; set; }
+  public required string LoginIdentifier { get; set; }
   [Required]
-  public string Password { get; set; }
+  public required string Password { get; set; }
   public bool RememberMe { get; set; }
 }
 
 public sealed record RefreshTokenRequest
 {
   [Required]
-  public string RefreshToken { get; set; }
+  public required string RefreshToken { get; set; }
 }
 
 public sealed record LogoutRequest
 {
   [Required]
-  public string RefreshToken { get; set; }
+  public required string RefreshToken { get; set; }
 }
 
 public sealed record RevokeDeviceRequest
 {
   [Required]
-  public string RefreshToken { get; set; }
+  public required string RefreshToken { get; set; }
 }
