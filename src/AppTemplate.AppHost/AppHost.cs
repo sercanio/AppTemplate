@@ -1,5 +1,3 @@
-using Aspire.Hosting;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 //var db = builder.AddPostgres("apptemplate-db")
@@ -26,7 +24,7 @@ builder.AddProject<Projects.AppTemplate_TestCoverageWorker>("test-coverage-worke
   .WithUrl("https://localhost:7294/test-coverage");
 
 // Update the web project to wait for migrations
-builder.AddProject<Projects.AppTemplate_Web>("apptemplate-web")
+builder.AddProject<Projects.AppTemplate_Presentation>("apptemplate-presentation")
     .WaitFor(migrations)
     .WaitForCompletion(migrations);
 

@@ -37,7 +37,7 @@ public class TestCoverageWorker : BackgroundService
     ["Web"] = new LayerConfig
     {
       Name = "Web",
-      IncludePattern = "[AppTemplate.Web]*",
+      IncludePattern = "[AppTemplate.Presentation]*",
       Description = "API controllers and middleware",
       Color = Color.Purple
     }
