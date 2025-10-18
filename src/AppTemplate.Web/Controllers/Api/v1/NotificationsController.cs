@@ -4,13 +4,12 @@ using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications
 using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Web.Attributes;
-using AppTemplate.Web.Controllers.Api;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace AppTemplate.Web.Controllers;
+namespace AppTemplate.Web.Controllers.Api.v1;
 
 [ApiController]
 [ApiVersion(ApiVersions.V1)]

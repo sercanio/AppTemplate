@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Authentication;
@@ -8,7 +10,6 @@ using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
-using AppTemplate.Web.Controllers.Api;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -18,11 +19,9 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
 using UAParser;
 
-namespace AppTemplate.Web.Controllers;
+namespace AppTemplate.Web.Controllers.Api.v1;
 
 [ApiController]
 [ApiVersion(ApiVersions.V1)]
@@ -59,7 +58,7 @@ public class AccountsController : BaseController
     _configuration = configuration;
   }
 
-  private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default, string defaultErrorMessage = "Operation failed.")
+  private Result<T> ConvertIdentityResult<T>(IdentityResult identityResult, T value = default!, string defaultErrorMessage = "Operation failed.")
   {
     if (identityResult.Succeeded)
     {
@@ -67,8 +66,8 @@ public class AccountsController : BaseController
     }
 
     var errors = identityResult.Errors.Select(e => e.Description).ToList();
-    var errorList = new Ardalis.Result.ErrorList(errors);
-    return Result.Error(errors.Count > 0 ? errorList : new Ardalis.Result.ErrorList(new[] { defaultErrorMessage }));
+    var errorList = new ErrorList(errors);
+    return Result.Error(errors.Count > 0 ? errorList : new ErrorList(new[] { defaultErrorMessage }));
   }
 
   [HttpGet("confirm-email")]
@@ -238,7 +237,7 @@ public class AccountsController : BaseController
     }
 
     var user = await _userManager.FindByEmailAsync(request.Email);
-    if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+    if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
     {
       // To prevent user enumeration, always return success.
       return Ok(new { message = "Verification email sent. Please check your email." });
@@ -307,7 +306,7 @@ public class AccountsController : BaseController
         });
       }
 
-      var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
+      var deviceInfo = CreateDeviceInfo(userAgent!, forwardedFor!, realIp!, browserInfo!, context);
       var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
 
       // Set refresh token as HTTP-only cookie with RememberMe consideration
@@ -351,7 +350,7 @@ public class AccountsController : BaseController
         return BadRequest(new { error = "Refresh token not found" });
       }
 
-      var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
+      var deviceInfo = CreateDeviceInfo(userAgent!, forwardedFor!, realIp!, browserInfo!, context);
       var tokens = await _jwtTokenService.RefreshTokensAsync(refreshToken, deviceInfo);
 
       // Set new refresh token in cookie
@@ -444,9 +443,9 @@ public class AccountsController : BaseController
     return Ok(new
     {
       is2faEnabled = isTwoFactorEnabled,
-      hasAuthenticator = hasAuthenticator,
-      recoveryCodesLeft = recoveryCodesLeft,
-      isMachineRemembered = isMachineRemembered
+      hasAuthenticator,
+      recoveryCodesLeft,
+      isMachineRemembered
     });
   }
 
@@ -592,7 +591,7 @@ public class AccountsController : BaseController
 
     if (recoveryCodes == null || !recoveryCodes.Any())
     {
-      return _errorHandlingService.HandleErrorResponse(Result.Error(new Ardalis.Result.ErrorList(new[] { "Error generating recovery codes." })));
+      return _errorHandlingService.HandleErrorResponse(Result.Error(new ErrorList(new[] { "Error generating recovery codes." })));
     }
 
     return Ok(new
@@ -671,7 +670,7 @@ public class AccountsController : BaseController
       return BadRequest(new { error = "App user not found" });
     }
 
-    var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
+    var deviceInfo = CreateDeviceInfo(userAgent!, forwardedFor!, realIp!, browserInfo!, context);
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
 
     // Set refresh token as HTTP-only cookie with RememberMe consideration
@@ -719,7 +718,7 @@ public class AccountsController : BaseController
       return BadRequest(new { error = "App user not found" });
     }
 
-    var deviceInfo = CreateDeviceInfo(userAgent, forwardedFor, realIp, browserInfo, context);
+    var deviceInfo = CreateDeviceInfo(userAgent!, forwardedFor!, realIp!, browserInfo!, context);
     var tokens = await _jwtTokenService.GenerateTokensAsync(user, appUser.Value, deviceInfo);
 
     // Set refresh token as HTTP-only cookie
@@ -947,7 +946,7 @@ public class AccountsController : BaseController
     var cookieOptions = new CookieOptions
     {
       HttpOnly = true,
-      Secure = _configuration.GetValue<bool>("Authentication:Cookie:Secure", true),
+      Secure = _configuration.GetValue("Authentication:Cookie:Secure", true),
       SameSite = sameSiteMode,
       Path = "/"
     };

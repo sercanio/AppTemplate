@@ -4,16 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AppTemplate.Web.Controllers;
 
-  [Route("api/[controller]")]
-  [ApiController]
-  public class BaseController : ControllerBase
-  {
-      protected readonly ISender _sender;
-      protected readonly IErrorHandlingService _errorHandlingService;
+[Route("api/[controller]")]
+[ApiController]
+public class BaseController : ControllerBase
+{
+  protected readonly ISender _sender;
+  protected readonly IErrorHandlingService _errorHandlingService;
 
-      public BaseController(ISender sender, IErrorHandlingService errorHandlingService)
-      {
-          _sender = sender;
-          _errorHandlingService = errorHandlingService;
-      }
+  public BaseController(ISender sender, IErrorHandlingService errorHandlingService)
+  {
+    _sender = sender;
+    _errorHandlingService = errorHandlingService;
   }
+}
