@@ -22,7 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tests\AppTemplate.TestCoverageWorker\AppTemplate.TestCoverageWorker.csproj" />
     <ProjectReference Include="..\AppTemplate.MigrationService\AppTemplate.MigrationService.csproj" />
-    <ProjectReference Include="..\AppTemplate.Web\AppTemplate.Web.csproj" />
+    <ProjectReference Include="..\AppTemplate.Presentation\AppTemplate.Presentation.csproj" />
   </ItemGroup>
 
 </Project>

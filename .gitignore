@@ -24,7 +24,7 @@ TestResults/
 
 # Coverage reports
 coverage-report/
-/src/AppTemplate.Web/Logs
+/src/AppTemplate.Presentation/Logs
 /coverage-reports
 /tests/coverage-reports
 /tests/tests/coverage-reports

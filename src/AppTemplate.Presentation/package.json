@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "test": " echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "purgecss": "^7.0.2"
+  },
+  "name": "apptemplate.presentation",
+  "version": "1.0.0",
+  "description": "Frontend helpers for razor pages",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "@carbon/styles": "^1.76.0",
+    "bootstrap": "^5.3.3"
+  },
+  "author": "",
+  "license": "ISC"
+}
