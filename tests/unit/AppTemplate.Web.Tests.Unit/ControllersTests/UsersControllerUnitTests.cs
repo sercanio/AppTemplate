@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+using System.Security.Claims;
 using AppTemplate.Application.Data.DynamicQuery;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Enums;
@@ -9,14 +11,12 @@ using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Features.AppUsers.Queries.GetUser;
 using AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 using AppTemplate.Application.Services.ErrorHandling;
-using AppTemplate.Web.Controllers;
+using AppTemplate.Web.Controllers.Api.v1;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System.Collections.ObjectModel;
-using System.Security.Claims;
 
 namespace AppTemplate.Web.Tests.Unit.ControllersTests;
 

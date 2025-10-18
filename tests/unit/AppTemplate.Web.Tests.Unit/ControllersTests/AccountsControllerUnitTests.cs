@@ -7,7 +7,7 @@ using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.AppUsers.ValueObjects;
-using AppTemplate.Web.Controllers;
+using AppTemplate.Web.Controllers.Api.v1;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

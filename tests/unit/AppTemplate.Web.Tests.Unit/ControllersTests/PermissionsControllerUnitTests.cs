@@ -1,13 +1,13 @@
+using System.Security.Claims;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 using AppTemplate.Application.Services.ErrorHandling;
-using AppTemplate.Web.Controllers;
+using AppTemplate.Web.Controllers.Api.v1;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Web.Tests.Unit.ControllersTests;
 
@@ -61,9 +61,9 @@ public class PermissionsControllerUnitTests
         };
 
     var paginatedList = new PaginatedList<GetAllPermissionsQueryResponse>(
-        permissionsList, 
-        permissionsList.Count, 
-        pageIndex, 
+        permissionsList,
+        permissionsList.Count,
+        pageIndex,
         pageSize);
 
     var result = Result.Success(paginatedList);

@@ -4,7 +4,7 @@ using AppTemplate.Application.Features.Notifications.Commands.MarkNotificationsA
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Domain.Notifications.Enums;
-using AppTemplate.Web.Controllers;
+using AppTemplate.Web.Controllers.Api.v1;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Http;

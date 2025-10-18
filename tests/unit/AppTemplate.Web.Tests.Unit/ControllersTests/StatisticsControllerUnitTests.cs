@@ -1,16 +1,15 @@
+using System.Security.Claims;
 using AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
 using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUsersCount;
 using AppTemplate.Application.Services.ErrorHandling;
-using AppTemplate.Web.Controllers.Api;
+using AppTemplate.Web.Controllers.Api.v1;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System.Security.Claims;
-using static AppTemplate.Web.Controllers.Api.StatisticsController;
 
 namespace AppTemplate.Web.Tests.Unit.ControllersTests;
 
