@@ -11,8 +11,6 @@ public sealed record GetAllUsersDynamicQueryResponse
   public DateTime JoinDate { get; init; }
   public ICollection<LoggedInUserRolesDto> Roles { get; init; } = new Collection<LoggedInUserRolesDto>();
 
-  // Preserve existing callers that construct with (Guid, string, Collection<LoggedInUserRolesDto>)
-  // EmailConfirmed defaults to false and JoinDate defaults to DateTime.MinValue
   public GetAllUsersDynamicQueryResponse(
       Guid id,
       string userName,
@@ -25,8 +23,6 @@ public sealed record GetAllUsersDynamicQueryResponse
     JoinDate = DateTime.MinValue;
   }
 
-  // Constructor matching the test usage: (Guid, string, bool, DateTime, Collection<LoggedInUserRolesDto>)
-  // Also used by handlers that populate all fields
   public GetAllUsersDynamicQueryResponse(
       Guid id,
       string userName,
@@ -41,6 +37,5 @@ public sealed record GetAllUsersDynamicQueryResponse
     Roles = roles ?? new Collection<LoggedInUserRolesDto>();
   }
 
-  // Parameterless ctor for deserialization / tests that may require it
   public GetAllUsersDynamicQueryResponse() { }
 }
