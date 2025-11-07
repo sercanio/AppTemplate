@@ -7,15 +7,21 @@ public sealed record GetAllUsersDynamicQueryResponse
 {
   public Guid Id { get; init; }
   public string UserName { get; init; }
-  public ICollection<LoggedInUserRolesDto> Roles { get; init; } = [];
+  public bool EmailConfirmed { get; init; }
+  public DateTime JoinDate { get; init; }
+  public ICollection<LoggedInUserRolesDto> Roles { get; init; } = new Collection<LoggedInUserRolesDto>();
 
   public GetAllUsersDynamicQueryResponse(
       Guid id,
       string userName,
-      Collection<LoggedInUserRolesDto> roles)
+      bool emailConfirmed,
+      DateTime joinDate,
+      Collection<LoggedInUserRolesDto>? roles = null)
   {
     Id = id;
     UserName = userName;
-    Roles = roles;
+    EmailConfirmed = emailConfirmed;
+    JoinDate = joinDate;
+    Roles = roles ?? new Collection<LoggedInUserRolesDto>();
   }
 }
