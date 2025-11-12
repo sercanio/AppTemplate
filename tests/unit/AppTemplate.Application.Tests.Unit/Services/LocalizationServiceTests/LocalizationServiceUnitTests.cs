@@ -1,9 +1,8 @@
-﻿using AppTemplate.Application.Services.Localization;
+using System.Text;
+using AppTemplate.Application.Services.Localization;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Text;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Services.LocalizationServiceTests;
 

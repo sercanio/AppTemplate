@@ -1,3 +1,4 @@
+using System.Text.Json;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.OutboxMessages;
 using Microsoft.EntityFrameworkCore;
@@ -5,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Xunit;
-using System.Text.Json;
 
 namespace AppTemplate.Infrastructure.Tests.Integration.Configurations;
 
@@ -34,7 +34,7 @@ public class OutboxMessageConfigurationTests : IAsyncLifetime
     {
       options.UseNpgsql(_pgContainer.GetConnectionString());
       // Suppress the pending model changes warning for tests
-      options.ConfigureWarnings(warnings => 
+      options.ConfigureWarnings(warnings =>
       {
         warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
       });
@@ -89,17 +89,17 @@ public class OutboxMessageConfigurationTests : IAsyncLifetime
     Assert.NotNull(loaded);
     Assert.Equal(messageId, loaded.Id);
     Assert.Equal(type, loaded.Type);
-    
+
     // Parse and compare JSON content instead of raw strings
     var expectedJson = JsonDocument.Parse(content);
     var actualJson = JsonDocument.Parse(loaded.Content);
-    
+
     // Compare specific properties
-    Assert.Equal(expectedJson.RootElement.GetProperty("foo").GetString(), 
+    Assert.Equal(expectedJson.RootElement.GetProperty("foo").GetString(),
                  actualJson.RootElement.GetProperty("foo").GetString());
-    Assert.Equal(expectedJson.RootElement.GetProperty("baz").GetInt32(), 
+    Assert.Equal(expectedJson.RootElement.GetProperty("baz").GetInt32(),
                  actualJson.RootElement.GetProperty("baz").GetInt32());
-    
+
     Assert.Equal(now.ToString("yyyy-MM-ddTHH:mm:ss"), loaded.OccurredOnUtc.ToString("yyyy-MM-ddTHH:mm:ss"));
     Assert.Null(loaded.ProcessedOnUtc);
     Assert.Null(loaded.Error);

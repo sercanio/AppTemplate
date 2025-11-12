@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using System.Security.Claims;
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
@@ -5,8 +7,6 @@ using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Linq.Expressions;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Unit.Features.NotificationsTests.Queries.GetAllNotificationsTests;
 

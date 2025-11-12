@@ -1,7 +1,7 @@
+using System.Linq.Expressions;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.Notifications;
-using System.Linq.Expressions;
 
 namespace AppTemplate.Infrastructure.Repositories;
 

@@ -1,16 +1,16 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace AppTemplate.Application.Services.EmailSenders;
 
 public class EmailTemplateService
 {
-    public EmailTemplateService(IConfiguration configuration)
-    {
-    }
+  public EmailTemplateService(IConfiguration configuration)
+  {
+  }
 
-    public static string GetEmailConfirmationTemplate(string callbackUrl, string username)
-    {
-        return @$"<!DOCTYPE html>
+  public static string GetEmailConfirmationTemplate(string callbackUrl, string username)
+  {
+    return @$"<!DOCTYPE html>
 <html lang=""en"">
 <head>
   <meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8"" />
@@ -95,11 +95,11 @@ public class EmailTemplateService
   </table>
 </body>
 </html>";
-    }
+  }
 
-    public static string GetEmailChangeConfirmationTemplate(string callbackUrl, string username, string newEmail)
-    {
-        return @$"<!DOCTYPE html>
+  public static string GetEmailChangeConfirmationTemplate(string callbackUrl, string username, string newEmail)
+  {
+    return @$"<!DOCTYPE html>
 <html lang=""en"">
 <head>
   <meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8"" />
@@ -184,11 +184,11 @@ public class EmailTemplateService
   </table>
 </body>
 </html>";
-    }
+  }
 
-    public static string GetPasswordResetTemplate(string callbackUrl, string code, string username = "")
-    {
-        return @$"<!DOCTYPE html>
+  public static string GetPasswordResetTemplate(string callbackUrl, string code, string username = "")
+  {
+    return @$"<!DOCTYPE html>
 <html lang=""en"">
 <head>
   <meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8"" />
@@ -278,5 +278,5 @@ public class EmailTemplateService
   </table>
 </body>
 </html>";
-    }
+  }
 }

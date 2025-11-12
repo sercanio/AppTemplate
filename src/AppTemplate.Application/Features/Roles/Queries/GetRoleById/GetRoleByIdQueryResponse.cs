@@ -1,5 +1,5 @@
-using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 using System.Collections.ObjectModel;
+using AppTemplate.Application.Features.Permissions.Queries.GetAllPermissions;
 
 namespace AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 

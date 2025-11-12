@@ -5,22 +5,22 @@ namespace AppTemplate.Presentation.Middlewares;
 
 public sealed class RequestContextLoggingMiddleware(RequestDelegate next)
 {
-    private const string CorrelationIdHeaderName = "X-Correlation-Id";
+  private const string CorrelationIdHeaderName = "X-Correlation-Id";
 
-    public Task Invoke(HttpContext context)
+  public Task Invoke(HttpContext context)
+  {
+    using (LogContext.PushProperty("CorrelationId", GetCorrelationId(context)))
     {
-        using (LogContext.PushProperty("CorrelationId", GetCorrelationId(context)))
-        {
-            return next.Invoke(context);
-        }
+      return next.Invoke(context);
     }
+  }
 
-    private static string GetCorrelationId(HttpContext context)
-    {
-        context.Request.Headers.TryGetValue(
-            CorrelationIdHeaderName,
-            out StringValues correlationId);
+  private static string GetCorrelationId(HttpContext context)
+  {
+    context.Request.Headers.TryGetValue(
+        CorrelationIdHeaderName,
+        out StringValues correlationId);
 
-        return correlationId.FirstOrDefault() ?? context.TraceIdentifier;
-    }
+    return correlationId.FirstOrDefault() ?? context.TraceIdentifier;
+  }
 }

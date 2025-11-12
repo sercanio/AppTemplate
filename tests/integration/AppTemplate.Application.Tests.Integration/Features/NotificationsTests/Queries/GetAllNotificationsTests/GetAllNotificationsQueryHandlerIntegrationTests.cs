@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AppTemplate.Application.Features.Notifications.Queries.GetAllNotifications;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Clock;
@@ -10,7 +11,6 @@ using AppTemplate.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Integration.Features.NotificationsTests.Queries.GetAllNotificationsTests;
 
@@ -41,8 +41,8 @@ public class GetAllNotificationsQueryHandlerIntegrationTests
     var appUser = AppUser.Create();
     appUser.SetIdentityId(identityUser.Id);
 
-    var notification1 = new Notification(appUser.Id, "Title1", "Message1", NotificationTypeEnum.System) {};
-    var notification2 = new Notification(appUser.Id, "Title2", "Message2", NotificationTypeEnum.System) {};
+    var notification1 = new Notification(appUser.Id, "Title1", "Message1", NotificationTypeEnum.System) { };
+    var notification2 = new Notification(appUser.Id, "Title2", "Message2", NotificationTypeEnum.System) { };
 
     notification1.MarkAsRead();
 

@@ -1,6 +1,5 @@
-﻿using AppTemplate.Application.Behaviors;
+using AppTemplate.Application.Behaviors;
 using AppTemplate.Application.Services.Caching;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -215,21 +214,21 @@ public class QueryCachingBehaviorUnitTests
     // Act
     await behavior.Handle(request, ct =>
     {
-        nextDelegateCalled = true;
-        // Check if the token is the same one we passed
-        tokenMatches = ct.Equals(cts.Token);
-        return Task.FromResult("Response");
+      nextDelegateCalled = true;
+      // Check if the token is the same one we passed
+      tokenMatches = ct.Equals(cts.Token);
+      return Task.FromResult("Response");
     }, cts.Token);
 
     // Assert
     Assert.True(nextDelegateCalled);
     Assert.True(tokenMatches);
-    
+
     // Verify the cache service was called with the correct token
     _mockCacheService.Verify(
         x => x.GetAsync<string>(request.CacheKey, cts.Token),
         Times.Once);
-    
+
     _mockCacheService.Verify(
         x => x.SetAsync(request.CacheKey, "Response", request.Expiration, cts.Token),
         Times.Once);
@@ -382,7 +381,8 @@ public class QueryCachingBehaviorUnitTests
 
   private static bool CheckMessageContains(object message, string expectedText)
   {
-    if (message == null) return false;
+    if (message == null)
+      return false;
     var messageString = message.ToString();
     return messageString != null && messageString.Contains(expectedText);
   }

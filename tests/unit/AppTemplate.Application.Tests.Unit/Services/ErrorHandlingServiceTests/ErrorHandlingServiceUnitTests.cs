@@ -1,14 +1,12 @@
-﻿using AppTemplate.Application.Services.ErrorHandling;
+using System.Globalization;
+using System.Net;
+using AppTemplate.Application.Services.ErrorHandling;
 using AppTemplate.Application.Services.Localization;
 using Ardalis.Result;
 using FluentAssertions;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System.Globalization;
-using System.Net;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Services.ErrorHandlingServiceTests;
 
@@ -449,7 +447,7 @@ public class ErrorHandlingServiceUnitTests
     // Arrange
     var errors = new List<string> { "Error 1", "Error 2", "Error 3" };
     var errorList = new ErrorList(errors);
-    
+
     var result = Result<string>.Error(errorList);
     _localizationServiceMock
         .Setup(x => x.GetLocalizedString(It.IsAny<string>(), It.IsAny<string>()))

@@ -1,5 +1,5 @@
-using AppTemplate.Presentation.Attributes;
 using System.Reflection;
+using AppTemplate.Presentation.Attributes;
 
 namespace AppTemplate.Presentation.Tests.Unit.Attributes;
 

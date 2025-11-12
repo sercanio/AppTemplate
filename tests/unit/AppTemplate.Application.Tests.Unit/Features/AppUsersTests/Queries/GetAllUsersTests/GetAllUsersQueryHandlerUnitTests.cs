@@ -3,12 +3,10 @@ using AppTemplate.Application.Features.AppUsers.Queries.GetAllUsers;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
-using AppTemplate.Domain.Roles.ValueObjects;
 using Ardalis.Result;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Queries.GetAllUsersTests;
 
@@ -235,10 +233,10 @@ public class GetAllUsersQueryHandlerUnitTests
     var query = new GetAllUsersQuery(0, 10);
     var user = AppUser.Create();
     var createdById = Guid.NewGuid();
-    
+
     var adminRole = Role.Create("Admin", "Administrator", createdById);
     var userRole = Role.Create("User", "Regular User", createdById);
-    
+
     user.AddRole(adminRole);
     user.AddRole(userRole);
 
@@ -268,13 +266,13 @@ public class GetAllUsersQueryHandlerUnitTests
     var user = AppUser.Create();
     var createdById = Guid.NewGuid();
     var deletedById = Guid.NewGuid();
-    
+
     var activeRole = Role.Create("Admin", "Administrator", createdById);
     var deletedRole = Role.Create("OldRole", "Old Role", createdById);
-    
+
     // Mark role as deleted using the static Delete method
     Role.Delete(deletedRole, deletedById);
-    
+
     user.AddRole(activeRole);
     user.AddRole(deletedRole);
 
@@ -304,7 +302,7 @@ public class GetAllUsersQueryHandlerUnitTests
   {
     // Arrange
     var query = new GetAllUsersQuery(0, 10);
-    
+
     var user1 = AppUser.Create();
     var identityUser1 = new IdentityUser { Id = "id1", UserName = "user1", EmailConfirmed = true };
     user1.SetIdentityId(identityUser1.Id);

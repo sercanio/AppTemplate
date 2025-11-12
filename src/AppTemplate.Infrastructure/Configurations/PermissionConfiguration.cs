@@ -1,6 +1,6 @@
+using AppTemplate.Domain.Roles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using AppTemplate.Domain.Roles;
 
 namespace AppTemplate.Infrastructure.Configurations;
 

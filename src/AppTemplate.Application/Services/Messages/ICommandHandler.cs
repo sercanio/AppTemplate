@@ -1,5 +1,5 @@
-using MediatR;
 using Ardalis.Result;
+using MediatR;
 
 namespace AppTemplate.Application.Services.Messages;
 

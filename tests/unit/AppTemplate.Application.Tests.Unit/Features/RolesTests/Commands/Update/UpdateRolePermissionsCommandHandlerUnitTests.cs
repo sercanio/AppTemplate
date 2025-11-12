@@ -1,4 +1,5 @@
-﻿using AppTemplate.Application.Data.Pagination;
+using System.Security.Claims;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 using AppTemplate.Application.Repositories;
@@ -10,7 +11,6 @@ using AppTemplate.Domain.Roles.ValueObjects;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Unit.Features.RolesTests.Commands.Update;
 

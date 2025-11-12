@@ -5,29 +5,29 @@ namespace AppTemplate.Application.Services.Authorization;
 
 public sealed class PermissionAuthorizationPolicyProvider : DefaultAuthorizationPolicyProvider
 {
-    private readonly AuthorizationOptions _authorizationOptions;
+  private readonly AuthorizationOptions _authorizationOptions;
 
-    public PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options)
-        : base(options)
+  public PermissionAuthorizationPolicyProvider(IOptions<AuthorizationOptions> options)
+      : base(options)
+  {
+    _authorizationOptions = options.Value;
+  }
+
+  public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
+  {
+    AuthorizationPolicy? policy = await base.GetPolicyAsync(policyName);
+
+    if (policy is not null)
     {
-        _authorizationOptions = options.Value;
+      return policy;
     }
 
-    public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
-    {
-        AuthorizationPolicy? policy = await base.GetPolicyAsync(policyName);
+    AuthorizationPolicy permissionPolicy = new AuthorizationPolicyBuilder()
+        .AddRequirements(new PermissionRequirement(policyName))
+        .Build();
 
-        if (policy is not null)
-        {
-            return policy;
-        }
+    _authorizationOptions.AddPolicy(policyName, permissionPolicy);
 
-        AuthorizationPolicy permissionPolicy = new AuthorizationPolicyBuilder()
-            .AddRequirements(new PermissionRequirement(policyName))
-            .Build();
-
-        _authorizationOptions.AddPolicy(policyName, permissionPolicy);
-
-        return permissionPolicy;
-    }
+    return permissionPolicy;
+  }
 }

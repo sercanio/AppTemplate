@@ -1,10 +1,10 @@
-﻿using AppTemplate.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
+using System.Security.Claims;
+using AppTemplate.Application.Features.Notifications.Commands.MarkAllNotificationsAsRead;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.AppUsers;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Unit.Features.NotificationsTests.Commands.MarkAllNotificationsAsRead;
 

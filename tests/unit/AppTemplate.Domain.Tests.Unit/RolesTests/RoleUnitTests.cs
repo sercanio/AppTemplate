@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-using Xunit;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using AppTemplate.Domain.Roles.DomainEvents;

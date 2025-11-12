@@ -7,7 +7,6 @@ using AppTemplate.Infrastructure.Repositories;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.Queries.GetAllUsersTests;
 

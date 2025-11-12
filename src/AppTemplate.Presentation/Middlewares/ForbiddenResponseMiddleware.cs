@@ -1,9 +1,9 @@
-using AppTemplate.Application.Services.Localization;
-using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using AppTemplate.Application.Services.Localization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AppTemplate.Presentation.Middlewares;
 

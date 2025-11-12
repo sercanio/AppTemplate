@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using AppTemplate.Domain.AppUsers;
 using AppTemplate.Application.Services.Authentication.Models;
+using AppTemplate.Domain.AppUsers;
+using Microsoft.AspNetCore.Identity;
 
 namespace AppTemplate.Application.Services.Authentication;
 

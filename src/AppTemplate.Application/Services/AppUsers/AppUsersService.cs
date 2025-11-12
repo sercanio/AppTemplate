@@ -1,10 +1,10 @@
+using System.Linq.Expressions;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;
-using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.AppUsers;
 

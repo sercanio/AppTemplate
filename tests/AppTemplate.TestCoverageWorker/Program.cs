@@ -1,5 +1,5 @@
-﻿using AppTemplate.TestCoverageWorker;
 using System.Text;
+using AppTemplate.TestCoverageWorker;
 
 // Set console encoding to UTF-8 to support Unicode characters
 Console.OutputEncoding = Encoding.UTF8;

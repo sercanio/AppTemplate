@@ -4,7 +4,7 @@ namespace AppTemplate.Application.Features.Statistics.Authentication.Queries.Get
 
 public sealed record GetAuthenticationStatisticsQuery() : ICachedQuery<GetAuthenticationStatisticsQueryResponse>
 {
-    public string CacheKey => "authentication-statistics";
-    
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(1);
+  public string CacheKey => "authentication-statistics";
+
+  public TimeSpan? Expiration => TimeSpan.FromMinutes(1);
 }

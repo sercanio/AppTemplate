@@ -507,11 +507,11 @@ public class GetUsersCountQueryUnitTests
   {
     // Arrange
     var query = new GetUsersCountQuery();
-    var otherCacheKeys = new[] 
-    { 
-      "users-registration-trends", 
-      "roles-statistics", 
-      "authentication-statistics" 
+    var otherCacheKeys = new[]
+    {
+      "users-registration-trends",
+      "roles-statistics",
+      "authentication-statistics"
     };
 
     // Act

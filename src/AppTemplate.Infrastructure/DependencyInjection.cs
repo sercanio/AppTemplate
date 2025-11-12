@@ -33,13 +33,13 @@ public static class DependencyInjection
   {
     services.AddDbContext<ApplicationDbContext>(options =>
     {
-        options.UseNpgsql(configuration.GetConnectionString("AppTemplateDb"));
-        
-        // Configure warnings to ignore the pending model changes warning
-        options.ConfigureWarnings(warnings => 
-        {
-          warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
-        });
+      options.UseNpgsql(configuration.GetConnectionString("AppTemplateDb"));
+
+      // Configure warnings to ignore the pending model changes warning
+      options.ConfigureWarnings(warnings =>
+      {
+        warnings.Ignore(RelationalEventId.PendingModelChangesWarning);
+      });
     });
 
     if (configuration == null)
@@ -51,7 +51,7 @@ public static class DependencyInjection
     AddConnectionProviders(services);
     AddBackgroundJobs(services, configuration);
     AddApiVersioning(services);
-    AddPersistence(services, configuration); 
+    AddPersistence(services, configuration);
     AddAuthorization(services);
     AddNotification(services);
     AddSignalR(services);
@@ -61,7 +61,7 @@ public static class DependencyInjection
 
     return services;
   }
-  
+
   private static void AddConnectionProviders(IServiceCollection services)
   {
     services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
@@ -74,7 +74,7 @@ public static class DependencyInjection
             .AddQuartzHostedService(options => options.WaitForJobsToComplete = true)
             .ConfigureOptions<ProcessOutboxMessagesJobSetup>();
   }
-  
+
   private static void AddApiVersioning(IServiceCollection services)
   {
     services

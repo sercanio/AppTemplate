@@ -6,23 +6,23 @@ namespace AppTemplate.Application.Services.OutboxMessages;
 
 public sealed class ProcessOutboxMessagesJobSetup : IConfigureOptions<QuartzOptions>
 {
-    private readonly OutboxOptions _outboxOptions;
+  private readonly OutboxOptions _outboxOptions;
 
-    public ProcessOutboxMessagesJobSetup(IOptions<OutboxOptions> outboxOptions)
-    {
-        _outboxOptions = outboxOptions.Value;
-    }
+  public ProcessOutboxMessagesJobSetup(IOptions<OutboxOptions> outboxOptions)
+  {
+    _outboxOptions = outboxOptions.Value;
+  }
 
-    public void Configure(QuartzOptions options)
-    {
-        const string jobName = nameof(ProcessOutboxMessagesJob);
+  public void Configure(QuartzOptions options)
+  {
+    const string jobName = nameof(ProcessOutboxMessagesJob);
 
-        options
-            .AddJob<ProcessOutboxMessagesJob>(configure => configure.WithIdentity(jobName))
-            .AddTrigger(configure =>
-                configure
-                    .ForJob(jobName)
-                    .WithSimpleSchedule(schedule =>
-                        schedule.WithIntervalInSeconds(_outboxOptions.IntervalInSeconds).RepeatForever()));
-    }
+    options
+        .AddJob<ProcessOutboxMessagesJob>(configure => configure.WithIdentity(jobName))
+        .AddTrigger(configure =>
+            configure
+                .ForJob(jobName)
+                .WithSimpleSchedule(schedule =>
+                    schedule.WithIntervalInSeconds(_outboxOptions.IntervalInSeconds).RepeatForever()));
+  }
 }

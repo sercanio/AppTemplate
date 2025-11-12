@@ -1,6 +1,6 @@
+using System.Security.Claims;
 using AppTemplate.Application.Services.Statistics;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
 
 namespace AppTemplate.Presentation.Services;
 

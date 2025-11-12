@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
@@ -11,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.Notifications;
 

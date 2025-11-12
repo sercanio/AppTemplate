@@ -1,4 +1,5 @@
-﻿using AppTemplate.Application.Enums;
+using System.Security.Claims;
+using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 using AppTemplate.Application.Services.Caching;
 using AppTemplate.Application.Services.Clock;
@@ -12,7 +13,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Integration.Features.RolesTests.Commands.Update;
 

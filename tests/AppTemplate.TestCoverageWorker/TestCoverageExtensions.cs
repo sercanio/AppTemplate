@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
@@ -25,7 +25,7 @@ public static class TestCoverageExtensions
             or if it is already running wait a 
             few minutes for the report to be generated.
           """);
-          
+
         return;
       }
 
@@ -78,10 +78,10 @@ public static class TestCoverageExtensions
   {
     // Start from the current directory (web app directory)
     var currentDir = Directory.GetCurrentDirectory();
-    
+
     // Look for solution file by going up the directory tree
     var solutionDir = FindSolutionDirectory(currentDir);
-    
+
     if (solutionDir != null)
     {
       // Coverage reports are in solution_root/tests/coverage-reports
@@ -90,7 +90,7 @@ public static class TestCoverageExtensions
       {
         return testsDir;
       }
-      
+
       // Fallback: try solution_root/coverage-reports
       var rootCoverageDir = Path.Combine(solutionDir, "coverage-reports");
       if (Directory.Exists(rootCoverageDir))
@@ -109,14 +109,14 @@ public static class TestCoverageExtensions
       {
         return testsCandidate;
       }
-      
+
       // Then look for coverage-reports directly
       var candidatePath = Path.Combine(searchDir, "coverage-reports");
       if (Directory.Exists(candidatePath))
       {
         return candidatePath;
       }
-      
+
       var parentDir = Directory.GetParent(searchDir);
       searchDir = parentDir?.FullName;
     }
@@ -128,7 +128,7 @@ public static class TestCoverageExtensions
   private static string? FindSolutionDirectory(string startDirectory)
   {
     var currentDir = startDirectory;
-    
+
     while (currentDir != null)
     {
       var solutionFiles = Directory.GetFiles(currentDir, "*.sln");

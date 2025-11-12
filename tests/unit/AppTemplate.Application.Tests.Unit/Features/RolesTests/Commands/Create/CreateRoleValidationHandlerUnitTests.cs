@@ -1,6 +1,5 @@
-﻿using AppTemplate.Application.Features.Roles.Commands.Create;
+using AppTemplate.Application.Features.Roles.Commands.Create;
 using FluentAssertions;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.RolesTests.Commands.Create;
 

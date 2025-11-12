@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.AppUsers;
@@ -7,7 +8,6 @@ using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Queries.GetLoggedInUserTests;
 
@@ -89,7 +89,7 @@ public class GetLoggedInUserQueryHandlerUnitTests
     Assert.Equal(ResultStatus.NotFound, result.Status);
     Assert.Null(result.Value);
     _userRepositoryMock.Verify(
-      r => r.GetUserByIdentityIdWithIdentityAndRolesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), 
+      r => r.GetUserByIdentityIdWithIdentityAndRolesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
       Times.Never);
   }
 
@@ -131,7 +131,7 @@ public class GetLoggedInUserQueryHandlerUnitTests
     var appUser = AppUser.Create();
     appUser.SetIdentityId(userId);
     appUser.AddRole(role);
-    
+
     // Use reflection to set IdentityUser
     var identityUserProperty = typeof(AppUser).GetProperty("IdentityUser");
     identityUserProperty?.SetValue(appUser, identityUser);
@@ -173,12 +173,12 @@ public class GetLoggedInUserQueryHandlerUnitTests
 
     var role1 = Role.Create("Admin", "Administrator", Guid.NewGuid());
     var role2 = Role.Create("User", "Standard User", Guid.NewGuid());
-    
+
     var appUser = AppUser.Create();
     appUser.SetIdentityId(userId);
     appUser.AddRole(role1);
     appUser.AddRole(role2);
-    
+
     var identityUserProperty = typeof(AppUser).GetProperty("IdentityUser");
     identityUserProperty?.SetValue(appUser, identityUser);
 
@@ -218,11 +218,11 @@ public class GetLoggedInUserQueryHandlerUnitTests
 
     var appUser = AppUser.Create();
     appUser.SetIdentityId(userId);
-    
+
     // Set custom notification preferences
     var notificationPreference = new NotificationPreference(false, true, false);
     appUser.SetNotificationPreference(notificationPreference);
-    
+
     var identityUserProperty = typeof(AppUser).GetProperty("IdentityUser");
     identityUserProperty?.SetValue(appUser, identityUser);
 
@@ -262,15 +262,15 @@ public class GetLoggedInUserQueryHandlerUnitTests
 
     var activeRole = Role.Create("ActiveRole", "Active Role", Guid.NewGuid());
     var deletedRole = Role.Create("DeletedRole", "Deleted Role", Guid.NewGuid());
-    
+
     // Soft delete the role using the domain method
     Role.Delete(deletedRole, deletedById: Guid.NewGuid());
-    
+
     var appUser = AppUser.Create();
     appUser.SetIdentityId(userId);
     appUser.AddRole(activeRole);
     appUser.AddRole(deletedRole);
-    
+
     var identityUserProperty = typeof(AppUser).GetProperty("IdentityUser");
     identityUserProperty?.SetValue(appUser, identityUser);
 
@@ -309,11 +309,11 @@ public class GetLoggedInUserQueryHandlerUnitTests
     var deletedRole = Role.Create("DeletedRole", "Deleted Role", Guid.NewGuid());
     // Soft delete the role using the domain method
     Role.Delete(deletedRole, deletedById: Guid.NewGuid());
-    
+
     var appUser = AppUser.Create();
     appUser.SetIdentityId(userId);
     appUser.AddRole(deletedRole);
-    
+
     var identityUserProperty = typeof(AppUser).GetProperty("IdentityUser");
     identityUserProperty?.SetValue(appUser, identityUser);
 

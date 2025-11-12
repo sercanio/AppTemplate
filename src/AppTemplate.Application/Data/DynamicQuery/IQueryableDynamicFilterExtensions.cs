@@ -1,7 +1,7 @@
-using AppTemplate.Domain;
 using System.Linq.Dynamic.Core;
 using System.Reflection;
 using System.Text;
+using AppTemplate.Domain;
 
 namespace AppTemplate.Application.Data.DynamicQuery;
 

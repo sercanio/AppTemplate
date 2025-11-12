@@ -1,4 +1,5 @@
-﻿using AppTemplate.Application.Features.Roles.Commands.Create;
+using System.Security.Claims;
+using AppTemplate.Application.Features.Roles.Commands.Create;
 using AppTemplate.Application.Services.Caching;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain;
@@ -10,7 +11,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Integration.Features.RolesTests.Commands.Create;
 

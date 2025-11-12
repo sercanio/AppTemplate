@@ -1,10 +1,10 @@
-﻿using AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
+using System.Linq.Expressions;
+using AppTemplate.Application.Features.Statistics.Authentication.Queries.GetAuthenticationStatistics;
 using AppTemplate.Application.Services.Statistics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Moq;
-using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Tests.Unit.Features.StatisticsTests.Authentication;
 

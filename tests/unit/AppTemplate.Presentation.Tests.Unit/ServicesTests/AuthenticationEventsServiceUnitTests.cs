@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using AppTemplate.Application.Services.Statistics;
 using AppTemplate.Presentation.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Presentation.Tests.Unit.ServicesTests;
 

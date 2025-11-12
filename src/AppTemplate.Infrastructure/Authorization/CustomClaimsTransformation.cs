@@ -1,9 +1,9 @@
+using System.Security.Claims;
 using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.JsonWebTokens;
-using System.Security.Claims;
 
 namespace AppTemplate.Infrastructure.Authorization;
 

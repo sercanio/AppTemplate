@@ -1,5 +1,5 @@
-using AppTemplate.Domain.AppUsers.ValueObjects;
 using System.Collections.ObjectModel;
+using AppTemplate.Domain.AppUsers.ValueObjects;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 

@@ -1,10 +1,9 @@
-﻿using AppTemplate.Application.Services.Authentication;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using AppTemplate.Application.Services.Authentication;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Services.AuthenticationServiceTests;
 

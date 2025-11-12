@@ -1,5 +1,5 @@
-using AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 using System.Collections.ObjectModel;
+using AppTemplate.Application.Features.Roles.Queries.GetRoleById;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetUser;
 

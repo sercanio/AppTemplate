@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
+using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Caching;
 using AppTemplate.Application.Services.Clock;
@@ -31,7 +31,7 @@ public class UpdateNotificationPreferencesCommandHandlerIntegrationTests
 
     var appUser = AppUser.Create();
     appUser.SetIdentityId("user-1");
-    appUser.NotificationPreference.Update(false, false, false); 
+    appUser.NotificationPreference.Update(false, false, false);
     dbContext.AppUsers.Add(appUser);
     await dbContext.SaveChangesAsync();
 

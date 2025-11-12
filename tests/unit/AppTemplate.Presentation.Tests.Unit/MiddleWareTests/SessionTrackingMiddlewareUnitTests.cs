@@ -1,10 +1,10 @@
+using System.Security.Claims;
 using AppTemplate.Application.Services.Statistics;
 using AppTemplate.Presentation.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Presentation.Tests.Unit.MiddleWareTests;
 

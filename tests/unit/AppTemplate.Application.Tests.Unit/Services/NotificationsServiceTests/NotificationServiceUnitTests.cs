@@ -1,11 +1,11 @@
-﻿using AppTemplate.Application.Data.Pagination;
+using System.Linq.Expressions;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Notifications;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain;
 using AppTemplate.Domain.AppUsers;
-using AppTemplate.Domain.AppUsers.ValueObjects;
 using AppTemplate.Domain.Notifications;
 using AppTemplate.Domain.Notifications.Enums;
 using AppTemplate.Domain.Roles;
@@ -13,8 +13,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Linq.Expressions;
-using Xunit;
 using static AppTemplate.Application.Services.Notifications.NotificationsService;
 
 namespace AppTemplate.Application.Tests.Unit.Services.NotificationsServiceTests;
@@ -762,13 +760,13 @@ public class NotificationServiceUnitTests
     // Arrange
     var operatorId = "operator123";
     var groupName = Role.DefaultRole.Name.Value;
-    
+
     // Create a properly initialized user
     var user = AppUser.Create();
     var identityIdProperty = typeof(AppUser).GetProperty("IdentityId");
     identityIdProperty?.SetValue(user, "user123");
     user.AddRole(Role.DefaultRole);
-    
+
     // Double-check the role is there
     Assert.NotNull(user.Roles);
     Assert.Contains(Role.DefaultRole, user.Roles);
@@ -1063,7 +1061,7 @@ public class NotificationServiceUnitTests
   private static AppUser CreateTestUserWithRole(string identityId, Role role)
   {
     var user = AppUser.Create();
-    
+
     // Set IdentityId via reflection
     var identityIdProperty = typeof(AppUser).GetProperty("IdentityId");
     identityIdProperty?.SetValue(user, identityId);
@@ -1082,12 +1080,12 @@ public class NotificationServiceUnitTests
     // Arrange
     var invalidCacheKeyType = (CacheKeyType)999; // Invalid enum value
     var userId = "user123";
-    
+
     // Use reflection to access the private GetCacheKey method
     var getCacheKeyMethod = typeof(NotificationsService).GetMethod(
-      "GetCacheKey", 
+      "GetCacheKey",
       System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-    
+
     // Act
     Action act = () =>
     {
@@ -1105,7 +1103,7 @@ public class NotificationServiceUnitTests
         throw;
       }
     };
-    
+
     // Assert
     act.Should().Throw<ArgumentOutOfRangeException>()
       .WithParameterName("type");

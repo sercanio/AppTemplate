@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStatistics;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.Roles;
@@ -89,7 +89,7 @@ public class GetRoleStatisticsQueryHandlerUnitTests
     _rolesRepositoryMock
         .Setup(r => r.GetAllAsync(0,
           int.MaxValue,
-          null, 
+          null,
           false,
           It.IsAny<Func<IQueryable<Role>, IQueryable<Role>>>(),
           true,
