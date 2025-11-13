@@ -1,4 +1,37 @@
+version: "3.9"
+
 services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # optional - Traefik internal metrics (Prometheus)
+    command:
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./containers/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./containers/traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./containers/traefik/letsencrypt:/letsencrypt
+    networks:
+      - apptemplate-network
+
   apptemplate-postgres:
     image: postgres:15
     container_name: apptemplate.Postgres
@@ -70,6 +103,25 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Release
       ASPNETCORE_URLS: "http://+:5070"
+    labels:
+      - "traefik.enable=true"
+
+      # Normal HTTPS router
+      - "traefik.http.routers.apptemplate.rule=Host(`localhost`) || Host(`127.0.0.1`)"
+      # - "traefik.http.routers.apptemplate.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.apptemplate.entrypoints=websecure"
+      - "traefik.http.routers.apptemplate.tls.certresolver=letsencrypt"
+      - "traefik.http.services.apptemplate.loadbalancer.server.port=5070"
+
+      # HTTP router that redirects to HTTPS
+      - "traefik.http.routers.apptemplate-http.rule=Host(`localhost`) || Host(`127.0.0.1`)"
+      # - "traefik.http.routers.apptemplate.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.apptemplate-http.entrypoints=web"
+      - "traefik.http.routers.apptemplate-http.middlewares=apptemplate-https-redirect"
+
+      # Define redirect middleware
+      - "traefik.http.middlewares.apptemplate-https-redirect.redirectscheme.scheme=https"
+
     ports:
       - "5070:5070"
     volumes:
