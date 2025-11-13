@@ -2,13 +2,12 @@ using AppTemplate.Application;
 using AppTemplate.Infrastructure;
 using AppTemplate.Presentation;
 using AppTemplate.Presentation.Extensions;
+using OpenTelemetry.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog
 builder.Host.ConfigureSerilog();
-
-builder.AddServiceDefaults();
 
 // Configure services
 builder.Services.ConfigureIdentity()
@@ -23,9 +22,16 @@ builder.Services.ConfigureIdentity()
                 .AddValidators()
                 .ConfigureOpenApiWithScalar();
 
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics =>
+    {
+      metrics.AddPrometheusExporter();
+      metrics.AddAspNetCoreInstrumentation();
+      metrics.AddHttpClientInstrumentation();
+    });
+
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
 app.UseCustomExceptionHandler();
 app.UseRequestContextLogging();
 
@@ -34,5 +40,6 @@ app.ConfigureMiddlewarePipeline(app.Environment);
 
 app.MapControllers();
 app.MapDevelopmentEndpoints(app.Environment);
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();

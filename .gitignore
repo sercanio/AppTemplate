@@ -17,7 +17,8 @@ obj/
 *.sln.docstates
 *.suo
 appsettings.Development.json
-/containers
+**/Data
+**/data
 
 # Test results
 TestResults/

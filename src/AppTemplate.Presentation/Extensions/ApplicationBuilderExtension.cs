@@ -6,7 +6,6 @@ using AppTemplate.Application.Features.Roles.Commands.Create;
 using AppTemplate.Infrastructure;
 using AppTemplate.Presentation.Controllers.Api;
 using AppTemplate.Presentation.Middlewares;
-using AppTemplate.TestCoverageWorker;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -56,13 +55,6 @@ public static class ApplicationBuilderExtensions
                 options.Endpoint = "http://localhost:4317";
                 options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
               });
-
-      // Add Seq sink if connection string is available
-      var seqConnectionString = context.Configuration.GetConnectionString("apptemplate-seq");
-      if (!string.IsNullOrEmpty(seqConnectionString))
-      {
-        configuration.WriteTo.Seq(seqConnectionString);
-      }
     });
   }
 
@@ -146,7 +138,6 @@ public static class ApplicationBuilderExtensions
     {
       endpoints.MapOpenApi();
       endpoints.MapScalarApiReference();
-      endpoints.MapTestCoverageEndpoints();
     }
 
     return endpoints;

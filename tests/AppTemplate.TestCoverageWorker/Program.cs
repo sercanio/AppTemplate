@@ -6,9 +6,6 @@ Console.OutputEncoding = Encoding.UTF8;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Add Aspire service defaults (logging, metrics, health checks, service discovery)
-builder.AddServiceDefaults();
-
 // Add the test coverage worker service
 builder.Services.AddHostedService<TestCoverageWorker>();
 

@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AppTemplate.Infrastructure\AppTemplate.Infrastructure.csproj" />
-    <ProjectReference Include="..\AppTemplate.ServiceDefaults\AppTemplate.ServiceDefaults.csproj" />
     <ProjectReference Include="..\AppTemplate.Application\AppTemplate.Application.csproj" />
   </ItemGroup>
 

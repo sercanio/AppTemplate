@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AppTemplate.Infrastructure\AppTemplate.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\AppTemplate.ServiceDefaults\AppTemplate.ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>

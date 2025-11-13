@@ -5,9 +5,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// Add service defaults
-builder.AddServiceDefaults();
-
 // Add the hosted service
 builder.Services.AddHostedService<Worker>();
 
