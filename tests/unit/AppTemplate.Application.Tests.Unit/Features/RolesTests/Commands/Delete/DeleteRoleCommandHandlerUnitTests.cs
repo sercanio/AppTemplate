@@ -1,4 +1,5 @@
-﻿using AppTemplate.Application.Features.Roles.Commands.Delete;
+using System.Security.Claims;
+using AppTemplate.Application.Features.Roles.Commands.Delete;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Caching;
 using AppTemplate.Domain;
@@ -7,7 +8,6 @@ using AppTemplate.Domain.Roles;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Unit.Features.RolesTests.Commands.Delete;
 

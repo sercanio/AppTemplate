@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.AppUsers;
@@ -6,7 +7,6 @@ using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;
 using Moq;
-using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Tests.Unit.Services.AppUsersServiceTests;
 
@@ -30,7 +30,7 @@ public class AppUsersServiceUnitTests
     // Arrange
     var user = AppUser.Create();
     var defaultRole = Role.DefaultRole; // Use the static default role
-    
+
     _rolesServiceMock
       .Setup(r => r.GetDefaultRole(It.IsAny<CancellationToken>()))
       .ReturnsAsync(Result.Success(defaultRole));
@@ -104,7 +104,7 @@ public class AppUsersServiceUnitTests
     // Arrange
     var user = AppUser.Create();
     var userId = user.Id;
-    
+
     _userRepositoryMock
       .Setup(r => r.GetAsync(
           It.IsAny<Expression<Func<AppUser, bool>>>(),
@@ -133,7 +133,7 @@ public class AppUsersServiceUnitTests
     // Arrange
     var user = AppUser.Create();
     var identityId = "test-identity-id";
-    
+
     _userRepositoryMock
       .Setup(r => r.GetAsync(
           It.IsAny<Expression<Func<AppUser, bool>>>(),

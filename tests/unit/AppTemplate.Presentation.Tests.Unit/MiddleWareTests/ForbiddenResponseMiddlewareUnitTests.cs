@@ -1,12 +1,12 @@
+using System.Globalization;
+using System.Net;
+using System.Text.Json;
 using AppTemplate.Application.Services.Localization;
 using AppTemplate.Presentation.Middlewares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Globalization;
-using System.Net;
-using System.Text.Json;
 
 namespace AppTemplate.Presentation.Tests.Unit.MiddleWareTests;
 

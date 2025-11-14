@@ -1,7 +1,5 @@
-using System.Text.Json;
 using AppTemplate.Domain.Notifications;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AppTemplate.Infrastructure.Configurations;

@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace AppTemplate.Infrastructure.Tests.Unit.AuthorizationTests;
 

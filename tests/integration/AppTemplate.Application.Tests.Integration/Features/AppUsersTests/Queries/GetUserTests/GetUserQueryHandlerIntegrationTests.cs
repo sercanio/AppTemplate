@@ -26,11 +26,11 @@ public class GetUserQueryHandlerIntegrationTests
     // Arrange
     var dbContext = CreateDbContext();
 
-    var identityUser = new IdentityUser 
-    { 
-        Id = "test-identity-id", 
-        UserName = "testuser", 
-        Email = "testuser@example.com" 
+    var identityUser = new IdentityUser
+    {
+      Id = "test-identity-id",
+      UserName = "testuser",
+      Email = "testuser@example.com"
     };
     dbContext.Users.Add(identityUser);
 
@@ -84,11 +84,11 @@ public class GetUserQueryHandlerIntegrationTests
     var role2 = Role.Create("User", "Standard User", createdById, isDefault: true);
     dbContext.Roles.AddRange(role1, role2);
 
-    var identityUser = new IdentityUser 
-    { 
-        Id = "test-identity-id", 
-        UserName = "testuser", 
-        Email = "testuser@example.com" 
+    var identityUser = new IdentityUser
+    {
+      Id = "test-identity-id",
+      UserName = "testuser",
+      Email = "testuser@example.com"
     };
     dbContext.Users.Add(identityUser);
 
@@ -124,11 +124,11 @@ public class GetUserQueryHandlerIntegrationTests
     // Arrange
     var dbContext = CreateDbContext();
 
-    var identityUser = new IdentityUser 
-    { 
-        Id = "test-identity-id", 
-        UserName = "noroleuser", 
-        Email = "norole@example.com" 
+    var identityUser = new IdentityUser
+    {
+      Id = "test-identity-id",
+      UserName = "noroleuser",
+      Email = "norole@example.com"
     };
     dbContext.Users.Add(identityUser);
 
@@ -162,11 +162,11 @@ public class GetUserQueryHandlerIntegrationTests
     var role = Role.Create("SuperAdmin", "Super Administrator", createdById, isDefault: false);
     dbContext.Roles.Add(role);
 
-    var identityUser = new IdentityUser 
-    { 
-        Id = "test-identity-id", 
-        UserName = "superadmin", 
-        Email = "superadmin@example.com" 
+    var identityUser = new IdentityUser
+    {
+      Id = "test-identity-id",
+      UserName = "superadmin",
+      Email = "superadmin@example.com"
     };
     dbContext.Users.Add(identityUser);
 
@@ -190,7 +190,7 @@ public class GetUserQueryHandlerIntegrationTests
     Assert.Equal(Ardalis.Result.ResultStatus.Ok, result.Status);
     Assert.NotNull(result.Value);
     Assert.Single(result.Value.Roles);
-    
+
     var mappedRole = result.Value.Roles.First();
     Assert.Equal(role.Id, mappedRole.Id);
     Assert.Equal("SuperAdmin", mappedRole.Name);
@@ -210,11 +210,11 @@ public class GetUserQueryHandlerIntegrationTests
     var moderatorRole = Role.Create("Moderator", "Moderator", createdById, isDefault: false);
     dbContext.Roles.AddRange(defaultRole, adminRole, moderatorRole);
 
-    var identityUser = new IdentityUser 
-    { 
-        Id = "test-identity-id", 
-        UserName = "poweruser", 
-        Email = "power@example.com" 
+    var identityUser = new IdentityUser
+    {
+      Id = "test-identity-id",
+      UserName = "poweruser",
+      Email = "power@example.com"
     };
     dbContext.Users.Add(identityUser);
 
@@ -242,10 +242,10 @@ public class GetUserQueryHandlerIntegrationTests
     Assert.Equal(Ardalis.Result.ResultStatus.Ok, result.Status);
     Assert.NotNull(result.Value);
     Assert.Equal(3, result.Value.Roles.Count);
-    
+
     Assert.Single(result.Value.Roles.Where(r => r.IsDefault));
     Assert.Equal(2, result.Value.Roles.Count(r => !r.IsDefault));
-    
+
     Assert.Contains(result.Value.Roles, r => r.Name == "RegisteredUser" && r.IsDefault);
     Assert.Contains(result.Value.Roles, r => r.Name == "Admin" && !r.IsDefault);
     Assert.Contains(result.Value.Roles, r => r.Name == "Moderator" && !r.IsDefault);

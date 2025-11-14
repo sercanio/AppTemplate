@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Behaviors;
+using AppTemplate.Application.Behaviors;
 using Ardalis.Result;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -321,7 +321,8 @@ public class LoggingBehaviourUnitTests
   // Static helper method to check message content without ToString() in expression tree
   private static bool CheckMessageContains(object message, string expectedText)
   {
-    if (message == null) return false;
+    if (message == null)
+      return false;
     var messageString = message.ToString();
     return messageString != null && messageString.Contains(expectedText);
   }

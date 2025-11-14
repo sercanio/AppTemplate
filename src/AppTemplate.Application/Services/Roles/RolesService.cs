@@ -1,8 +1,8 @@
+using System.Linq.Expressions;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain.Roles;
 using Ardalis.Result;
-using System.Linq.Expressions;
 
 namespace AppTemplate.Application.Services.Roles;
 

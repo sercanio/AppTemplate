@@ -1,8 +1,7 @@
+using System.Security.Claims;
 using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Infrastructure.Authorization;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Moq;
-using System.Security.Claims;
 
 namespace AppTemplate.Infrastructure.Tests.Unit.AuthorizationTests;
 
@@ -34,8 +33,8 @@ public class CustomClaimsTransformationTests
     // Arrange
     var rolesResponse = new UserRolesResponse
     {
-        UserId = Guid.NewGuid(),
-        Roles = [new Domain.Roles.Role(
+      UserId = Guid.NewGuid(),
+      Roles = [new Domain.Roles.Role(
             Guid.NewGuid(),
             new Domain.Roles.ValueObjects.RoleName("Admin"),
             new Domain.Roles.ValueObjects.RoleName("Admin"),
@@ -78,8 +77,8 @@ public class CustomClaimsTransformationTests
   {
     var rolesResponse = new UserRolesResponse
     {
-        UserId = Guid.NewGuid(),
-        Roles = [new Domain.Roles.Role(
+      UserId = Guid.NewGuid(),
+      Roles = [new Domain.Roles.Role(
             Guid.NewGuid(),
             new Domain.Roles.ValueObjects.RoleName("Admin"),
             new Domain.Roles.ValueObjects.RoleName("Admin"),

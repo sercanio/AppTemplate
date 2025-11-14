@@ -1,4 +1,6 @@
-﻿using AppTemplate.Application.Data.Dapper;
+using System.Data;
+using System.Data.Common;
+using AppTemplate.Application.Data.Dapper;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Application.Services.OutboxMessages;
 using AppTemplate.Domain;
@@ -13,9 +15,6 @@ using Moq.Dapper;
 using Moq.Protected;
 using Newtonsoft.Json;
 using Quartz;
-using System.Data;
-using System.Data.Common;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Services.OutboxMessagesTests;
 

@@ -1,8 +1,8 @@
-﻿using AppTemplate.Application.Services.Caching;
+using System.Text.Json;
+using AppTemplate.Application.Services.Caching;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Distributed;
 using Moq;
-using System.Text.Json;
 
 namespace AppTemplate.Application.Tests.Unit.Services.CachingServiceTests;
 

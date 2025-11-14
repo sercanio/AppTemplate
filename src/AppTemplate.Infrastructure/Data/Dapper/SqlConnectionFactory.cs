@@ -1,7 +1,7 @@
+using System.Data;
 using AppTemplate.Application.Data.Dapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using System.Data;
 
 namespace AppTemplate.Infrastructure.Data.Dapper;
 

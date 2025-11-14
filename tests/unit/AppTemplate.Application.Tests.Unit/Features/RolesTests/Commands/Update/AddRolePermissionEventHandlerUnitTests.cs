@@ -1,9 +1,8 @@
-﻿using AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
+using AppTemplate.Application.Features.Roles.Commands.Update.UpdatePermissions;
 using AppTemplate.Domain.Roles.DomainEvents;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.RolesTests.Commands.Update;
 

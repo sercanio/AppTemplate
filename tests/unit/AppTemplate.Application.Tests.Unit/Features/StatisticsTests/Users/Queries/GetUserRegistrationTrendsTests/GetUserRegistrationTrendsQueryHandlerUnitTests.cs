@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.Statistics.Users.Queries.GetUserRegistrationTrends;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Domain;
@@ -74,7 +74,7 @@ public class GetUserRegistrationTrendsQueryHandlerUnitTests
     Assert.NotNull(result.Value);
     Assert.Equal(1, result.Value.TotalUsersLastMonth);
     Assert.Equal(2, result.Value.TotalUsersThisMonth);
-    Assert.Equal(100, result.Value.GrowthPercentage); 
+    Assert.Equal(100, result.Value.GrowthPercentage);
     Assert.Equal(30, result.Value.DailyRegistrations.Count);
   }
 

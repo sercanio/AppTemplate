@@ -1,9 +1,9 @@
+using System.Collections.ObjectModel;
 using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Repositories;
 using Ardalis.Result;
 using MediatR;
-using System.Collections.ObjectModel;
 
 namespace AppTemplate.Application.Features.AppUsers.Queries.GetAllUsersDynamic;
 

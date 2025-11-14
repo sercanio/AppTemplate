@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using AppTemplate.Application.Features.Roles.Commands.Delete;
 using AppTemplate.Domain.Roles.DomainEvents;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.RolesTests.Commands.Delete;
 

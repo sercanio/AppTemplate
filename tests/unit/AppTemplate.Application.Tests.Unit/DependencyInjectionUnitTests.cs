@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Behaviors;
+using AppTemplate.Application.Behaviors;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Caching;
 using AppTemplate.Application.Services.EmailSenders;
@@ -6,7 +6,6 @@ using AppTemplate.Application.Services.Roles;
 using FluentAssertions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit;
 

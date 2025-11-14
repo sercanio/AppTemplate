@@ -1,0 +1,8 @@
+**/tests/
+**/TestCoverageWorker/
+Logs/
+logs/
+*.log
+*.md
+*.yml
+*.yaml

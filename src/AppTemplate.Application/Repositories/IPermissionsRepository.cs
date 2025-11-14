@@ -6,8 +6,8 @@ namespace AppTemplate.Application.Repositories;
 
 public interface IPermissionsRepository : IRepository<Permission, Guid>
 {
-    Task<Result<PaginatedList<Permission>>> GetAllPermissionsAsync(
-        int pageIndex,
-        int pageSize,
-        CancellationToken cancellationToken = default);
+  Task<Result<PaginatedList<Permission>>> GetAllPermissionsAsync(
+      int pageIndex,
+      int pageSize,
+      CancellationToken cancellationToken = default);
 }

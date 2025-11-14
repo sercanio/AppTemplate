@@ -1,4 +1,8 @@
-﻿using AppTemplate.Application.Services.AppUsers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Authentication;
 using AppTemplate.Application.Services.Authentication.Models;
 using AppTemplate.Application.Services.Roles;
@@ -8,10 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace AppTemplate.Infrastructure.Authentication;
 
@@ -310,9 +310,9 @@ public sealed class JwtTokenService : IJwtTokenService
 
   public async Task RevokeOtherUserRefreshTokensAsync(string userId, string currentAccessTokenJti)
   {
-    var userTokens = _context.RefreshTokens.Where(rt => 
-      rt.UserId == userId && 
-      !rt.IsRevoked && 
+    var userTokens = _context.RefreshTokens.Where(rt =>
+      rt.UserId == userId &&
+      !rt.IsRevoked &&
       rt.AccessTokenJti != currentAccessTokenJti);
 
     await foreach (var token in userTokens.AsAsyncEnumerable())
@@ -324,7 +324,7 @@ public sealed class JwtTokenService : IJwtTokenService
 
     await _context.SaveChangesAsync();
 
-    _logger.LogInformation("Revoked all other refresh tokens for user {UserId}, preserving current session with JTI {CurrentJti}", 
+    _logger.LogInformation("Revoked all other refresh tokens for user {UserId}, preserving current session with JTI {CurrentJti}",
       userId, currentAccessTokenJti);
   }
 }

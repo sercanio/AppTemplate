@@ -1,4 +1,4 @@
-﻿using AppTemplate.Application.Features.Roles.Commands.Create;
+using AppTemplate.Application.Features.Roles.Commands.Create;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Notifications;
 using AppTemplate.Domain.Roles.DomainEvents;
@@ -6,7 +6,6 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.RolesTests.Commands.Create;
 

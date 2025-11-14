@@ -1,4 +1,4 @@
-﻿using AppTemplate.Domain.Exceptions;
+using AppTemplate.Domain.Exceptions;
 
 namespace AppTemplate.Domain.Tests.Unit.Exceptions;
 
@@ -537,16 +537,16 @@ public class ConcurrencyExceptionUnitTests
 
     // Assert
     Assert.Equal(message, exception.Message);
-    
+
     var level1 = exception.InnerException;
     Assert.NotNull(level1);
     Assert.Equal("Outer", level1.Message);
-    
+
     var level2 = level1.InnerException;
     Assert.NotNull(level2);
     Assert.Equal("Middle", level2.Message);
     Assert.IsType<InvalidOperationException>(level2);
-    
+
     var level3 = level2.InnerException;
     Assert.NotNull(level3);
     Assert.Equal("Innermost", level3.Message);

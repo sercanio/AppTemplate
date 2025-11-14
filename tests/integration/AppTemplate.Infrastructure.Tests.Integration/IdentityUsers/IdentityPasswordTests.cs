@@ -1,9 +1,9 @@
+using AppTemplate.Application.Services.Clock;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 using Xunit;
-using AppTemplate.Application.Services.Clock;
 
 namespace AppTemplate.Infrastructure.Tests.Integration.IdentityUsers;
 

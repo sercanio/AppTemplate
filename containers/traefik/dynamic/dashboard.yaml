@@ -1,0 +1,9 @@
+http:
+  routers:
+    traefik-dashboard:
+      rule: "Host(`traefik.localhost`)"  # change to your domain if you have one
+      service: api@internal
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt

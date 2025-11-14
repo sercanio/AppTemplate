@@ -1,0 +1,223 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # optional - Traefik internal metrics (Prometheus)
+    command:
+      - "--providers.file.directory=/etc/traefik/dynamic"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./containers/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./containers/traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./containers/traefik/letsencrypt:/letsencrypt
+    networks:
+      - apptemplate-network
+
+  apptemplate-postgres:
+    image: postgres:15
+    container_name: apptemplate.Postgres
+    environment:
+      POSTGRES_USER: ${Postgres__User:-postgres}
+      POSTGRES_PASSWORD: ${Postgres__Password:-postgres}
+      POSTGRES_DB: ${Postgres__Database:-AppTemplateDb}
+    volumes:
+      - apptemplate-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${Postgres__User:-postgres} -d ${Postgres__Database:-AppTemplateDb} -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - apptemplate-network
+
+  apptemplate-redis:
+    image: redis:latest
+    container_name: apptemplate.Redis
+    command: redis-server
+    volumes:
+      - apptemplate-redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - apptemplate-network
+
+  seq:
+    image: datalust/seq:latest
+    container_name: apptemplate.Seq
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_NOAUTHENTICATION=True
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    volumes:
+      - seq-data:/data
+    networks:
+      - apptemplate-network
+
+  apptemplate.presentation:
+    platform: linux/amd64
+    image: ${docker_registry-}apptemplate-presentation
+    container_name: apptemplate.presentation
+    build:
+      context: .
+      dockerfile: src/AppTemplate.Presentation/Dockerfile
+      args:
+        TARGETARCH: amd64
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    depends_on:
+      apptemplate-postgres:
+        condition: service_healthy
+      apptemplate-redis:
+        condition: service_healthy
+      seq:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: Release
+      ASPNETCORE_URLS: "http://+:5070"
+    labels:
+      - "traefik.enable=true"
+
+      # Normal HTTPS router
+      - "traefik.http.routers.apptemplate.rule=Host(`localhost`) || Host(`127.0.0.1`)"
+      # - "traefik.http.routers.apptemplate.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.apptemplate.entrypoints=websecure"
+      - "traefik.http.routers.apptemplate.tls.certresolver=letsencrypt"
+      - "traefik.http.services.apptemplate.loadbalancer.server.port=5070"
+
+      # HTTP router that redirects to HTTPS
+      - "traefik.http.routers.apptemplate-http.rule=Host(`localhost`) || Host(`127.0.0.1`)"
+      # - "traefik.http.routers.apptemplate.rule=Host(`yourdomain.com`)"
+      - "traefik.http.routers.apptemplate-http.entrypoints=web"
+      - "traefik.http.routers.apptemplate-http.middlewares=apptemplate-https-redirect"
+
+      # Define redirect middleware
+      - "traefik.http.middlewares.apptemplate-https-redirect.redirectscheme.scheme=https"
+
+    ports:
+      - "5070:5070"
+    volumes:
+      - ./usersecrets:/app/.microsoft/usersecrets:ro
+    networks:
+      - apptemplate-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./containers/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+    networks:
+      - apptemplate-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
+      GF_SERVER_HTTP_PORT: "4000"
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    ports:
+      - "4000:4000"
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./containers/monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./containers/monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./containers/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - apptemplate-network
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${Postgres__User:-postgres}:${Postgres__Password:-postgres}@apptemplate-postgres:5432/${Postgres__Database:-AppTemplateDb}?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      apptemplate-postgres:
+        condition: service_healthy
+    networks:
+      - apptemplate-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter
+    restart: unless-stopped
+    command: ["--redis.addr=redis://apptemplate-redis:6379"]
+    ports:
+      - "9121:9121"
+    depends_on:
+      apptemplate-redis:
+        condition: service_healthy
+    networks:
+      - apptemplate-network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - apptemplate-network
+
+volumes:
+  apptemplate-postgres-data:
+  apptemplate-redis-data:
+  seq-data:
+  grafana-data:
+  prometheus-data:
+
+networks:
+  apptemplate-network:
+    driver: bridge

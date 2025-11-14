@@ -1,24 +1,23 @@
+using System.Linq.Expressions;
+using AppTemplate.Application.Data.Pagination;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Authentication;
-using AppTemplate.Application.Services.Authorization;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Application.Services.EmailSenders;
 using AppTemplate.Application.Services.Notifications;
+using AppTemplate.Domain.AppUsers;
+using AppTemplate.Domain.Roles;
+using Ardalis.Result;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using AppTemplate.Domain.AppUsers;
-using System.Linq.Expressions;
-using AppTemplate.Application.Data.Pagination;
-using Ardalis.Result;
-using AppTemplate.Domain.Roles;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace AppTemplate.Infrastructure.Tests.Unit;
 
@@ -226,7 +225,8 @@ public class DependencyInjectionTests
   {
     public UserManagerStub() : base(
       new UserStoreStub(),
-      null, null, null, null, null, null, null, null) { }
+      null, null, null, null, null, null, null, null)
+    { }
   }
   private class UserStoreStub : Microsoft.AspNetCore.Identity.IUserStore<Microsoft.AspNetCore.Identity.IdentityUser>
   {

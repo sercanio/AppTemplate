@@ -1,9 +1,8 @@
-﻿using AppTemplate.Application.Services.Authorization;
+using AppTemplate.Application.Services.Authorization;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Options;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Services.AuthorizationServiceTests;
 

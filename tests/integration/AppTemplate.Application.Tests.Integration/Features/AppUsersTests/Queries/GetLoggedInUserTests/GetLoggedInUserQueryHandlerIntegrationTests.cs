@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AppTemplate.Application.Features.AppUsers.Queries.GetLoggedInUser;
 using AppTemplate.Application.Services.Clock;
 using AppTemplate.Domain.AppUsers;
@@ -6,7 +7,6 @@ using AppTemplate.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Integration.Features.AppUsersTests.Queries.GetLoggedInUserTests;
 

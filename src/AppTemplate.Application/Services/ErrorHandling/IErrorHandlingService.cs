@@ -5,5 +5,5 @@ namespace AppTemplate.Application.Services.ErrorHandling;
 
 public interface IErrorHandlingService
 {
-    IActionResult HandleErrorResponse<T>(Result<T> result);
+  IActionResult HandleErrorResponse<T>(Result<T> result);
 }

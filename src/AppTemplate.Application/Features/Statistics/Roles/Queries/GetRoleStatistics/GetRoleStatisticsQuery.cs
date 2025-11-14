@@ -4,7 +4,7 @@ namespace AppTemplate.Application.Features.Statistics.Roles.Queries.GetRoleStati
 
 public sealed record GetRoleStatisticsQuery() : ICachedQuery<GetRoleStatisticsQueryResponse>
 {
-    public string CacheKey => "roles-statistics";
-    
-    public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
+  public string CacheKey => "roles-statistics";
+
+  public TimeSpan? Expiration => TimeSpan.FromMinutes(5);
 }

@@ -1,8 +1,6 @@
-﻿using AppTemplate.Application.Data.Pagination;
+using AppTemplate.Application.Data.Pagination;
 using FluentAssertions;
 using MockQueryable;
-using MockQueryable.Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Data.PaginatedTests;
 

@@ -1,7 +1,7 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using AppTemplate.Domain.AppUsers;
 using AppTemplate.Domain.Roles.DomainEvents;
 using AppTemplate.Domain.Roles.ValueObjects;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AppTemplate.Domain.Roles;
 

@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using System.Security.Claims;
 using AppTemplate.Application.Enums;
 using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
 using AppTemplate.Application.Repositories;
@@ -9,8 +11,6 @@ using AppTemplate.Domain.Roles;
 using Ardalis.Result;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using System.Linq.Expressions;
-using System.Security.Claims;
 
 namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Commands.UpdateUserRolesTests;
 
@@ -246,7 +246,7 @@ public class UpdateUserRolesCommandHandlerUnitTests
   {
     // Arrange
     var actorId = "actor-123";
-    
+
     // Create entities first
     var appUser = AppUser.Create();
     appUser.SetIdentityId("user-123");
@@ -309,7 +309,7 @@ public class UpdateUserRolesCommandHandlerUnitTests
     // Arrange
     var actorId = "actor-123";
     var identityId = "user-identity-456";
-    
+
     // Create entities first
     var appUser = AppUser.Create();
     appUser.SetIdentityId(identityId);
@@ -363,7 +363,7 @@ public class UpdateUserRolesCommandHandlerUnitTests
   {
     // Arrange
     var actorId = "actor-123";
-    
+
     var appUser = AppUser.Create();
     appUser.SetIdentityId("user-123");
     var userId = appUser.Id;

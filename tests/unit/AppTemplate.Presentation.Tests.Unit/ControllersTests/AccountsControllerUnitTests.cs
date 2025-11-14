@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using System.Text;
 using AppTemplate.Application.Features.Accounts.UpdateNotificationPreferences;
 using AppTemplate.Application.Services.AppUsers;
 using AppTemplate.Application.Services.Authentication;
@@ -21,8 +23,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
-using System.Security.Claims;
-using System.Text;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace AppTemplate.Presentation.Tests.Unit.ControllersTests;

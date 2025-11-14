@@ -168,8 +168,8 @@ public class UsersControllerUnitTests
 
     var usersList = new List<GetAllUsersDynamicQueryResponse>
         {
-            new(Guid.NewGuid(), "testuser1", rolesList),
-            new(Guid.NewGuid(), "testuser2", new Collection<LoggedInUserRolesDto>())
+            new(Guid.NewGuid(), "testuser1", true, DateTime.UtcNow.AddDays(-10), rolesList),
+            new(Guid.NewGuid(), "testuser2", false, DateTime.UtcNow.AddDays(-5), new Collection<LoggedInUserRolesDto>())
         };
 
     var paginatedList = new PaginatedList<GetAllUsersDynamicQueryResponse>(usersList, usersList.Count, pageIndex, pageSize);

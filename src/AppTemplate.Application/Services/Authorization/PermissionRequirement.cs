@@ -4,10 +4,10 @@ namespace AppTemplate.Application.Services.Authorization;
 
 public sealed class PermissionRequirement : IAuthorizationRequirement
 {
-    public PermissionRequirement(string permission)
-    {
-        Permission = permission;
-    }
+  public PermissionRequirement(string permission)
+  {
+    Permission = permission;
+  }
 
-    public string Permission { get; }
+  public string Permission { get; }
 }

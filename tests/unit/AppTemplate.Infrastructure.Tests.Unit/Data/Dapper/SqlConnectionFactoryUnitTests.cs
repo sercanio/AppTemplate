@@ -1,4 +1,3 @@
-﻿using System.Data;
 using AppTemplate.Infrastructure.Data.Dapper;
 using Microsoft.Extensions.Configuration;
 using Npgsql;

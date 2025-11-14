@@ -1,11 +1,10 @@
-﻿using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
+using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
 using AppTemplate.Application.Repositories;
 using AppTemplate.Application.Services.Roles;
 using AppTemplate.Domain.Users.DomainEvents;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Features.AppUsersTests.Commands.UpdateUserRolesTests;
 

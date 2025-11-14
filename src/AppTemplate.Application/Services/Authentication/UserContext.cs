@@ -4,43 +4,43 @@ namespace AppTemplate.Application.Services.Authentication;
 
 public sealed class UserContext : IUserContext
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+  private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UserContext(IHttpContextAccessor httpContextAccessor)
+  public UserContext(IHttpContextAccessor httpContextAccessor)
+  {
+    _httpContextAccessor = httpContextAccessor;
+  }
+
+  public Guid UserId
+  {
+    get
     {
-        _httpContextAccessor = httpContextAccessor;
-    }
+      var userId = _httpContextAccessor
+          .HttpContext?
+          .User
+          .GetUserId() ?? throw new ApplicationException("User context is unavailable");
 
-    public Guid UserId
+      if (userId == Guid.Empty)
+      {
+        throw new ApplicationException("User id is unavailable");
+      }
+
+      return userId;
+    }
+  }
+
+  public string IdentityId
+  {
+    get =>
+        _httpContextAccessor
+            .HttpContext?
+            .User
+            .GetIdentityId() ??
+        throw new ApplicationException("User context is unavailable");
+    set
     {
-        get
-        {
-            var userId = _httpContextAccessor
-                .HttpContext?
-                .User
-                .GetUserId() ?? throw new ApplicationException("User context is unavailable");
-
-            if (userId == Guid.Empty)
-            {
-                throw new ApplicationException("User id is unavailable");
-            }
-
-            return userId;
-        }
+      // This setter can be used to store the identity ID in the HttpContext if needed.
+      // For now, it does nothing as the identity ID is typically read from the claims.
     }
-
-    public string IdentityId
-    {
-        get =>
-            _httpContextAccessor
-                .HttpContext?
-                .User
-                .GetIdentityId() ??
-            throw new ApplicationException("User context is unavailable");
-        set
-        {
-            // This setter can be used to store the identity ID in the HttpContext if needed.
-            // For now, it does nothing as the identity ID is typically read from the claims.
-        }
-    }
+  }
 }

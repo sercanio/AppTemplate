@@ -1,9 +1,8 @@
-﻿using AppTemplate.Application.Services.EmailSenders;
+using AppTemplate.Application.Services.EmailSenders;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using Xunit;
 
 namespace AppTemplate.Application.Tests.Unit.Services.EmailSendersServiceTests;
 

@@ -1,6 +1,4 @@
-﻿using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
-using AppTemplate.Application.Repositories;
-using AppTemplate.Application.Services.Roles;
+using AppTemplate.Application.Features.AppUsers.Commands.Update.UpdateUserRoles;
 using AppTemplate.Domain.Users.DomainEvents;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
