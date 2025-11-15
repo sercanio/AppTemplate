@@ -33,7 +33,7 @@ public static class DependencyInjection
   {
     services.AddDbContext<ApplicationDbContext>(options =>
     {
-      options.UseNpgsql(configuration.GetConnectionString("AppTemplateDb"));
+      options.UseNpgsql(configuration.GetConnectionString("Database"));
 
       // Configure warnings to ignore the pending model changes warning
       options.ConfigureWarnings(warnings =>

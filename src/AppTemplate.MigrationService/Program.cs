@@ -12,7 +12,7 @@ builder.Services.AddHostedService<Worker>();
 builder.Services.AddTransient<IDateTimeProvider, DateTimeProvider>();
 
 // Add the DbContext with PostgreSQL connection but disable pooling for migrations
-builder.AddNpgsqlDbContext<ApplicationDbContext>("AppTemplateDb", configureDbContextOptions: options =>
+builder.AddNpgsqlDbContext<ApplicationDbContext>("Database", configureDbContextOptions: options =>
 {
   // Disable pooling for the migration service
   options.EnableServiceProviderCaching(false);
