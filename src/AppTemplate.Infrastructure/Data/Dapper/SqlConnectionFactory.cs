@@ -18,10 +18,10 @@ public sealed class SqlConnectionFactory : ISqlConnectionFactory
 
   public IDbConnection CreateConnection()
   {
-    var connectionString = _configuration.GetConnectionString("AppTemplateDb");
+    var connectionString = _configuration.GetConnectionString("Database");
     if (string.IsNullOrEmpty(connectionString))
     {
-      throw new InvalidOperationException("AppTemplateDb connection string not found. Make sure Aspire is properly configured.");
+      throw new InvalidOperationException("Database connection string not found. Make sure your solution is properly configured.");
     }
 
     var connection = new NpgsqlConnection(connectionString);
